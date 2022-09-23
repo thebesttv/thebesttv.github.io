@@ -1,0 +1,838 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2022-09-23 Fri 21:02 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pointer Analysis</title>
+<meta name="author" content="thebesttv" />
+<meta name="generator" content="Org Mode" />
+<style>
+  #content { max-width: 60em; margin: auto; }
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #e6e6e6;
+    border-radius: 3px;
+    background-color: #f2f2f2;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: auto;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    padding: 3px;
+    color: #555;
+    background-color: #f2f2f299;
+  }
+  pre.src:hover:before { display: inline; margin-top: 14px;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-authinfo::before { content: 'Authinfo'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .equation-container {
+    display: table;
+    text-align: center;
+    width: 100%;
+  }
+  .equation {
+    vertical-align: middle;
+  }
+  .equation-label {
+    display: table-cell;
+    text-align: right;
+    vertical-align: middle;
+  }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { }
+</style>
+
+        <style>
+        /* From: https://endlessparentheses.com/public/css/endless.css */
+        /* See also: https://meta.superuser.com/questions/4788/css-for-the-new-kbd-style */
+        kbd
+        {
+          -moz-border-radius: 6px;
+          -moz-box-shadow: 0 1px 0 rgba(0,0,0,0.2),0 0 0 2px #fff inset;
+          -webkit-border-radius: 6px;
+          -webkit-box-shadow: 0 1px 0 rgba(0,0,0,0.2),0 0 0 2px #fff inset;
+          background-color: #f7f7f7;
+          border: 1px solid #ccc;
+          border-radius: 6px;
+          box-shadow: 0 1px 0 rgba(0,0,0,0.2),0 0 0 2px #fff inset;
+          color: #333;
+          display: inline-block;
+          font-family: 'Droid Sans Mono', monospace;
+          font-size: 80%;
+          font-weight: normal;
+          line-height: inherit;
+          margin: 0 .1em;
+          padding: .08em .4em;
+          text-shadow: 0 1px 0 #fff;
+          word-spacing: -4px;
+        
+          box-shadow: 2px 2px 2px #222; /* MA: An extra I've added. */
+        }
+        </style>
+        <link rel="stylesheet" type="text/css" href="https://alhassy.github.io/org-special-block-extras/tooltipster/dist/css/tooltipster.bundle.min.css"/>
+        
+        <link rel="stylesheet" type="text/css" href="https://alhassy.github.io/org-special-block-extras/tooltipster/dist/css/plugins/tooltipster/sideTip/themes/tooltipster-sideTip-punk.min.css" />
+        
+        <script type="text/javascript">
+            if (typeof jQuery == 'undefined') {
+                document.write(unescape('%3Cscript src="https://code.jquery.com/jquery-1.10.0.min.js"%3E%3C/script%3E'));
+            }
+        </script>
+        
+         <script type="text/javascript"            src="https://alhassy.github.io/org-special-block-extras/tooltipster/dist/js/tooltipster.bundle.min.js"></script>
+        
+          <script>
+                 $(document).ready(function() {
+                     $('.tooltip').tooltipster({
+                         theme: 'tooltipster-punk',
+                         contentAsHTML: true,
+                         animation: 'grow',
+                         delay: [100,500],
+                         // trigger: 'click'
+                         trigger: 'custom',
+                         triggerOpen: {
+                             mouseenter: true
+                         },
+                         triggerClose: {
+                             originClick: true,
+                             scroll: true
+                         }
+         });
+                 });
+             </script>
+        
+        <style>
+           abbr {color: red;}
+        
+           .tooltip { border-bottom: 1px dotted #000;
+                      color:red;
+                      text-decoration: none;}
+        </style>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        displayAlign: "center",
+        displayIndent: "0em",
+
+        "HTML-CSS": { scale: 100,
+                        linebreaks: { automatic: "false" },
+                        webFont: "TeX"
+                       },
+        SVG: {scale: 100,
+              linebreaks: { automatic: "false" },
+              font: "TeX"},
+        NativeMML: {scale: 100},
+        TeX: { equationNumbers: {autoNumber: "AMS"},
+               MultLineWidth: "85%",
+               TagSide: "right",
+               TagIndent: ".8em"
+             }
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML"></script>
+</head>
+<body>
+<div id="content" class="content">
+<h1 class="title">Pointer Analysis</h1>
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#org3cae157">1. Datalog</a></li>
+<li><a href="#org5685e80">2. Context Sensitivity</a>
+<ul>
+<li><a href="#orgc9e3630">2.1. Categories</a></li>
+<li><a href="#orga217251">2.2. Incorporate into Datalog</a></li>
+<li><a href="#org56f6fc3">2.3. Call-Site Sensitivity</a>
+<ul>
+<li><a href="#org48545e8">2.3.1. Problem</a></li>
+</ul>
+</li>
+<li><a href="#org142b80a">2.4. Object Sensitivity</a>
+<ul>
+<li><a href="#org11995e7">2.4.1. An Example</a></li>
+</ul>
+</li>
+<li><a href="#org86995bd">2.5. The Approach in Cartesian Product Algorithm</a></li>
+<li><a href="#orgbf034c0">2.6. Introspective Analysis</a></li>
+<li><a href="#org8aff414">2.7. Hybrid Analysis</a></li>
+<li><a href="#orge650612">2.8. Related Papers</a>
+<ul>
+<li><a href="#org80d0bfc">2.8.1. A Principled Approach to Selective Context Sensitivity for Pointer Analysis (<a href="#citeproc_bib_item_3">Li et al. 2020</a>)</a></li>
+<li><a href="#org47e81fe">2.8.2. Pick Your Contexts Well: Understanding Object-Sensitivity (<a href="#citeproc_bib_item_5">Smaragdakis, Bravenboer, and Lhoták 2011</a>)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#org4df3abf">3. Field Sensitivity</a></li>
+<li><a href="#org99c2c67">4. Steensgaard's Analysis</a></li>
+<li><a href="#org3cc9ef9">5. Access Path Abstraction</a></li>
+<li><a href="#orgd6bcb9c">6. Bibliography</a></li>
+</ul>
+</div>
+</div>
+<ul class="org-ul">
+<li><a href="https://en.wikipedia.org/wiki/Pointer_analysis">Wiki - Pointer analysis</a></li>
+<li class="off"><code>[&#xa0;]</code> <a href="http://gbalats.github.io/2016/10/24/macro-constructors.html">Datalog Macro-Constructors</a> 大概讲的 Datalog context sensitive pta
+的具体实现</li>
+<li class="off"><code>[&#xa0;]</code> 视频 <a href="https://youtu.be/Z2IkUPe1xmE">[POPL'22] Return of CFA: Call-Site Sensitivity Can Be
+Superior to Object Sensitivity &#x2026;</a></li>
+
+<li>value-based context-sensitivity [Khedker and Karkare 2008; Padhye and
+Khedker 2013] from (<a href="#citeproc_bib_item_2">Jeon, Jeong, and Oh 2018, sec. 2 para. 2</a>)</li>
+</ul>
+
+<p>
+TODO: context-tunneling 的各种 policy
+</p>
+<ul class="org-ul">
+<li>先看那篇最开始的提出tunneling的18年的论文?</li>
+</ul>
+
+<div id="outline-container-org3cae157" class="outline-2">
+<h2 id="org3cae157"><span class="section-number-2">1.</span> Datalog</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+Pure Datalog has such properties
+</p>
+<ul class="org-ul">
+<li>it is not Turing-complete</li>
+<li>every Datalog program runs in polynomial time, every polynomial
+algorithm can be written in Datalog</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org5685e80" class="outline-2">
+<h2 id="org5685e80"><span class="section-number-2">2.</span> Context Sensitivity</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+There is another form of context sensitivity
+</p>
+<ul class="org-ul">
+<li>based on equality constraints: assignment <code>x = y</code> is modeled with
+constraint \(pt(y) = pt(x)\) instead of \(pt(y) \subseteq pt(x)\)</li>
+</ul>
+<blockquote>
+<p>
+While this approach has been shown to scale for C++ programs, we are
+unaware of a scalable implementation for Java-like languages. In
+particular, the increased use of virtual dispatch in Java negatively
+affects the scalability of the equality-based approach.
+(<a href="#citeproc_bib_item_6">Sridharan et al. 2013, 210</a>)
+</p>
+</blockquote>
+
+<p>
+The two papers present two orthogonal techniques that can be combined:
+</p>
+<ul class="org-ul">
+<li>Zipper(<a href="#citeproc_bib_item_3">Li et al. 2020</a>):
+implements selective context sensitivity</li>
+<li></li>
+</ul>
+<p>
+The combined approach (<i>1callH+SL+Zip</i>) is typically faster than
+<i>1callH+SL</i> at only a small cost of precision.
+</p>
+</div>
+
+<div id="outline-container-orgc9e3630" class="outline-3">
+<h3 id="orgc9e3630"><span class="section-number-3">2.1.</span> Categories</h3>
+<div class="outline-text-3" id="text-2-1">
+<p>
+The research of context sensitivity can be divided into three orthogonal
+categories (<a href="#citeproc_bib_item_3">Li et al. 2020</a>)
+</p>
+<ul class="org-ul">
+<li>kind of context elements: 用程序中的什么来表示上下文
+<ul class="org-ul">
+<li>call-site: inherited from the foundational approaches used both for C
+and for functional languages [Sharir and Pnueli 1981; Shivers 1991]</li>
+<li><p>
+object: uses allocation sites of receiver objects [Milanova et
+al. 2005]
+</p>
+<blockquote>
+<p>
+Generally, object sensitivity is more precise and efficient than
+call-site sensitivity and is considered the most effective
+context-sensitivity variant for producing good precision for Java.
+</p>
+</blockquote></li>
+<li>type [Smaragdakis et al. 2011]: as object sensitivity is difficult
+to scale for large and complex Java programs</li>
+</ul></li>
+<li>composition of context elements: 对上下文 (context string) 的取舍
+<ul class="org-ul">
+<li>k-limiting: only use the <b>most recent</b> k elements</li>
+<li><p>
+context-tunneling: instead of keeping the <i>most recent</i> k context
+elements, keep the <b><i>most important</i></b> k elements.  Context-tunneling
+maintains an <b>arbitrary k-length sub-sequence</b> of context strings.
+It is a generalization of the traditional k-limiting approach.
+</p>
+<blockquote>
+<p>
+Don't keep the most recent K, keep the most important K.
+</p>
+</blockquote>
+<ul class="org-ul">
+<li>Tunneling abstractoin is a set of relations between the methods,
+which determine when to apply context-tunneling (skip
+elements???).</li>
+<li>identify redundant context elements not useful for improving
+precision &amp; skipping them</li>
+<li>machine-learning approach to select context elements</li>
+</ul></li>
+</ul></li>
+<li><p>
+selective use of context sensitivity: the selection of which parts of
+a given program to analyze with context sensitivity.
+</p>
+<blockquote>
+<p>
+Selective context analysis <b>applies differnt k to different methods</b>.
+(<a href="#citeproc_bib_item_2">Jeon, Jeong, and Oh 2018, 3</a>)
+</p>
+</blockquote>
+<ul class="org-ul">
+<li>conventional: uniformly apply context sensitivity to every method.
+This approach achieves the best precision, but comes at the price of
+scalability, as functions that are expensive to analyze but
+contribute little to precision are also included.</li>
+<li>selective object sensitivity: selectively applies deeper contexts to
+a set of functions that are likely to benefit.  This approach has
+the potential to speed up the analysis at a small cost of precision.
+But this is not always the case<sup><a id="fnr.1" class="footref" href="#fn.1" role="doc-backlink">1</a></sup>: sometimes the decrease in
+precision may be so large as to hamper the efficiency, as spurious
+points-to information slows down the analysis.
+<ul class="org-ul">
+<li>heuristic: require manual tuning of multiple complicated parameters</li>
+<li>machine-learning: require training and manual oversight during the
+tuning phase, they can behave unpredictably for new inputs, and they
+offer few insights on why they work</li>
+<li>a more principled approach
+(<a href="#citeproc_bib_item_3">Li et al. 2020</a>)</li>
+</ul></li>
+</ul></li>
+</ul>
+
+<p>
+There is also
+</p>
+<ul class="org-ul">
+<li>hybrid context sensitivity
+[Kastrinis and Smaragdakis 2013]
+selective-2-object-sensitivity (s2obj)</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orga217251" class="outline-3">
+<h3 id="orga217251"><span class="section-number-3">2.2.</span> Incorporate into Datalog</h3>
+<div class="outline-text-3" id="text-2-2">
+<p>
+To incorporate context sensitivity, add two constructors
+\[ \text{Record}(heap: H, ctx: C ) = newHCtx: HC, \\
+   \text{Merge}(heap: H, hctx: HC, invo: I, ctx: C ) = newCtx: C, \]
+where \(C\) is a set of (calling) contexts, and \(HC\) is a set of heap
+contexts.
+</p>
+
+<p>
+<b>Record</b> and <b>Merge</b> serve as <i>constructors</i> of contexts:
+</p>
+<ul class="org-ul">
+<li><b>Record</b> creates a new <i>heap context</i> for each allocation instruction
+(aka. <code>new</code> instruction), e.g. <code>a = new A()</code>.  The object created at
+that allocation site is <i>qualified with the heap context</i> that
+<b>Record</b> returns.</li>
+<li><b>Merge</b> creates a new <i>calling context</i> (or just <i>context</i>) at each
+call site for method invocations, e.g. <code>o.f()</code>.</li>
+</ul>
+
+<p>
+Normally, a k-level calling context is accompanied by a (k-1)-level heap
+context.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org56f6fc3" class="outline-3">
+<h3 id="org56f6fc3"><span class="section-number-3">2.3.</span> Call-Site Sensitivity</h3>
+<div class="outline-text-3" id="text-2-3">
+</div>
+<div id="outline-container-org48545e8" class="outline-4">
+<h4 id="org48545e8"><span class="section-number-4">2.3.1.</span> Problem</h4>
+<div class="outline-text-4" id="text-2-3-1">
+<p>
+The effectiveness of call-site sensitivity relies on <b>syntactic patterns
+in the program</b> (<a href="#citeproc_bib_item_4">Smaragdakis and Balatsouras 2015, 36</a>).  For example,
+only the last call-site is remembered using the 1-call-site algorithm.
+As shown in Fig. <a href="#org492909d">1</a>, the function <code>doSet</code>
+is wrapped by <code>set</code>.  Although <code>set</code> is called from two different
+call-sites ([5] and [6]), both source invocations eventually point to
+<code>[12]:A.doSet(B)</code>, with the same context information.  In this case,
+nested function calls can lead to lost precision.
+</p>
+
+
+<div id="org492909d" class="figure">
+<p><img src="./pta/call-site-vs-object-sensitivity.png" alt="call-site-vs-object-sensitivity.png" width="80%" style="margin-left: auto; margin-right: auto;" />
+</p>
+<p><span class="figure-number">Figure 1: </span>Call-Site vs. Object Sensitivity (<a href="#citeproc_bib_item_7">Tan and Li 2021, 161</a>)</p>
+</div>
+
+<p>
+调用点敏感类似于在走迷宫时, 只记住最近走过的k个门.
+一旦函数调用层数深了, 就会忘记最早的一些调用点.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org142b80a" class="outline-3">
+<h3 id="org142b80a"><span class="section-number-3">2.4.</span> Object Sensitivity</h3>
+<div class="outline-text-3" id="text-2-4">
+<p>
+object sensitivity (or <b>allocation-site</b> sensitivity)
+</p>
+
+<blockquote>
+<p>
+the context of a method call is the receiver object together with <b>the
+"parent" receiver object</b> (the receiver object of the method that
+<b>allocated</b> the receiver object of the call).
+(<a href="#citeproc_bib_item_4">Smaragdakis and Balatsouras 2015, 38</a>)
+</p>
+</blockquote>
+</div>
+
+<div id="outline-container-org11995e7" class="outline-4">
+<h4 id="org11995e7"><span class="section-number-4">2.4.1.</span> An Example</h4>
+<div class="outline-text-4" id="text-2-4-1">
+<p>
+The call chain is <code>A.f() -&gt; B.g(a) -&gt; C.h(a) -&gt; D.i(a) -&gt; E.j(a) -&gt; A.f()</code>.
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #00ffff;">class</span> <span style="color: #98fb98;">A</span> {
+    <span style="color: #b0c4de;">void</span> <span style="color: #87cefa;">f</span>() {                  <span style="color: #ff7f24;">// [29]</span>
+        <span style="color: #98fb98;">B</span> b = <span style="color: #00ffff;">new</span> <span style="color: #98fb98;">B</span>();
+        b.<span style="color: #87cefa;">g</span>(<span style="color: #b0c4de;">this</span>);
+    }
+    <span style="color: #b0c4de;">void</span> <span style="color: #87cefa;">f2</span>() { }}              <span style="color: #ff7f24;">// [29]</span>
+<span style="color: #00ffff;">class</span> <span style="color: #98fb98;">B</span> {
+    <span style="color: #b0c4de;">void</span> <span style="color: #87cefa;">g</span>(<span style="color: #98fb98;">A</span> a) {               <span style="color: #ff7f24;">// [29, 3]</span>
+        <span style="color: #98fb98;">C</span> c = <span style="color: #00ffff;">new</span> <span style="color: #98fb98;">C</span>();
+        c.<span style="color: #87cefa;">h</span>(a);
+    }}
+<span style="color: #00ffff;">class</span> <span style="color: #98fb98;">C</span> {
+    <span style="color: #b0c4de;">void</span> <span style="color: #87cefa;">h</span>(<span style="color: #98fb98;">A</span> a) {
+        <span style="color: #98fb98;">D</span> d = <span style="color: #00ffff;">new</span> <span style="color: #98fb98;">D</span>();          <span style="color: #ff7f24;">// [29, 3, 9]</span>
+        d.<span style="color: #87cefa;">i</span>(a);
+    }}
+<span style="color: #00ffff;">class</span> <span style="color: #98fb98;">D</span> {
+    <span style="color: #b0c4de;">void</span> <span style="color: #87cefa;">i</span>(<span style="color: #98fb98;">A</span> a) {
+        <span style="color: #98fb98;">E</span> e = <span style="color: #00ffff;">new</span> <span style="color: #98fb98;">E</span>();          <span style="color: #ff7f24;">// [29, 3, 9, 14]</span>
+        e.<span style="color: #87cefa;">j</span>(a);
+    }}
+<span style="color: #00ffff;">class</span> <span style="color: #98fb98;">E</span> {
+    <span style="color: #b0c4de;">void</span> <span style="color: #87cefa;">j</span>(<span style="color: #98fb98;">A</span> a) {               <span style="color: #ff7f24;">// [29, 3, 9, 14, 19]</span>
+        a.<span style="color: #87cefa;">f2</span>();
+    }}
+<span style="color: #00ffff;">class</span> <span style="color: #98fb98;">Ex1</span> {
+    <span style="color: #00ffff;">public</span> <span style="color: #00ffff;">static</span> <span style="color: #b0c4de;">void</span> <span style="color: #87cefa;">main</span>(<span style="color: #98fb98;">String</span>[] args) {
+        <span style="color: #98fb98;">A</span> a = <span style="color: #00ffff;">new</span> <span style="color: #98fb98;">A</span>();
+        a.<span style="color: #87cefa;">f</span>();
+    }}
+</pre>
+</div>
+<p>
+The output of a 2-object c.s. pta:
+</p>
+<div class="org-src-container">
+<pre class="src src-text">[NewObj{&lt;Ex1: void main(java.lang.String[])&gt;[0@L28] new A}]
+  :&lt;A: void f()&gt;/%this
+ -&gt; [[]:NewObj{&lt;Ex1: void main(java.lang.String[])&gt;[0@L28] new A}]
+
+[NewObj{&lt;Ex1: void main(java.lang.String[])&gt;[0@L28] new A}]
+  :&lt;A: void f2()&gt;/%this
+ -&gt; [[]:NewObj{&lt;Ex1: void main(java.lang.String[])&gt;[0@L28] new A}]
+
+[NewObj{&lt;Ex1: void main(java.lang.String[])&gt;[0@L28] new A},
+ NewObj{&lt;A: void f()&gt;[0@L3] new B}]
+  :&lt;B: void g(A)&gt;/%this
+ -&gt; [[NewObj{&lt;Ex1: void main(java.lang.String[])&gt;[0@L28] new A}]:NewObj{&lt;A: void f()&gt;[0@L3] new B}]
+
+[NewObj{&lt;A: void f()&gt;[0@L3] new B},
+ NewObj{&lt;B: void g(A)&gt;[0@L9] new C}]
+  :&lt;C: void h(A)&gt;/%this
+ -&gt; [[NewObj{&lt;A: void f()&gt;[0@L3] new B}]:NewObj{&lt;B: void g(A)&gt;[0@L9] new C}]
+
+[NewObj{&lt;B: void g(A)&gt;[0@L9] new C},
+ NewObj{&lt;C: void h(A)&gt;[0@L14] new D}]
+  :&lt;D: void i(A)&gt;/%this
+ -&gt; [[NewObj{&lt;B: void g(A)&gt;[0@L9] new C}]:NewObj{&lt;C: void h(A)&gt;[0@L14] new D}]
+
+[NewObj{&lt;C: void h(A)&gt;[0@L14] new D},
+ NewObj{&lt;D: void i(A)&gt;[0@L19] new E}]
+  :&lt;E: void j(A)&gt;/%this
+ -&gt; [[NewObj{&lt;C: void h(A)&gt;[0@L14] new D}]:NewObj{&lt;D: void i(A)&gt;[0@L19] new E}]
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org86995bd" class="outline-3">
+<h3 id="org86995bd"><span class="section-number-3">2.5.</span> The Approach in Cartesian Product Algorithm</h3>
+<div class="outline-text-3" id="text-2-5">
+<p>
+TODO
+</p>
+
+<blockquote>
+<p>
+The algorithm treats as context of a method call <b>the abstract values of
+all parameters</b> to the method call, including the <b>receiver object</b> and
+<b>actual arguments</b>.  This approach has not yet been found to yield
+useful scalability/precision tradeoffs for pointer analysis, although it
+has had application in <span class="underline">less expensive analyses</span> (e.g., type inference).
+</p>
+</blockquote>
+</div>
+</div>
+
+<div id="outline-container-orgbf034c0" class="outline-3">
+<h3 id="orgbf034c0"><span class="section-number-3">2.6.</span> Introspective Analysis</h3>
+<div class="outline-text-3" id="text-2-6">
+<p>
+TODO
+</p>
+
+<blockquote>
+<p>
+adjusts its context per program site, based on easy-to-compute
+statistics from a context-insensitive analysis run
+</p>
+</blockquote>
+</div>
+</div>
+
+<div id="outline-container-org8aff414" class="outline-3">
+<h3 id="org8aff414"><span class="section-number-3">2.7.</span> Hybrid Analysis</h3>
+<div class="outline-text-3" id="text-2-7">
+<blockquote>
+<p>
+A hybrid analysis models <b>separately</b> static and virtual method calls,
+favoring <span class="underline">object sensitivity</span> for the former and <span class="underline">call-site sensitivity</span>
+for the latter.
+</p>
+</blockquote>
+
+<p>
+In practice, a mix of object- and call-string sensitivity is often used,
+e.g., with call-string sensitivity being employed only for static
+methods (which have no receiver argument).
+</p>
+</div>
+</div>
+
+<div id="outline-container-orge650612" class="outline-3">
+<h3 id="orge650612"><span class="section-number-3">2.8.</span> Related Papers</h3>
+<div class="outline-text-3" id="text-2-8">
+</div>
+<div id="outline-container-org80d0bfc" class="outline-4">
+<h4 id="org80d0bfc"><span class="section-number-4">2.8.1.</span> A Principled Approach to Selective Context Sensitivity for Pointer Analysis (<a href="#citeproc_bib_item_3">Li et al. 2020</a>)</h4>
+<div class="outline-text-4" id="text-2-8-1">
+<ul class="org-ul">
+<li>识别程序中的函数, 哪些是 precision-critical, 哪些是 efficiency-critical 的</li>
+<li><p>
+解释了 causes of imprecision in context-insensitive pointer analysis
+</p>
+<blockquote>
+<p>
+We describe three general patterns of value flow that help in
+explaining <b>how and where most of the imprecision is introduced</b> in a
+context-insensitive pointer analysis
+</p>
+</blockquote></li>
+<li>提出了两个算法
+<ul class="org-ul">
+<li>Zipper:</li>
+<li>Zipper<sup>e</sup>: 只分析程序中对精度影响大, 并且对效率影响不大的函数进行分析</li>
+</ul></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org47e81fe" class="outline-4">
+<h4 id="org47e81fe"><span class="section-number-4">2.8.2.</span> Pick Your Contexts Well: Understanding Object-Sensitivity (<a href="#citeproc_bib_item_5">Smaragdakis, Bravenboer, and Lhoták 2011</a>)</h4>
+<div class="outline-text-4" id="text-2-8-2">
+<ul class="org-ul">
+<li>Main concerns
+<ul class="org-ul">
+<li>understanding object-sensitivity in depth</li>
+<li>formalizing it conveniently</li>
+<li>exploring design choices that produce even more scalable and precise
+analyses than current practice</li>
+</ul></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org4df3abf" class="outline-2">
+<h2 id="org4df3abf"><span class="section-number-2">3.</span> Field Sensitivity</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+Field sensitivity:
+</p>
+
+<p>
+<i>Field based</i> analysis distinguishes fields, but only identifies
+FldPointsTo facts by the heap object's <b>type</b> and not its full identity.
+Fields of different heap objects of the same type are merged.  For
+example
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span class="linenr">1: </span><span style="color: #00ffff;">class</span> <span style="color: #98fb98;">A</span> {
+<span class="linenr">2: </span>    <span style="color: #b0c4de;">int</span> f, g;
+<span class="linenr">3: </span>}
+<span class="linenr">4: </span><span style="color: #98fb98;">A</span> x = <span style="color: #00ffff;">new</span> <span style="color: #98fb98;">A</span>();
+<span class="linenr">5: </span><span style="color: #98fb98;">A</span> y = <span style="color: #00ffff;">new</span> <span style="color: #98fb98;">A</span>();
+</pre>
+</div>
+<p>
+Although <code>x</code> and <code>y</code> point to different heap objects (x &rarr; o<sub>4</sub>, y &rarr;
+o<sub>5</sub>), <code>x.f</code> and <code>y.f</code> are both considered as <code>A.f</code>, <code>x.g</code> and <code>y.g</code> as
+<code>A.g</code>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org99c2c67" class="outline-2">
+<h2 id="org99c2c67"><span class="section-number-2">4.</span> Steensgaard's Analysis</h2>
+<div class="outline-text-2" id="text-4">
+<blockquote>
+<p>
+Steensgaard-style pointer analysis is best termed <i>unification-based</i>
+and uses <i>equality constraints</i> as opposed to the subset constraints of
+the Andersen approach.
+</p>
+
+<p>
+[&#x2026;] the analysis can execute in <b>practically-linear time</b> (relative to
+the number of input instructions) [&#x2026;]
+</p>
+
+<p>
+Overall, Steensgaard-style analyses have been quite popular, especially
+in procedural languages such as C, due to their simplicity and
+<b>unparalleled speed</b>.  However, they have become progressively less used
+in recent programming languages and modern settings, where the speed of
+an Andersen-style analysis is usually quite sufficient.
+</p>
+
+<p>
+<a href="#citeproc_bib_item_4">Smaragdakis and Balatsouras 2015</a>
+</p>
+</blockquote>
+</div>
+</div>
+
+<div id="outline-container-org3cc9ef9" class="outline-2">
+<h2 id="org3cc9ef9"><span class="section-number-2">5.</span> Access Path Abstraction</h2>
+<div class="outline-text-2" id="text-5">
+<p>
+TODO
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgd6bcb9c" class="outline-2">
+<h2 id="orgd6bcb9c"><span class="section-number-2">6.</span> Bibliography</h2>
+<div class="outline-text-2" id="text-6">
+<style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
+  <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Jeon, Minseok, and Hakjoo Oh. 2022. “Return of CFA: Call-Site Sensitivity Can Be Superior to Object Sensitivity Even for Object-Oriented Programs.” <i>Proceedings of the ACM on Programming Languages</i> 6 (POPL): 1–29. <a href="https://doi.org/10.1145/3498720">https://doi.org/10.1145/3498720</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_2"></a>Jeon, Minseok, Sehun Jeong, and Hakjoo Oh. 2018. “Precise and Scalable Points-to Analysis via Data-Driven Context Tunneling.” <i>Proceedings of the ACM on Programming Languages</i> 2 (OOPSLA): 140:1–140:29. <a href="https://doi.org/10.1145/3276510">https://doi.org/10.1145/3276510</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_3"></a>Li, Yue, Tian Tan, Anders Møller, and Yannis Smaragdakis. 2020. “A Principled Approach to Selective Context Sensitivity for Pointer Analysis.” <i>ACM Transactions on Programming Languages and Systems</i> 42 (2): 1–40. <a href="https://doi.org/10.1145/3381915">https://doi.org/10.1145/3381915</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_4"></a>Smaragdakis, Yannis, and George Balatsouras. 2015. “Pointer Analysis.” <i>Foundations and Trends in Programming Languages</i> 2 (1): 1–69. <a href="https://doi.org/10.1561/2500000014">https://doi.org/10.1561/2500000014</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_5"></a>Smaragdakis, Yannis, Martin Bravenboer, and Ondrej Lhoták. 2011. “Pick Your Contexts Well: Understanding Object-Sensitivity.” <i>ACM SIGPLAN Notices</i> 46 (1): 17–30. <a href="https://doi.org/10.1145/1925844.1926390">https://doi.org/10.1145/1925844.1926390</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_6"></a>Sridharan, Manu, Satish Chandra, Julian Dolby, Stephen J. Fink, and Eran Yahav. 2013. “Alias Analysis for Object-Oriented Programs.” In <i>Aliasing in Object-Oriented Programming. Types, Analysis and Verification</i>, edited by Dave Clarke, James Noble, and Tobias Wrigstad, 196–232. Lecture Notes in Computer Science. Berlin, Heidelberg: Springer. <a href="https://doi.org/10.1007/978-3-642-36946-9_8">https://doi.org/10.1007/978-3-642-36946-9_8</a>.</div>
+  <div class="csl-entry"><a id="citeproc_bib_item_7"></a>Tan, Tian, and Yue Li. 2021. “Static Program Analysis — Pointer Analysis: Context Sensitivity.” 2021. <a href="https://cs.nju.edu.cn/tiantan/software-analysis/PTA-CS.pdf">https://cs.nju.edu.cn/tiantan/software-analysis/PTA-CS.pdf</a>.</div>
+</div>
+</div>
+</div>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+
+<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1" role="doc-backlink">1</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
+See the last paragraph at <a href="#citeproc_bib_item_1">Jeon and Oh 2022</a>
+<i>Section 5.3 Comparison with Selective Object Sensitivity</i>.
+</p></div></div>
+
+
+</div>
+</div></div>
+<div id="postamble" class="status">
+<p class="author">Author: thebesttv</p>
+<p class="date">Created: 2022-09-23 Fri 21:02</p>
+<p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
