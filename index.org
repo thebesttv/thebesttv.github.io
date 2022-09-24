@@ -1,0 +1,56 @@
+#+title: Lalala Index
+
+This is index file.
+
+* 文章列表
+
+#+name: articles
+#+begin_src elisp :exports results :results output drawer
+  (require 'use-package)
+  (use-package f
+    :ensure t)
+
+  (setq eserver-root "~/eserver-static")
+
+  (defun directory-non-hidden-files (directory)
+    "Return absolute path of all non-hidden & non-backup files in DIRECTORY.
+  This does not opreate recursively. Only files / directories under the current
+  directory is shown."
+    (directory-files directory t
+                     ;; dircard ".", "..", hidden, and emacs-backup files
+                     (rx string-start (not ?.) (* anything) (not ?~) string-end)))
+
+  (defun directory-tree (directory)
+    "Return a tree of all files under DIRECTORY recursively."
+    (cons directory
+          (let ((res (directory-non-hidden-files directory)))
+            (mapcar (lambda (path)
+                      (if (not (file-directory-p path))
+                          path
+                        (directory-tree path)))
+                    res))))
+
+  (defun directory-tree-to-org-link-list (tree dep)
+    "Print TREE as org list.
+  TREE is created with `directory-tree'.  The printed result is a
+  list where .org files are displayed as link under
+  `eserver-root'. The result is intended to be captured with org
+  code block."
+    (princ (format "%s- %s/\n"
+                   (make-string (* 2 dep) ? )
+                   (file-name-nondirectory (car tree))))
+    (dolist (path (cdr tree))
+      (if (consp path)
+          (directory-tree-to-org-link-list path (1+ dep))
+        (when (string-suffix-p ".org" path)
+          (princ (format "%s- [[file:%s][%s]]\n" ; one slash, relative path
+                         (make-string (* 2 (1+ dep)) ? )
+                         (f-relative path eserver-root)
+                         (file-name-nondirectory path)))))))
+
+
+  (directory-tree-to-org-link-list
+   (directory-tree ".") 0)
+#+end_src
+
+#+results: articles
