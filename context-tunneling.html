@@ -1,267 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<!-- 2022-09-24 Sat 11:02 -->
-<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<!-- 2022-09-25 23:10 -->
+<meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Context Tunneling</title>
 <meta name="author" content="thebesttv" />
 <meta name="generator" content="Org Mode" />
-<style>
-  #content { max-width: 60em; margin: auto; }
-  .title  { text-align: center;
-             margin-bottom: .2em; }
-  .subtitle { text-align: center;
-              font-size: medium;
-              font-weight: bold;
-              margin-top:0; }
-  .todo   { font-family: monospace; color: red; }
-  .done   { font-family: monospace; color: green; }
-  .priority { font-family: monospace; color: orange; }
-  .tag    { background-color: #eee; font-family: monospace;
-            padding: 2px; font-size: 80%; font-weight: normal; }
-  .timestamp { color: #bebebe; }
-  .timestamp-kwd { color: #5f9ea0; }
-  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
-  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
-  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
-  .underline { text-decoration: underline; }
-  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
-  p.verse { margin-left: 3%; }
-  pre {
-    border: 1px solid #e6e6e6;
-    border-radius: 3px;
-    background-color: #f2f2f2;
-    padding: 8pt;
-    font-family: monospace;
-    overflow: auto;
-    margin: 1.2em;
-  }
-  pre.src {
-    position: relative;
-    overflow: auto;
-  }
-  pre.src:before {
-    display: none;
-    position: absolute;
-    top: -8px;
-    right: 12px;
-    padding: 3px;
-    color: #555;
-    background-color: #f2f2f299;
-  }
-  pre.src:hover:before { display: inline; margin-top: 14px;}
-  /* Languages per Org manual */
-  pre.src-asymptote:before { content: 'Asymptote'; }
-  pre.src-awk:before { content: 'Awk'; }
-  pre.src-authinfo::before { content: 'Authinfo'; }
-  pre.src-C:before { content: 'C'; }
-  /* pre.src-C++ doesn't work in CSS */
-  pre.src-clojure:before { content: 'Clojure'; }
-  pre.src-css:before { content: 'CSS'; }
-  pre.src-D:before { content: 'D'; }
-  pre.src-ditaa:before { content: 'ditaa'; }
-  pre.src-dot:before { content: 'Graphviz'; }
-  pre.src-calc:before { content: 'Emacs Calc'; }
-  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
-  pre.src-fortran:before { content: 'Fortran'; }
-  pre.src-gnuplot:before { content: 'gnuplot'; }
-  pre.src-haskell:before { content: 'Haskell'; }
-  pre.src-hledger:before { content: 'hledger'; }
-  pre.src-java:before { content: 'Java'; }
-  pre.src-js:before { content: 'Javascript'; }
-  pre.src-latex:before { content: 'LaTeX'; }
-  pre.src-ledger:before { content: 'Ledger'; }
-  pre.src-lisp:before { content: 'Lisp'; }
-  pre.src-lilypond:before { content: 'Lilypond'; }
-  pre.src-lua:before { content: 'Lua'; }
-  pre.src-matlab:before { content: 'MATLAB'; }
-  pre.src-mscgen:before { content: 'Mscgen'; }
-  pre.src-ocaml:before { content: 'Objective Caml'; }
-  pre.src-octave:before { content: 'Octave'; }
-  pre.src-org:before { content: 'Org mode'; }
-  pre.src-oz:before { content: 'OZ'; }
-  pre.src-plantuml:before { content: 'Plantuml'; }
-  pre.src-processing:before { content: 'Processing.js'; }
-  pre.src-python:before { content: 'Python'; }
-  pre.src-R:before { content: 'R'; }
-  pre.src-ruby:before { content: 'Ruby'; }
-  pre.src-sass:before { content: 'Sass'; }
-  pre.src-scheme:before { content: 'Scheme'; }
-  pre.src-screen:before { content: 'Gnu Screen'; }
-  pre.src-sed:before { content: 'Sed'; }
-  pre.src-sh:before { content: 'shell'; }
-  pre.src-sql:before { content: 'SQL'; }
-  pre.src-sqlite:before { content: 'SQLite'; }
-  /* additional languages in org.el's org-babel-load-languages alist */
-  pre.src-forth:before { content: 'Forth'; }
-  pre.src-io:before { content: 'IO'; }
-  pre.src-J:before { content: 'J'; }
-  pre.src-makefile:before { content: 'Makefile'; }
-  pre.src-maxima:before { content: 'Maxima'; }
-  pre.src-perl:before { content: 'Perl'; }
-  pre.src-picolisp:before { content: 'Pico Lisp'; }
-  pre.src-scala:before { content: 'Scala'; }
-  pre.src-shell:before { content: 'Shell Script'; }
-  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
-  /* additional language identifiers per "defun org-babel-execute"
-       in ob-*.el */
-  pre.src-cpp:before  { content: 'C++'; }
-  pre.src-abc:before  { content: 'ABC'; }
-  pre.src-coq:before  { content: 'Coq'; }
-  pre.src-groovy:before  { content: 'Groovy'; }
-  /* additional language identifiers from org-babel-shell-names in
-     ob-shell.el: ob-shell is the only babel language using a lambda to put
-     the execution function name together. */
-  pre.src-bash:before  { content: 'bash'; }
-  pre.src-csh:before  { content: 'csh'; }
-  pre.src-ash:before  { content: 'ash'; }
-  pre.src-dash:before  { content: 'dash'; }
-  pre.src-ksh:before  { content: 'ksh'; }
-  pre.src-mksh:before  { content: 'mksh'; }
-  pre.src-posh:before  { content: 'posh'; }
-  /* Additional Emacs modes also supported by the LaTeX listings package */
-  pre.src-ada:before { content: 'Ada'; }
-  pre.src-asm:before { content: 'Assembler'; }
-  pre.src-caml:before { content: 'Caml'; }
-  pre.src-delphi:before { content: 'Delphi'; }
-  pre.src-html:before { content: 'HTML'; }
-  pre.src-idl:before { content: 'IDL'; }
-  pre.src-mercury:before { content: 'Mercury'; }
-  pre.src-metapost:before { content: 'MetaPost'; }
-  pre.src-modula-2:before { content: 'Modula-2'; }
-  pre.src-pascal:before { content: 'Pascal'; }
-  pre.src-ps:before { content: 'PostScript'; }
-  pre.src-prolog:before { content: 'Prolog'; }
-  pre.src-simula:before { content: 'Simula'; }
-  pre.src-tcl:before { content: 'tcl'; }
-  pre.src-tex:before { content: 'TeX'; }
-  pre.src-plain-tex:before { content: 'Plain TeX'; }
-  pre.src-verilog:before { content: 'Verilog'; }
-  pre.src-vhdl:before { content: 'VHDL'; }
-  pre.src-xml:before { content: 'XML'; }
-  pre.src-nxml:before { content: 'XML'; }
-  /* add a generic configuration mode; LaTeX export needs an additional
-     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
-  pre.src-conf:before { content: 'Configuration File'; }
-
-  table { border-collapse:collapse; }
-  caption.t-above { caption-side: top; }
-  caption.t-bottom { caption-side: bottom; }
-  td, th { vertical-align:top;  }
-  th.org-right  { text-align: center;  }
-  th.org-left   { text-align: center;   }
-  th.org-center { text-align: center; }
-  td.org-right  { text-align: right;  }
-  td.org-left   { text-align: left;   }
-  td.org-center { text-align: center; }
-  dt { font-weight: bold; }
-  .footpara { display: inline; }
-  .footdef  { margin-bottom: 1em; }
-  .figure { padding: 1em; }
-  .figure p { text-align: center; }
-  .equation-container {
-    display: table;
-    text-align: center;
-    width: 100%;
-  }
-  .equation {
-    vertical-align: middle;
-  }
-  .equation-label {
-    display: table-cell;
-    text-align: right;
-    vertical-align: middle;
-  }
-  .inlinetask {
-    padding: 10px;
-    border: 2px solid gray;
-    margin: 10px;
-    background: #ffffcc;
-  }
-  #org-div-home-and-up
-   { text-align: right; font-size: 70%; white-space: nowrap; }
-  textarea { overflow-x: auto; }
-  .linenr { font-size: smaller }
-  .code-highlighted { background-color: #ffff00; }
-  .org-info-js_info-navigation { border-style: none; }
-  #org-info-js_console-label
-    { font-size: 10px; font-weight: bold; white-space: nowrap; }
-  .org-info-js_search-highlight
-    { background-color: #ffff00; color: #000000; font-weight: bold; }
-  .org-svg { }
-</style>
 <link rel="stylesheet" type="text/css" href="https://unpkg.com/latex.css/style.css"/>
+<link rel="stylesheet" type="text/css" href="css/org-default.css"/>
 <link rel="stylesheet" type="text/css" href="css/style.css"/>
-
-        <style>
-        /* From: https://endlessparentheses.com/public/css/endless.css */
-        /* See also: https://meta.superuser.com/questions/4788/css-for-the-new-kbd-style */
-        kbd
-        {
-          -moz-border-radius: 6px;
-          -moz-box-shadow: 0 1px 0 rgba(0,0,0,0.2),0 0 0 2px #fff inset;
-          -webkit-border-radius: 6px;
-          -webkit-box-shadow: 0 1px 0 rgba(0,0,0,0.2),0 0 0 2px #fff inset;
-          background-color: #f7f7f7;
-          border: 1px solid #ccc;
-          border-radius: 6px;
-          box-shadow: 0 1px 0 rgba(0,0,0,0.2),0 0 0 2px #fff inset;
-          color: #333;
-          display: inline-block;
-          font-family: 'Droid Sans Mono', monospace;
-          font-size: 80%;
-          font-weight: normal;
-          line-height: inherit;
-          margin: 0 .1em;
-          padding: .08em .4em;
-          text-shadow: 0 1px 0 #fff;
-          word-spacing: -4px;
-        
-          box-shadow: 2px 2px 2px #222; /* MA: An extra I've added. */
-        }
-        </style>
-        <link rel="stylesheet" type="text/css" href="https://alhassy.github.io/org-special-block-extras/tooltipster/dist/css/tooltipster.bundle.min.css"/>
-        
-        <link rel="stylesheet" type="text/css" href="https://alhassy.github.io/org-special-block-extras/tooltipster/dist/css/plugins/tooltipster/sideTip/themes/tooltipster-sideTip-punk.min.css" />
-        
-        <script type="text/javascript">
-            if (typeof jQuery == 'undefined') {
-                document.write(unescape('%3Cscript src="https://code.jquery.com/jquery-1.10.0.min.js"%3E%3C/script%3E'));
-            }
-        </script>
-        
-         <script type="text/javascript"            src="https://alhassy.github.io/org-special-block-extras/tooltipster/dist/js/tooltipster.bundle.min.js"></script>
-        
-          <script>
-                 $(document).ready(function() {
-                     $('.tooltip').tooltipster({
-                         theme: 'tooltipster-punk',
-                         contentAsHTML: true,
-                         animation: 'grow',
-                         delay: [100,500],
-                         // trigger: 'click'
-                         trigger: 'custom',
-                         triggerOpen: {
-                             mouseenter: true
-                         },
-                         triggerClose: {
-                             originClick: true,
-                             scroll: true
-                         }
-         });
-                 });
-             </script>
-        
-        <style>
-           abbr {color: red;}
-        
-           .tooltip { border-bottom: 1px dotted #000;
-                      color:red;
-                      text-decoration: none;}
-        </style>
 <script type="text/x-mathjax-config">
     MathJax.Hub.Config({
         displayAlign: "center",
@@ -286,22 +34,23 @@
 </head>
 <body>
 <div id="content" class="content">
+<header>
 <h1 class="title">Context Tunneling</h1>
-<div id="table-of-contents" role="doc-toc">
+</header><nav id="table-of-contents" role="doc-toc">
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org459ac4f">1. Context Tunneling</a></li>
-<li><a href="#orgaff2f46">2. Feature</a>
+<li><a href="#org3873a3a">1. Context Tunneling</a></li>
+<li><a href="#org79e93b7">2. Feature</a>
 <ul>
-<li><a href="#orge191c07">2.1. Feature 的组合</a></li>
-<li><a href="#org9e2d425">2.2. 使用 feature 生成 \(\mathcal{T}\)</a></li>
+<li><a href="#orgbba28b2">2.1. Feature 的组合</a></li>
+<li><a href="#org25d28af">2.2. 使用 feature 生成 \(\mathcal{T}\)</a></li>
 </ul>
 </li>
-<li><a href="#org7d01133">3. 算法</a></li>
+<li><a href="#orgb1a2d1b">3. 算法</a></li>
 </ul>
 </div>
-</div>
+</nav>
 <p>
 论文干了两件事
 </p>
@@ -317,8 +66,8 @@ precision and scalability can be gained by maintaining important context
 elements only
 </p>
 
-<div id="outline-container-org459ac4f" class="outline-2">
-<h2 id="org459ac4f"><span class="section-number-2">1.</span> Context Tunneling</h2>
+<div id="outline-container-org3873a3a" class="outline-2">
+<h2 id="org3873a3a"><span class="section-number-2">1.</span> <a href="#org3873a3a">Context Tunneling</a></h2>
 <div class="outline-text-2" id="text-1">
 <p>
 使用 context-tunneling 的指针分析, 相比与传统的 k-limiting 多了一个输入:
@@ -336,8 +85,8 @@ context \([c]\).  而不在 \(\mathcal{T}\) 中的函数调用, 如 \(m_3\) 调�
 </div>
 </div>
 
-<div id="outline-container-orgaff2f46" class="outline-2">
-<h2 id="orgaff2f46"><span class="section-number-2">2.</span> Feature</h2>
+<div id="outline-container-org79e93b7" class="outline-2">
+<h2 id="org79e93b7"><span class="section-number-2">2.</span> <a href="#org79e93b7">Feature</a></h2>
 <div class="outline-text-2" id="text-2">
 <p>
 Feature 可以匹配代码中的一些 method.
@@ -355,8 +104,8 @@ Feature 可以匹配代码中的一些 method.
 </p>
 </div>
 
-<div id="outline-container-orge191c07" class="outline-3">
-<h3 id="orge191c07"><span class="section-number-3">2.1.</span> Feature 的组合</h3>
+<div id="outline-container-orgbba28b2" class="outline-3">
+<h3 id="orgbba28b2"><span class="section-number-3">2.1.</span> <a href="#orgbba28b2">Feature 的组合</a></h3>
 <div class="outline-text-3" id="text-2-1">
 <p>
 使用析取范式将 atomic feature 组合可以生成更复杂的 feature:
@@ -366,8 +115,8 @@ Feature 可以匹配代码中的一些 method.
 </div>
 </div>
 
-<div id="outline-container-org9e2d425" class="outline-3">
-<h3 id="org9e2d425"><span class="section-number-3">2.2.</span> 使用 feature 生成 \(\mathcal{T}\)</h3>
+<div id="outline-container-org25d28af" class="outline-3">
+<h3 id="org25d28af"><span class="section-number-3">2.2.</span> <a href="#org25d28af">使用 feature 生成 \(\mathcal{T}\)</a></h3>
 <div class="outline-text-3" id="text-2-2">
 <p>
 Tunneling 所需的 \(\mathcal{T}\) 由 feature 生成.
@@ -396,8 +145,8 @@ from others</b></b> (m2)</li>
 </div>
 </div>
 
-<div id="outline-container-org7d01133" class="outline-2">
-<h2 id="org7d01133"><span class="section-number-2">3.</span> 算法</h2>
+<div id="outline-container-orgb1a2d1b" class="outline-2">
+<h2 id="orgb1a2d1b"><span class="section-number-2">3.</span> <a href="#orgb1a2d1b">算法</a></h2>
 <div class="outline-text-2" id="text-3">
 <p>
 A <b><b>data driven</b></b> approach: automatically search for high-quality
@@ -431,19 +180,21 @@ context insensitive</li>
 </p>
 
 <p>
-算法整体框架如图 <a href="#org1b3b6cc">1</a>, 根据给定的指针分析算法 \(F\), atomic feature 集合
-\(\mathbb{A}\), 从一系列输入程序 \(\mathbf{P} = \{P_1, P_2, \cdots\}\) 中学习, 最后生成 \(\Pi\).
+算法整体框架如图 <a href="#org8c8abda">1</a>, 根据给定的指针分析算法 \(F\), atomic feature 集合
+\(\mathbb{A}\), 从一系列输入程序 \(\mathbf{P} = \{P_1, P_2, \cdots\}\) 中学
+习, 最后生成 \(\Pi\).
 </p>
 
 
-<div id="org1b3b6cc" class="figure">
-<p><img src="./context-tunneling/algo-overall.png" alt="algo-overall.png" width="100%" style="margin-left: auto; margin-right: auto;" />
-</p>
-<p><span class="figure-number">Figure 1: </span>整体框架</p>
-</div>
+<figure id="org8c8abda">
+<img src="./context-tunneling/algo-overall.png" alt="algo-overall.png" width="100%" style="margin-left: auto; margin-right: auto;">
+
+<figcaption><span class="figure-number">Figure 1: </span>整体框架</figcaption>
+</figure>
 
 <p>
-主算法为 \(\text{LearnParameter}(i, f_2, F, \mathbf{P}, \mathbb{A})\), 表示当前学习的是 \(\Pi\) 中的 \(f_i\) (也是返回值), 会被调用两次:
+主算法为 \(\text{LearnParameter}(i, f_2, F, \mathbf{P}, \mathbb{A})\), 表
+示当前学习的是 \(\Pi\) 中的 \(f_i\) (也是返回值), 会被调用两次:
 </p>
 <ul class="org-ul">
 <li>第一次 \(\text{LearnParameter}(2, false, F, \mathbf{P}, \mathbb{A})\),
@@ -457,7 +208,7 @@ context insensitive</li>
 
 <p>
 \(\text{LearnParameter}(i, f_2, F, \mathbf{P}, \mathbb{A})\) 见图
-<a href="#orgdda59f2">2</a>, 主要步骤
+<a href="#org6f392b1">2</a>, 主要步骤
 </p>
 <ul class="org-ul">
 <li>初始化 \(f_1 = false\), \(\Pi = \langle f_1, f_2 \rangle\)</li>
@@ -471,13 +222,23 @@ feature 来 refine \(s\), 让指针分析更精确.
 </ul>
 
 
-<div id="orgdda59f2" class="figure">
-<p><img src="./context-tunneling/algo-learnSingle.png" alt="algo-learnSingle.png" width="100%" style="margin-left: auto; margin-right: auto;" />
-</p>
-<p><span class="figure-number">Figure 2: </span>Learn single parameter</p>
+<figure id="org6f392b1">
+<img src="./context-tunneling/algo-learnSingle.png" alt="algo-learnSingle.png" width="100%" style="margin-left: auto; margin-right: auto;">
+
+<figcaption><span class="figure-number">Figure 2: </span>Learn single parameter</figcaption>
+</figure>
 </div>
 </div>
 </div>
+<div id="postamble" class="status">
+<hr><table class="postamble">
+  <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
+  <tr><td class="org-right">Created</td><td class="org-left">2022-09-25 23:01</td></tr>
+  <tr><td class="org-right">Modified</td><td class="org-left">2022-09-25 23:01</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2022-09-25 23:10</td></tr>
+  <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 28.2 (<a href="https://orgmode.org">Org</a> mode 9.5.5)</td></tr>
+  <tr><td class="org-right">Raw</td><td class="org-left">context-tunneling.org</td></tr>
+</table>
 </div>
 </body>
 </html>
