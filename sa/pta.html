@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- 2022-09-26 16:51 -->
+<!-- 2022-09-26 17:06 -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Pointer Analysis</title>
 <meta name="author" content="thebesttv" />
 <meta name="generator" content="Org Mode" />
+<!-- CSS -->
 <link rel="stylesheet" type="text/css" href="https://unpkg.com/latex.css/style.css"/>
 <link rel="stylesheet" type="text/css" href="../css/org-default.css"/>
 <link rel="stylesheet" type="text/css" href="../css/style.css"/>
-<script type="text/x-mathjax-config">
+<!-- Google tag (gtag.js) -->
+<script async src=<script type="text/x-mathjax-config">
     MathJax.Hub.Config({
         displayAlign: "center",
         displayIndent: "0em",
@@ -45,36 +47,36 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#orgdad3861">1. Datalog</a></li>
-<li><a href="#org0f23cd0">2. Context Sensitivity</a>
+<li><a href="#orgbe5d75c">1. Datalog</a></li>
+<li><a href="#orge58058e">2. Context Sensitivity</a>
 <ul>
-<li><a href="#org974c3c1">2.1. Categories</a></li>
-<li><a href="#org08f82fb">2.2. Incorporate into Datalog</a></li>
-<li><a href="#org439e207">2.3. Call-Site Sensitivity</a>
+<li><a href="#orgac63514">2.1. Categories</a></li>
+<li><a href="#orgf01a7b1">2.2. Incorporate into Datalog</a></li>
+<li><a href="#org5aa640e">2.3. Call-Site Sensitivity</a>
 <ul>
-<li><a href="#org9f045db">2.3.1. Problem</a></li>
+<li><a href="#org1a81844">2.3.1. Problem</a></li>
 </ul>
 </li>
-<li><a href="#org242256e">2.4. Object Sensitivity</a>
+<li><a href="#orgd393c3b">2.4. Object Sensitivity</a>
 <ul>
-<li><a href="#org571185b">2.4.1. An Example</a></li>
+<li><a href="#orgc37ba39">2.4.1. An Example</a></li>
 </ul>
 </li>
-<li><a href="#org7744873">2.5. The Approach in Cartesian Product Algorithm</a></li>
-<li><a href="#org2d5841e">2.6. Introspective Analysis</a></li>
-<li><a href="#orgcba198d">2.7. Hybrid Analysis</a></li>
-<li><a href="#org6075a29">2.8. Related Papers</a>
+<li><a href="#org08d9fb6">2.5. The Approach in Cartesian Product Algorithm</a></li>
+<li><a href="#orgb02efa4">2.6. Introspective Analysis</a></li>
+<li><a href="#org4917364">2.7. Hybrid Analysis</a></li>
+<li><a href="#orgf84d226">2.8. Related Papers</a>
 <ul>
-<li><a href="#orgff45d6a">2.8.1. A Principled Approach to Selective Context Sensitivity for Pointer Analysis (<a href="#citeproc_bib_item_3">Li et al. 2020</a>)</a></li>
-<li><a href="#org6369855">2.8.2. Pick Your Contexts Well: Understanding Object-Sensitivity (<a href="#citeproc_bib_item_5">Smaragdakis, Bravenboer, and Lhoták 2011</a>)</a></li>
+<li><a href="#org76206e9">2.8.1. A Principled Approach to Selective Context Sensitivity for Pointer Analysis (<a href="#citeproc_bib_item_3">Li et al. 2020</a>)</a></li>
+<li><a href="#org2707343">2.8.2. Pick Your Contexts Well: Understanding Object-Sensitivity (<a href="#citeproc_bib_item_5">Smaragdakis, Bravenboer, and Lhoták 2011</a>)</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#org603b0b3">3. Field Sensitivity</a></li>
-<li><a href="#org6be69c4">4. Steensgaard's Analysis</a></li>
-<li><a href="#orge500889">5. Access Path Abstraction</a></li>
-<li><a href="#org80505a9">6. Bibliography</a></li>
+<li><a href="#org7dfc012">3. Field Sensitivity</a></li>
+<li><a href="#org39f81c0">4. Steensgaard's Analysis</a></li>
+<li><a href="#org31c7e0a">5. Access Path Abstraction</a></li>
+<li><a href="#org890d48c">6. Bibliography</a></li>
 </ul>
 </div>
 </nav>
@@ -96,8 +98,8 @@ TODO: context-tunneling 的各种 policy
 <li>先看那篇最开始的提出tunneling的18年的论文?</li>
 </ul>
 
-<div id="outline-container-orgdad3861" class="outline-2">
-<h2 id="orgdad3861"><span class="section-number-2">1.</span> <a href="#orgdad3861">Datalog</a></h2>
+<div id="outline-container-orgbe5d75c" class="outline-2">
+<h2 id="orgbe5d75c"><span class="section-number-2">1.</span> <a href="#orgbe5d75c">Datalog</a></h2>
 <div class="outline-text-2" id="text-1">
 <p>
 Pure Datalog has such properties
@@ -110,8 +112,8 @@ algorithm can be written in Datalog</li>
 </div>
 </div>
 
-<div id="outline-container-org0f23cd0" class="outline-2">
-<h2 id="org0f23cd0"><span class="section-number-2">2.</span> <a href="#org0f23cd0">Context Sensitivity</a></h2>
+<div id="outline-container-orge58058e" class="outline-2">
+<h2 id="orge58058e"><span class="section-number-2">2.</span> <a href="#orge58058e">Context Sensitivity</a></h2>
 <div class="outline-text-2" id="text-2">
 <p>
 There is another form of context sensitivity
@@ -144,8 +146,8 @@ The combined approach (<i>1callH+SL+Zip</i>) is typically faster than
 </p>
 </div>
 
-<div id="outline-container-org974c3c1" class="outline-3">
-<h3 id="org974c3c1"><span class="section-number-3">2.1.</span> <a href="#org974c3c1">Categories</a></h3>
+<div id="outline-container-orgac63514" class="outline-3">
+<h3 id="orgac63514"><span class="section-number-3">2.1.</span> <a href="#orgac63514">Categories</a></h3>
 <div class="outline-text-3" id="text-2-1">
 <p>
 The research of context sensitivity can be divided into three orthogonal
@@ -236,8 +238,8 @@ selective-2-object-sensitivity (s2obj)</li>
 </div>
 </div>
 
-<div id="outline-container-org08f82fb" class="outline-3">
-<h3 id="org08f82fb"><span class="section-number-3">2.2.</span> <a href="#org08f82fb">Incorporate into Datalog</a></h3>
+<div id="outline-container-orgf01a7b1" class="outline-3">
+<h3 id="orgf01a7b1"><span class="section-number-3">2.2.</span> <a href="#orgf01a7b1">Incorporate into Datalog</a></h3>
 <div class="outline-text-3" id="text-2-2">
 <p>
 To incorporate context sensitivity, add two constructors
@@ -266,18 +268,18 @@ context.
 </div>
 </div>
 
-<div id="outline-container-org439e207" class="outline-3">
-<h3 id="org439e207"><span class="section-number-3">2.3.</span> <a href="#org439e207">Call-Site Sensitivity</a></h3>
+<div id="outline-container-org5aa640e" class="outline-3">
+<h3 id="org5aa640e"><span class="section-number-3">2.3.</span> <a href="#org5aa640e">Call-Site Sensitivity</a></h3>
 <div class="outline-text-3" id="text-2-3">
 </div>
-<div id="outline-container-org9f045db" class="outline-4">
-<h4 id="org9f045db"><span class="section-number-4">2.3.1.</span> <a href="#org9f045db">Problem</a></h4>
+<div id="outline-container-org1a81844" class="outline-4">
+<h4 id="org1a81844"><span class="section-number-4">2.3.1.</span> <a href="#org1a81844">Problem</a></h4>
 <div class="outline-text-4" id="text-2-3-1">
 <p>
 The effectiveness of call-site sensitivity relies on <b>syntactic patterns
 in the program</b> (<a href="#citeproc_bib_item_4">Smaragdakis and Balatsouras 2015, 36</a>).  For example,
 only the last call-site is remembered using the 1-call-site algorithm.
-As shown in Fig. <a href="#org61d5ddc">1</a>, the function <code>doSet</code>
+As shown in Fig. <a href="#orgd30fd87">1</a>, the function <code>doSet</code>
 is wrapped by <code>set</code>.  Although <code>set</code> is called from two different
 call-sites ([5] and [6]), both source invocations eventually point to
 <code>[12]:A.doSet(B)</code>, with the same context information.  In this case,
@@ -285,7 +287,7 @@ nested function calls can lead to lost precision.
 </p>
 
 
-<figure id="org61d5ddc">
+<figure id="orgd30fd87">
 <img src="./pta/call-site-vs-object-sensitivity.png" alt="call-site-vs-object-sensitivity.png" width="80%" style="margin-left: auto; margin-right: auto;">
 
 <figcaption><span class="figure-number">Figure 1: </span>Call-Site vs. Object Sensitivity (<a href="#citeproc_bib_item_7">Tan and Li 2021, 161</a>)</figcaption>
@@ -299,8 +301,8 @@ nested function calls can lead to lost precision.
 </div>
 </div>
 
-<div id="outline-container-org242256e" class="outline-3">
-<h3 id="org242256e"><span class="section-number-3">2.4.</span> <a href="#org242256e">Object Sensitivity</a></h3>
+<div id="outline-container-orgd393c3b" class="outline-3">
+<h3 id="orgd393c3b"><span class="section-number-3">2.4.</span> <a href="#orgd393c3b">Object Sensitivity</a></h3>
 <div class="outline-text-3" id="text-2-4">
 <p>
 object sensitivity (or <b>allocation-site</b> sensitivity)
@@ -316,8 +318,8 @@ the context of a method call is the receiver object together with <b>the
 </blockquote>
 </div>
 
-<div id="outline-container-org571185b" class="outline-4">
-<h4 id="org571185b"><span class="section-number-4">2.4.1.</span> <a href="#org571185b">An Example</a></h4>
+<div id="outline-container-orgc37ba39" class="outline-4">
+<h4 id="orgc37ba39"><span class="section-number-4">2.4.1.</span> <a href="#orgc37ba39">An Example</a></h4>
 <div class="outline-text-4" id="text-2-4-1">
 <p>
 The call chain is <code>A.f() -&gt; B.g(a) -&gt; C.h(a) -&gt; D.i(a) -&gt; E.j(a) -&gt; A.f()</code>.
@@ -392,8 +394,8 @@ The output of a 2-object c.s. pta:
 </div>
 </div>
 
-<div id="outline-container-org7744873" class="outline-3">
-<h3 id="org7744873"><span class="section-number-3">2.5.</span> <a href="#org7744873">The Approach in Cartesian Product Algorithm</a></h3>
+<div id="outline-container-org08d9fb6" class="outline-3">
+<h3 id="org08d9fb6"><span class="section-number-3">2.5.</span> <a href="#org08d9fb6">The Approach in Cartesian Product Algorithm</a></h3>
 <div class="outline-text-3" id="text-2-5">
 <p>
 TODO
@@ -411,8 +413,8 @@ has had application in <span class="underline">less expensive analyses</span> (e
 </div>
 </div>
 
-<div id="outline-container-org2d5841e" class="outline-3">
-<h3 id="org2d5841e"><span class="section-number-3">2.6.</span> <a href="#org2d5841e">Introspective Analysis</a></h3>
+<div id="outline-container-orgb02efa4" class="outline-3">
+<h3 id="orgb02efa4"><span class="section-number-3">2.6.</span> <a href="#orgb02efa4">Introspective Analysis</a></h3>
 <div class="outline-text-3" id="text-2-6">
 <p>
 TODO
@@ -427,8 +429,8 @@ statistics from a context-insensitive analysis run
 </div>
 </div>
 
-<div id="outline-container-orgcba198d" class="outline-3">
-<h3 id="orgcba198d"><span class="section-number-3">2.7.</span> <a href="#orgcba198d">Hybrid Analysis</a></h3>
+<div id="outline-container-org4917364" class="outline-3">
+<h3 id="org4917364"><span class="section-number-3">2.7.</span> <a href="#org4917364">Hybrid Analysis</a></h3>
 <div class="outline-text-3" id="text-2-7">
 <blockquote>
 <p>
@@ -446,12 +448,12 @@ methods (which have no receiver argument).
 </div>
 </div>
 
-<div id="outline-container-org6075a29" class="outline-3">
-<h3 id="org6075a29"><span class="section-number-3">2.8.</span> <a href="#org6075a29">Related Papers</a></h3>
+<div id="outline-container-orgf84d226" class="outline-3">
+<h3 id="orgf84d226"><span class="section-number-3">2.8.</span> <a href="#orgf84d226">Related Papers</a></h3>
 <div class="outline-text-3" id="text-2-8">
 </div>
-<div id="outline-container-orgff45d6a" class="outline-4">
-<h4 id="orgff45d6a"><span class="section-number-4">2.8.1.</span> <a href="#orgff45d6a">A Principled Approach to Selective Context Sensitivity for Pointer Analysis (<a href="#citeproc_bib_item_3">Li et al. 2020</a>)</a></h4>
+<div id="outline-container-org76206e9" class="outline-4">
+<h4 id="org76206e9"><span class="section-number-4">2.8.1.</span> <a href="#org76206e9">A Principled Approach to Selective Context Sensitivity for Pointer Analysis (<a href="#citeproc_bib_item_3">Li et al. 2020</a>)</a></h4>
 <div class="outline-text-4" id="text-2-8-1">
 <ul class="org-ul">
 <li>识别程序中的函数, 哪些是 precision-critical, 哪些是 efficiency-critical 的</li>
@@ -474,8 +476,8 @@ context-insensitive pointer analysis
 </div>
 </div>
 
-<div id="outline-container-org6369855" class="outline-4">
-<h4 id="org6369855"><span class="section-number-4">2.8.2.</span> <a href="#org6369855">Pick Your Contexts Well: Understanding Object-Sensitivity (<a href="#citeproc_bib_item_5">Smaragdakis, Bravenboer, and Lhoták 2011</a>)</a></h4>
+<div id="outline-container-org2707343" class="outline-4">
+<h4 id="org2707343"><span class="section-number-4">2.8.2.</span> <a href="#org2707343">Pick Your Contexts Well: Understanding Object-Sensitivity (<a href="#citeproc_bib_item_5">Smaragdakis, Bravenboer, and Lhoták 2011</a>)</a></h4>
 <div class="outline-text-4" id="text-2-8-2">
 <ul class="org-ul">
 <li>Main concerns
@@ -491,8 +493,8 @@ analyses than current practice</li>
 </div>
 </div>
 
-<div id="outline-container-org603b0b3" class="outline-2">
-<h2 id="org603b0b3"><span class="section-number-2">3.</span> <a href="#org603b0b3">Field Sensitivity</a></h2>
+<div id="outline-container-org7dfc012" class="outline-2">
+<h2 id="org7dfc012"><span class="section-number-2">3.</span> <a href="#org7dfc012">Field Sensitivity</a></h2>
 <div class="outline-text-2" id="text-3">
 <p>
 Field sensitivity:
@@ -520,8 +522,8 @@ o<sub>5</sub>), <code>x.f</code> and <code>y.f</code> are both considered as <co
 </div>
 </div>
 
-<div id="outline-container-org6be69c4" class="outline-2">
-<h2 id="org6be69c4"><span class="section-number-2">4.</span> <a href="#org6be69c4">Steensgaard's Analysis</a></h2>
+<div id="outline-container-org39f81c0" class="outline-2">
+<h2 id="org39f81c0"><span class="section-number-2">4.</span> <a href="#org39f81c0">Steensgaard's Analysis</a></h2>
 <div class="outline-text-2" id="text-4">
 <blockquote>
 <p>
@@ -550,8 +552,8 @@ an Andersen-style analysis is usually quite sufficient.
 </div>
 </div>
 
-<div id="outline-container-orge500889" class="outline-2">
-<h2 id="orge500889"><span class="section-number-2">5.</span> <a href="#orge500889">Access Path Abstraction</a></h2>
+<div id="outline-container-org31c7e0a" class="outline-2">
+<h2 id="org31c7e0a"><span class="section-number-2">5.</span> <a href="#org31c7e0a">Access Path Abstraction</a></h2>
 <div class="outline-text-2" id="text-5">
 <p>
 TODO
@@ -559,8 +561,8 @@ TODO
 </div>
 </div>
 
-<div id="outline-container-org80505a9" class="outline-2">
-<h2 id="org80505a9"><span class="section-number-2">6.</span> <a href="#org80505a9">Bibliography</a></h2>
+<div id="outline-container-org890d48c" class="outline-2">
+<h2 id="org890d48c"><span class="section-number-2">6.</span> <a href="#org890d48c">Bibliography</a></h2>
 <div class="outline-text-2" id="text-6">
 <style>.csl-entry{text-indent: -1.5em; margin-left: 1.5em;}</style><div class="csl-bib-body">
   <div class="csl-entry"><a id="citeproc_bib_item_1"></a>Jeon, Minseok, and Hakjoo Oh. 2022. “Return of CFA: Call-Site Sensitivity Can Be Superior to Object Sensitivity Even for Object-Oriented Programs.” <i>Proceedings of the ACM on Programming Languages</i> 6 (POPL): 1–29. <a href="https://doi.org/10.1145/3498720">https://doi.org/10.1145/3498720</a>.</div>
@@ -590,7 +592,7 @@ See the last paragraph at <a href="#citeproc_bib_item_1">Jeon and Oh 2022</a>
   <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
   <tr><td class="org-right">Created</td><td class="org-left">2022-09-25 12:06</td></tr>
   <tr><td class="org-right">Modified</td><td class="org-left">2022-09-26 16:18</td></tr>
-  <tr><td class="org-right">Generated</td><td class="org-left">2022-09-26 16:51</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2022-09-26 17:06</td></tr>
   <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 28.2 (<a href="https://orgmode.org">Org</a> mode 9.5.5)</td></tr>
   <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://github.com/thebesttv/thebesttv.github.io/blob/main/sa/pta.org">sa/pta.org</a></td></tr>
 </table>
