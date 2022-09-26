@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- 2022-09-26 16:51 -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EServer Static 诞生记</title>
+<meta name="generator" content="Org Mode" />
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/latex.css/style.css"/>
+<link rel="stylesheet" type="text/css" href="css/org-default.css"/>
+<link rel="stylesheet" type="text/css" href="css/style.css"/>
+</head>
+<body>
+<div id="preamble" class="status">
+<nav class="org-center">
+<a href="index.html">Home</a>
+</nav>
+</div>
+<div id="content" class="content">
+<header>
+<h1 class="title">EServer Static 诞生记</h1>
+</header><nav id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#org7a6b506">1. ELisp Script</a></li>
+<li><a href="#orgafe5a88">2. 关于 <code>setup.org</code></a>
+<ul>
+<li><a href="#org3049f9d">2.1. <code>setup-N.org</code></a></li>
+<li><a href="#orgab0bba4">2.2. 使用 Advice 动态设置 Header</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</nav>
+
+<div id="outline-container-org7a6b506" class="outline-2">
+<h2 id="org7a6b506"><span class="section-number-2">1.</span> <a href="#org7a6b506">ELisp Script</a></h2>
+<div class="outline-text-2" id="text-1">
+<ul class="org-ul">
+<li><a href="https://gist.github.com/ctarbide/99b0ac9f7d6bef19cdd3e9f71b4cbcf7">emacs-script-pitfalls.md</a>
+包含如何处理命令行传入的参数</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgafe5a88" class="outline-2">
+<h2 id="orgafe5a88"><span class="section-number-2">2.</span> <a href="#orgafe5a88">关于 <code>setup.org</code></a></h2>
+<div class="outline-text-2" id="text-2">
+<p>
+所有文章都需要一些 CSS, org macro 等用来辅助.
+</p>
+
+<p>
+之前把这些设置统一在 <code>setup.org</code> 中, 然后在导出 HTML 之前把 <code>setup.org</code>
+的绝对路径 include 到每个 <code>.org</code> 文件中.  由于没有本地 CSS 文件等需要相
+对路径的东西, 基本没有问题.
+</p>
+
+<p>
+原本的 <code>setup.org</code>
+</p>
+<div class="org-src-container">
+<pre class="src src-org"><span style="font-weight: bold; font-style: italic;"># LaTeX CSS Theme</span>
+<span style="font-weight: bold; font-style: italic;"># #+HTML_HEAD: &lt;link rel="stylesheet" type="text/css" href="<a href="https://latex.now.sh/style.css&quot;/">https://latex.now.sh/style.css"/</a>&gt;</span>
+<span style="font-weight: bold; font-style: italic;"># use Unpkg CDN instead</span>
+<span style="font-weight: bold; font-style: italic;">#+HTML_HEAD: &lt;link rel="stylesheet" type="text/css" href="<a href="https://unpkg.com/latex.css/style.css&quot;/">https://unpkg.com/latex.css/style.css"/</a>&gt;</span>
+
+<span style="font-weight: bold; font-style: italic;"># default css style, from `org-html-style-default'</span>
+<span style="font-weight: bold; font-style: italic;">#+HTML_HEAD: &lt;link rel="stylesheet" type="text/css" href="{REPLACE-ME}css/org-default.css"/&gt;</span>
+
+<span style="font-weight: bold; font-style: italic;"># local css style</span>
+<span style="font-weight: bold; font-style: italic;">#+HTML_HEAD: &lt;link rel="stylesheet" type="text/css" href="{REPLACE-ME}css/style.css"/&gt;</span>
+
+<span style="font-weight: bold; font-style: italic;"># image center and resize macro</span>
+<span style="font-weight: bold; font-style: italic;">#+macro: image        #+ATTR_HTML: :width $1% :style margin-left: auto; margin-right: auto;</span>
+
+<span style="font-weight: bold; font-style: italic;"># # add google analytics</span>
+<span style="font-weight: bold; font-style: italic;"># #+HTML_HEAD: &lt;!-- Global site tag (gtag.js) - Google Analytics --&gt;</span>
+<span style="font-weight: bold; font-style: italic;"># #+HTML_HEAD: &lt;script async src="<a href="https://www.googletagmanager.com/gtag/js?id=G-WZDV2C04T4">https://www.googletagmanager.com/gtag/js?id=G-WZDV2C04T4</a>"&gt;&lt;/script&gt;</span>
+<span style="font-weight: bold; font-style: italic;"># #+HTML_HEAD: &lt;script&gt;</span>
+<span style="font-weight: bold; font-style: italic;"># #+HTML_HEAD:   window.dataLayer = window.dataLayer || [];</span>
+<span style="font-weight: bold; font-style: italic;"># #+HTML_HEAD:   function gtag(){dataLayer.push(arguments);}</span>
+<span style="font-weight: bold; font-style: italic;"># #+HTML_HEAD:   gtag('js', new Date());</span>
+<span style="font-weight: bold; font-style: italic;"># #+HTML_HEAD:   gtag('config', 'G-WZDV2C04T4');</span>
+<span style="font-weight: bold; font-style: italic;"># #+HTML_HEAD: &lt;/script&gt;</span>
+</pre>
+</div>
+<p>
+包含两种元素
+</p>
+<ul class="org-ul">
+<li>HTML head</li>
+<li>org macro</li>
+</ul>
+
+<p>
+但现在, 由于加入了本地 CSS 文件, 所有 local URL 都要变成相对地址, 所以有
+了几种解决方法
+</p>
+</div>
+
+<div id="outline-container-org3049f9d" class="outline-3">
+<h3 id="org3049f9d"><span class="section-number-3">2.1.</span> <a href="#org3049f9d"><code>setup-N.org</code></a></h3>
+<div class="outline-text-3" id="text-2-1">
+<p>
+<code>setup-N.org</code> 表示相对根目录在第 N 层的文件所需 include 的内容, 其中
+</p>
+<ul class="org-ul">
+<li>所有 link 都变成第 N 层向上的相对地址
+<ul class="org-ul">
+<li>如位于 <code>css/style.css</code> 的文件, 在第 N=0 层不变,
+在第 N=2 层变成 <code>../../css/style.css</code>, 需要向上两次.</li>
+</ul></li>
+</ul>
+
+<p>
+Makefile 中对应部分
+</p>
+<div class="org-src-container">
+<pre class="src src-makefile"><span style="font-weight: bold; font-style: italic;">################################################################</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">setup files for blog</span>
+<span style="font-weight: bold; font-style: italic;">################################################################</span>
+
+<span style="font-weight: bold; font-style: italic;">SETUP_FILES</span> = \
+        blog/.setup-0.org \
+        blog/.setup-1.org \
+        blog/.setup-2.org \
+        blog/.setup-3.org \
+        blog/.setup-4.org
+
+<span style="font-weight: bold;">setup</span>: $(<span style="font-weight: bold; font-style: italic;">SETUP_FILES</span>)
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">echo ${</span><span style="font-weight: bold; font-style: italic;">@</span><span style="font-weight: bold; font-style: italic;">:blog/.setup-%.org=%} # string replace</span>
+<span style="font-weight: bold;">$(</span><span style="font-weight: bold; font-style: italic;">SETUP_FILES</span><span style="font-weight: bold;">)</span>: blog/setup.org blog/setup.sh
+        cd blog &amp;&amp; ./setup.sh ${<span style="font-weight: bold; font-style: italic;">@</span>:<span style="font-weight: bold; font-style: italic;">blog/.setup-%.org</span>=%}
+</pre>
+</div>
+
+<p>
+新的 <code>setup.sh</code>
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="font-weight: bold;">if</span> [ $<span style="font-weight: bold; font-style: italic;">#</span> -ne 1 ]; <span style="font-weight: bold;">then</span>
+    <span style="font-weight: bold;">echo</span> <span style="font-style: italic;">"Usage: $0 N"</span>
+    <span style="font-weight: bold;">exit</span> 1
+<span style="font-weight: bold;">else</span>
+    <span style="font-weight: bold; font-style: italic;">N</span>=$<span style="font-weight: bold; font-style: italic;">1</span>
+    <span style="font-weight: bold;">if</span> [ -n <span style="font-style: italic;">"$N"</span> ] &amp;&amp; [ <span style="font-style: italic;">"$N"</span> -eq <span style="font-style: italic;">"$N"</span> ] 2&gt;/dev/null; <span style="font-weight: bold;">then</span>
+        <span style="font-weight: bold;">echo</span> <span style="font-style: italic;">"Generating setup file with n = $N"</span>
+    <span style="font-weight: bold;">else</span>
+        <span style="font-weight: bold;">echo</span> <span style="font-style: italic;">"N has to be a number"</span>
+        <span style="font-weight: bold;">exit</span> 2
+    <span style="font-weight: bold;">fi</span>
+<span style="font-weight: bold;">fi</span>
+
+<span style="font-weight: bold; font-style: italic;">SOURCE</span>=setup.org
+
+<span style="font-weight: bold; font-style: italic;">TARGET</span>=.setup-$<span style="font-weight: bold; font-style: italic;">N</span>.org
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">https://stackoverflow.com/a/38868864</span>
+<span style="font-weight: bold; font-style: italic;">rep</span>=$(<span style="font-weight: bold;">printf '%*s' $N</span>)
+<span style="font-weight: bold; font-style: italic;">res</span>=${<span style="font-weight: bold; font-style: italic;">rep</span>// /../}
+
+<span style="font-weight: bold;">echo</span> <span style="font-style: italic;">"  file name: $TARGET"</span>
+<span style="font-weight: bold;">echo</span> <span style="font-style: italic;">"  {REPLACE-ME} -&gt; $res"</span>
+
+sed <span style="font-style: italic;">"s|{REPLACE-ME}|${res}|"</span> $<span style="font-weight: bold; font-style: italic;">SOURCE</span> &gt; $<span style="font-weight: bold; font-style: italic;">TARGET</span>
+</pre>
+</div>
+
+<p>
+旧的 <code>setup.sh</code>
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="font-weight: bold;">if</span> [ $<span style="font-weight: bold; font-style: italic;">#</span> -ne 2 ]; <span style="font-weight: bold;">then</span>
+    <span style="font-weight: bold;">echo</span> <span style="font-style: italic;">"Usage: $0 l r"</span>
+    <span style="font-weight: bold;">exit</span> 1
+<span style="font-weight: bold;">else</span>
+    <span style="font-weight: bold;">echo</span> <span style="font-style: italic;">"Setting up $1..$2"</span>
+<span style="font-weight: bold;">fi</span>
+
+<span style="font-weight: bold; font-style: italic;">SOURCE</span>=setup.org
+
+<span style="font-weight: bold;">for</span> i<span style="font-weight: bold;"> in</span> $(<span style="font-weight: bold;">eval echo "{$1..$2}"</span>); <span style="font-weight: bold;">do</span>
+    <span style="font-weight: bold; font-style: italic;">TARGET</span>=.setup-${<span style="font-weight: bold; font-style: italic;">i</span>}.org
+    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">https://stackoverflow.com/a/38868864</span>
+    <span style="font-weight: bold;">printf</span> -v rep <span style="font-style: italic;">'%*s'</span> <span style="font-style: italic;">"$i"</span>
+    <span style="font-weight: bold; font-style: italic;">res</span>=${<span style="font-weight: bold; font-style: italic;">rep</span>// /../}
+
+    <span style="font-weight: bold;">echo</span> $<span style="font-weight: bold; font-style: italic;">TARGET</span> $<span style="font-weight: bold; font-style: italic;">res</span>
+
+    sed <span style="font-style: italic;">"s|{REPLACE-ME}|${res}|"</span> $<span style="font-weight: bold; font-style: italic;">SOURCE</span> &gt; $<span style="font-weight: bold; font-style: italic;">TARGET</span>
+<span style="font-weight: bold;">done</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgab0bba4" class="outline-3">
+<h3 id="orgab0bba4"><span class="section-number-3">2.2.</span> <a href="#orgab0bba4">使用 Advice 动态设置 Header</a></h3>
+<div class="outline-text-3" id="text-2-2">
+<ul class="org-ul">
+<li><a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Advising-Functions.html">ELisp Manual: Advising Emacs Lisp Functions</a></li>
+</ul>
+
+<p>
+舍弃 <code>setup.org</code>, 其中
+</p>
+<ul class="org-ul">
+<li><p>
+<code>#+html_header</code> 所加入的
+</p>
+<pre class="example">
+都是 CSS 文件, 分为本地和远程两种
+</pre>
+
+<ul class="org-ul">
+<li>给导出 HTML header 的函数加上 advice,</li>
+</ul></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<hr><table class="postamble">
+  <tr><td class="org-right">Author</td><td class="org-left"></td></tr>
+  <tr><td class="org-right">Created</td><td class="org-left"></td></tr>
+  <tr><td class="org-right">Modified</td><td class="org-left">2022-09-26 16:34</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2022-09-26 16:51</td></tr>
+  <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 28.2 (<a href="https://orgmode.org">Org</a> mode 9.5.5)</td></tr>
+  <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://github.com/thebesttv/thebesttv.github.io/blob/main/blog.org">blog.org</a></td></tr>
+</table>
+</div>
+</body>
+</html>

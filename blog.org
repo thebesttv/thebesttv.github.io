@@ -1,0 +1,135 @@
+#+title: EServer Static 诞生记
+
+* ELisp Script
+
+- [[https://gist.github.com/ctarbide/99b0ac9f7d6bef19cdd3e9f71b4cbcf7][emacs-script-pitfalls.md]]
+  包含如何处理命令行传入的参数
+
+* 关于 =setup.org=
+
+所有文章都需要一些 CSS, org macro 等用来辅助.
+
+之前把这些设置统一在 =setup.org= 中, 然后在导出 HTML 之前把 =setup.org=
+的绝对路径 include 到每个 =.org= 文件中.  由于没有本地 CSS 文件等需要相
+对路径的东西, 基本没有问题.
+
+原本的 =setup.org=
+#+begin_src org
+  # LaTeX CSS Theme
+  # #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://latex.now.sh/style.css"/>
+  # use Unpkg CDN instead
+  ,#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://unpkg.com/latex.css/style.css"/>
+
+  # default css style, from `org-html-style-default'
+  ,#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="{REPLACE-ME}css/org-default.css"/>
+
+  # local css style
+  ,#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="{REPLACE-ME}css/style.css"/>
+
+  # image center and resize macro
+  ,#+macro: image        #+ATTR_HTML: :width $1% :style margin-left: auto; margin-right: auto;
+
+  # # add google analytics
+  # #+HTML_HEAD: <!-- Global site tag (gtag.js) - Google Analytics -->
+  # #+HTML_HEAD: <script async src="https://www.googletagmanager.com/gtag/js?id=G-WZDV2C04T4"></script>
+  # #+HTML_HEAD: <script>
+  # #+HTML_HEAD:   window.dataLayer = window.dataLayer || [];
+  # #+HTML_HEAD:   function gtag(){dataLayer.push(arguments);}
+  # #+HTML_HEAD:   gtag('js', new Date());
+  # #+HTML_HEAD:   gtag('config', 'G-WZDV2C04T4');
+  # #+HTML_HEAD: </script>
+#+end_src
+包含两种元素
+- HTML head
+- org macro
+
+但现在, 由于加入了本地 CSS 文件, 所有 local URL 都要变成相对地址, 所以有
+了几种解决方法
+
+** =setup-N.org=
+
+=setup-N.org= 表示相对根目录在第 N 层的文件所需 include 的内容, 其中
+- 所有 link 都变成第 N 层向上的相对地址
+  - 如位于 =css/style.css= 的文件, 在第 N=0 层不变,
+    在第 N=2 层变成 =../../css/style.css=, 需要向上两次.
+
+Makefile 中对应部分
+#+begin_src makefile
+  ################################################################
+  # setup files for blog
+  ################################################################
+
+  SETUP_FILES = \
+          blog/.setup-0.org \
+          blog/.setup-1.org \
+          blog/.setup-2.org \
+          blog/.setup-3.org \
+          blog/.setup-4.org
+
+  setup: $(SETUP_FILES)
+
+  # echo ${@:blog/.setup-%.org=%}	# string replace
+  $(SETUP_FILES): blog/setup.org blog/setup.sh
+          cd blog && ./setup.sh ${@:blog/.setup-%.org=%}
+#+end_src
+
+新的 =setup.sh=
+#+begin_src bash
+  if [ $# -ne 1 ]; then
+      echo "Usage: $0 N"
+      exit 1
+  else
+      N=$1
+      if [ -n "$N" ] && [ "$N" -eq "$N" ] 2>/dev/null; then
+          echo "Generating setup file with n = $N"
+      else
+          echo "N has to be a number"
+          exit 2
+      fi
+  fi
+
+  SOURCE=setup.org
+
+  TARGET=.setup-$N.org
+  # https://stackoverflow.com/a/38868864
+  rep=$(printf '%*s' $N)
+  res=${rep// /../}
+
+  echo "  file name: $TARGET"
+  echo "  {REPLACE-ME} -> $res"
+
+  sed "s|{REPLACE-ME}|${res}|" $SOURCE > $TARGET
+#+end_src
+
+旧的 =setup.sh=
+#+begin_src bash
+  if [ $# -ne 2 ]; then
+      echo "Usage: $0 l r"
+      exit 1
+  else
+      echo "Setting up $1..$2"
+  fi
+
+  SOURCE=setup.org
+
+  for i in $(eval echo "{$1..$2}"); do
+      TARGET=.setup-${i}.org
+      # https://stackoverflow.com/a/38868864
+      printf -v rep '%*s' "$i"
+      res=${rep// /../}
+
+      echo $TARGET $res
+
+      sed "s|{REPLACE-ME}|${res}|" $SOURCE > $TARGET
+  done
+#+end_src
+
+** 使用 Advice 动态设置 Header
+
+- [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Advising-Functions.html][ELisp Manual: Advising Emacs Lisp Functions]]
+
+舍弃 =setup.org=, 其中
+- =#+html_header= 所加入的
+  : 都是 CSS 文件, 分为本地和远程两种
+  - 给导出 HTML header 的函数加上 advice,
+

@@ -1,0 +1,112 @@
+#+title: Context Tunneling
+#+date: <2022-09-25 Sun 23:01>
+#+author: thebesttv
+
+# usage: {{{fig(caption, name, hwidth, [lwidth])}}}
+#+macro: fig (eval (concat (format "#+caption: %1$s\n#+name: %2$s\n#+ATTR_HTML: :width %3$s%% :style margin-left: auto; margin-right: auto;" $1 $2 $3) (unless (string-empty-p $4) (format "\n#+attr_latex: :width %1$s" $4))))
+
+论文干了两件事
+- 使用 context-tunneling 代替传统的 k-limiting 进行指针分析
+- 提出学习 context-tunneling 策略的算法
+
+context tunneling: updates contexts **selectively** and decides when to
+**preserve contexts without modification**.  dramatic increase in both
+precision and scalability can be gained by maintaining important context
+elements only
+
+* Context Tunneling
+
+使用 context-tunneling 的指针分析, 相比与传统的 k-limiting 多了一个输入:
+tunneling relation $\mathcal{T} \subseteq \mathbb{M} \times \mathbb{M}$,
+是方法集 $\mathbb{M}$ 上的二元关系.
+
+$\mathcal{T}$ 中的每个元素形如 $(m_1, m_2)$, 表示当 $[c]:m_1$ 调用 $m_2$
+时, $m2$ 的 context 不重要, 需要使用 tunneling, 即 $m_2$ 继承 $m_1$ 的
+context $[c]$.  而不在 $\mathcal{T}$ 中的函数调用, 如 $m_3$ 调用 $m_2$
+或 $m_1$ 调用 $m_3$, 则和传统的 k-limiting 方法一样, 产生新的 context
+$[c']$.
+
+* Feature
+
+Feature 可以匹配代码中的一些 method.
+
+共有 10 + 13 个 atomic feature, 分为两类
+- A类: signature feature, 语法上的, 匹配 “lang”, “void”, “()” 等字符串
+- B类: addition feature, 语义上的, 如包含 field store 的 method, 或 static method
+这23个 atomic feature 组成集合 $\mathbb{A}$.
+
+** Feature 的组合
+
+使用析取范式将 atomic feature 组合可以生成更复杂的 feature:
+\[ f = \bigvee_i \bigwedge_j a_{i,j}, \]
+也就是将 atomic feature $a_{i,j} \in \mathbb{A}$ 用与/或连接.
+
+** 使用 feature 生成 $\mathcal{T}$
+
+Tunneling 所需的 $\mathcal{T}$ 由 feature 生成.
+算法的目的就是学习出两个 feature $\Pi = \langle f_1, f_2 \rangle$.
+有了 $\Pi$, 就可以对不同的程序生成对应的 $\mathcal{T}$ 用于指针分析.
+
+$\Pi$ 中的 $f_1$, $f_2$ 分别匹配
+1. methods that increase the analysis precision by **passing their
+   contexts to others** (m1)
+2. methods that increase the analysis precision by **inheriting contexts
+   from others** (m2)
+
+给定程序 $P$, 生成对应的 $\mathcal{T}$:
+\[ \mathcal{H}_\Pi (P) = \{ (m_1, m_2) \in \mathbb{M}_P \times \mathbb{M}_P
+   \mid m_1 \in [\![ f_1 ]\!]_P \vee m_2 \in [\![ f_2 ]\!]_P \}, \]
+其中 $\mathbb{M}_P$ 为 $P$ 的 method 集, $\mathcal{H}_\Pi$ 为生成函数,
+$[\![f]\!]_P$ 匹配 $P$ 中所有符合 $f$ 的方法.
+
+* 算法
+
+A **data driven** approach: automatically search for high-quality
+heuristics over the non-monotonic space of context tunneling.
+
+寻找 $\Pi$ 是一个最优化问题, 需要最大化 accuracy, 同时速度不能比传统的
+k-limiting 慢.  有两个挑战
+- the effectiveness of context-tunneling is very sensitive to the choice
+  of important context elements
+- precision is not monotonically increasing with respect to the ordering
+  of the choices (非单调)
+  - 空 policy ($\mathcal{T} = \emptyset$)
+    表示从不使用 tunneling, 即为传统的 k-limiting
+  - 满 policy ($\mathcal{T} = \mathbb{M}_P \times \mathbb{M}_P$)
+    表示永远使用 tunneling, 即永远继承最开始的 empty context, 也就变成
+    context insensitive
+  - 空 policy 和满 policy 既不是最好也不是最差
+  - 一个 policy ($\mathcal{T}$), 如果加上/减少一个元素 $(m_1, m_2)$,
+    精度提高还是降低不确定
+
+
+论文提出非贪心的机器学习算法来应对挑战.
+
+算法整体框架如图 [[algo-overall]], 根据给定的指针分析算法 $F$, atomic feature 集合
+$\mathbb{A}$, 从一系列输入程序 $\mathbf{P} = \{P_1, P_2, \cdots\}$ 中学
+习, 最后生成 $\Pi$.
+
+{{{fig(整体框架, algo-overall, 100)}}}
+[[./context-tunneling/algo-overall.png]]
+
+主算法为 $\text{LearnParameter}(i, f_2, F, \mathbf{P}, \mathbb{A})$, 表
+示当前学习的是 $\Pi$ 中的 $f_i$ (也是返回值), 会被调用两次:
+- 第一次 $\text{LearnParameter}(2, false, F, \mathbf{P}, \mathbb{A})$,
+  表示学习 $f_2$
+- 第二次 $\text{LearnParameter}(1, f_2, F, \mathbf{P}, \mathbb{A})$,
+  表示基于之前学习的 $f_2$ 学习 $f_1$
+两次学习的结果组合成 $\Pi = \langle f_1, f_2 \rangle$.
+
+$\text{LearnParameter}(i, f_2, F, \mathbf{P}, \mathbb{A})$ 见图
+[[algo-learnSingle]], 主要步骤
+- 初始化 $f_1 = false$, $\Pi = \langle f_1, f_2 \rangle$
+- 初始化后开始学习 $f_i$
+- 构造 seed feature 集 $W$, 表示有可能让结果更好的 atomic feature
+- 每次选出一个可能效果最好的 seed feature $s$, 试图使用其他 atomic
+  feature 来 refine $s$, 让指针分析更精确.
+  如 $s = a_0$, refine 时多加了 $a_1$, $a_2$, 则生成$f_i \vee (a_0
+  \wedge a_1 \wedge a_2)$
+- 如果 refine 的结果更优的话, 就更新 $f_i$
+
+{{{fig(Learn single parameter, algo-learnSingle, 100)}}}
+[[./context-tunneling/algo-learnSingle.png]]
