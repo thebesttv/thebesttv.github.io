@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- 2022-09-26 17:08 -->
+<!-- 2022-09-27 12:46 -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>EServer Static 诞生记</title>
 <meta name="generator" content="Org Mode" />
 <!-- CSS -->
 <link rel="stylesheet" type="text/css" href="https://unpkg.com/latex.css/style.css"/>
-<link rel="stylesheet" type="text/css" href="css/org-default.css"/>
-<link rel="stylesheet" type="text/css" href="css/style.css"/>
+<link rel="stylesheet" type="text/css" href="../css/org-default.css"/>
+<link rel="stylesheet" type="text/css" href="../css/style.css"/>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-06N8YBQEG3"></script>
 <script>
@@ -23,7 +23,7 @@
 <body>
 <div id="preamble" class="status">
 <nav class="org-center">
-<a href="index.html">Home</a>
+<a href="../index.html">Home</a>
 </nav>
 </div>
 <div id="content" class="content">
@@ -33,19 +33,20 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org8daec5c">1. ELisp Script</a></li>
-<li><a href="#orgc925783">2. 关于 <code>setup.org</code></a>
+<li><a href="#org371a6f2">1. ELisp Script</a></li>
+<li><a href="#org9daa571">2. 关于 <code>setup.org</code></a>
 <ul>
-<li><a href="#orgc7606d3">2.1. <code>setup-N.org</code></a></li>
-<li><a href="#org6cd8bd8">2.2. 使用 Advice 动态设置 Header</a></li>
+<li><a href="#orgf565b44">2.1. <code>setup-N.org</code></a></li>
+<li><a href="#org86cf846">2.2. 使用 Advice 动态设置 Header</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </nav>
+<hr style="width: 80%;">
 
-<div id="outline-container-org8daec5c" class="outline-2">
-<h2 id="org8daec5c"><span class="section-number-2">1.</span> <a href="#org8daec5c">ELisp Script</a></h2>
+<div id="outline-container-org371a6f2" class="outline-2">
+<h2 id="org371a6f2"><span class="section-number-2">1.</span> <a href="#org371a6f2">ELisp Script</a></h2>
 <div class="outline-text-2" id="text-1">
 <ul class="org-ul">
 <li><a href="https://gist.github.com/ctarbide/99b0ac9f7d6bef19cdd3e9f71b4cbcf7">emacs-script-pitfalls.md</a>
@@ -54,8 +55,8 @@
 </div>
 </div>
 
-<div id="outline-container-orgc925783" class="outline-2">
-<h2 id="orgc925783"><span class="section-number-2">2.</span> <a href="#orgc925783">关于 <code>setup.org</code></a></h2>
+<div id="outline-container-org9daa571" class="outline-2">
+<h2 id="org9daa571"><span class="section-number-2">2.</span> <a href="#org9daa571">关于 <code>setup.org</code></a></h2>
 <div class="outline-text-2" id="text-2">
 <p>
 所有文章都需要一些 CSS, org macro 等用来辅助.
@@ -110,8 +111,8 @@
 </p>
 </div>
 
-<div id="outline-container-orgc7606d3" class="outline-3">
-<h3 id="orgc7606d3"><span class="section-number-3">2.1.</span> <a href="#orgc7606d3"><code>setup-N.org</code></a></h3>
+<div id="outline-container-orgf565b44" class="outline-3">
+<h3 id="orgf565b44"><span class="section-number-3">2.1.</span> <a href="#orgf565b44"><code>setup-N.org</code></a></h3>
 <div class="outline-text-3" id="text-2-1">
 <p>
 <code>setup-N.org</code> 表示相对根目录在第 N 层的文件所需 include 的内容, 其中
@@ -168,7 +169,7 @@ Makefile 中对应部分
 
 <span style="font-weight: bold; font-style: italic;">TARGET</span>=.setup-$<span style="font-weight: bold; font-style: italic;">N</span>.org
 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">https://stackoverflow.com/a/38868864</span>
-<span style="font-weight: bold; font-style: italic;">rep</span>=$(<span style="font-weight: bold;">printf '%*s' $N</span>)
+<span style="font-weight: bold; font-style: italic;">rep</span>=$(printf <span style="font-style: italic;">'%*s'</span> $<span style="font-weight: bold; font-style: italic;">N</span>)
 <span style="font-weight: bold; font-style: italic;">res</span>=${<span style="font-weight: bold; font-style: italic;">rep</span>// /../}
 
 <span style="font-weight: bold;">echo</span> <span style="font-style: italic;">"  file name: $TARGET"</span>
@@ -191,10 +192,10 @@ sed <span style="font-style: italic;">"s|{REPLACE-ME}|${res}|"</span> $<span sty
 
 <span style="font-weight: bold; font-style: italic;">SOURCE</span>=setup.org
 
-<span style="font-weight: bold;">for</span> i<span style="font-weight: bold;"> in</span> $(<span style="font-weight: bold;">eval echo "{$1..$2}"</span>); <span style="font-weight: bold;">do</span>
+<span style="font-weight: bold;">for</span> i<span style="font-weight: bold;"> in</span> $(<span style="font-weight: bold;">eval</span> echo <span style="font-style: italic;">"{$1..$2}"</span>); <span style="font-weight: bold;">do</span>
     <span style="font-weight: bold; font-style: italic;">TARGET</span>=.setup-${<span style="font-weight: bold; font-style: italic;">i</span>}.org
     <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">https://stackoverflow.com/a/38868864</span>
-    <span style="font-weight: bold;">printf</span> -v rep <span style="font-style: italic;">'%*s'</span> <span style="font-style: italic;">"$i"</span>
+    printf -v rep <span style="font-style: italic;">'%*s'</span> <span style="font-style: italic;">"$i"</span>
     <span style="font-weight: bold; font-style: italic;">res</span>=${<span style="font-weight: bold; font-style: italic;">rep</span>// /../}
 
     <span style="font-weight: bold;">echo</span> $<span style="font-weight: bold; font-style: italic;">TARGET</span> $<span style="font-weight: bold; font-style: italic;">res</span>
@@ -206,8 +207,8 @@ sed <span style="font-style: italic;">"s|{REPLACE-ME}|${res}|"</span> $<span sty
 </div>
 </div>
 
-<div id="outline-container-org6cd8bd8" class="outline-3">
-<h3 id="org6cd8bd8"><span class="section-number-3">2.2.</span> <a href="#org6cd8bd8">使用 Advice 动态设置 Header</a></h3>
+<div id="outline-container-org86cf846" class="outline-3">
+<h3 id="org86cf846"><span class="section-number-3">2.2.</span> <a href="#org86cf846">使用 Advice 动态设置 Header</a></h3>
 <div class="outline-text-3" id="text-2-2">
 <ul class="org-ul">
 <li><a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Advising-Functions.html">ELisp Manual: Advising Emacs Lisp Functions</a></li>
@@ -236,10 +237,10 @@ sed <span style="font-style: italic;">"s|{REPLACE-ME}|${res}|"</span> $<span sty
 <hr><table class="postamble">
   <tr><td class="org-right">Author</td><td class="org-left"></td></tr>
   <tr><td class="org-right">Created</td><td class="org-left"></td></tr>
-  <tr><td class="org-right">Modified</td><td class="org-left">2022-09-26 16:34</td></tr>
-  <tr><td class="org-right">Generated</td><td class="org-left">2022-09-26 17:08</td></tr>
+  <tr><td class="org-right">Modified</td><td class="org-left">2022-09-27 12:45</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2022-09-27 12:46</td></tr>
   <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 28.2 (<a href="https://orgmode.org">Org</a> mode 9.5.5)</td></tr>
-  <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://github.com/thebesttv/thebesttv.github.io/blob/main/blog.org">blog.org</a></td></tr>
+  <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://github.com/thebesttv/thebesttv.github.io/blob/main/content/blog.org">content/blog.org</a></td></tr>
 </table>
 </div>
 </body>
