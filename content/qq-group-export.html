@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- 2022-09-29 16:12 -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>导出QQ群成员</title>
+<meta name="author" content="thebesttv" />
+<meta name="generator" content="Org Mode" />
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-21YM95T3BQ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-21YM95T3BQ');
+</script>
+<!-- CSS -->
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/latex.css/style.css"/>
+<link rel="stylesheet" type="text/css" href="../css/org-default.css"/>
+<link rel="stylesheet" type="text/css" href="../css/style.css"/>
+</head>
+<body>
+<div id="preamble" class="status">
+<nav class="org-center">
+<a href="../index.html">Home</a>
+</nav>
+</div>
+<div id="content" class="content">
+<header>
+<h1 class="title">导出QQ群成员</h1>
+</header><nav id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#orgec9269d">1. 导出成员</a></li>
+<li><a href="#orgc76041f">2. 交叉对比</a></li>
+</ul>
+</div>
+</nav>
+<hr style="width: 80%;">
+
+<div id="outline-container-orgec9269d" class="outline-2">
+<h2 id="orgec9269d"><span class="section-number-2">1.</span> <a href="#orgec9269d">导出成员</a></h2>
+<div class="outline-text-2" id="text-1">
+<p>
+来自: <a href="https://www.zhihu.com/question/58753010/answer/1354673772">如何批量导出QQ群成员的QQ号/QQ邮箱等相关信息？ - 大发撸卡的回答 - 知乎</a>
+</p>
+
+<p>
+登录<a href="https://qun.qq.com/">QQ群</a> &rarr; 群管理 &rarr; 成员管理, 选择一个群, <b>拖到最后, 列出所有成员</b>,
+然后 F12 进入 console, 运行下列代码
+</p>
+<div class="org-src-container">
+<pre class="src src-js"><span style="font-weight: bold;">var</span> <span style="font-weight: bold; font-style: italic;">n</span>=$(<span style="font-style: italic;">'#groupMember .list tr.mb'</span>);
+<span style="font-weight: bold;">var</span> <span style="font-weight: bold; font-style: italic;">t</span>=<span style="font-style: italic;">'QQ\t&#26165;&#31216;\t&#32676;&#21517;&#29255;\n'</span>;
+<span style="font-weight: bold;">for</span>(<span style="font-weight: bold;">var</span> <span style="font-weight: bold; font-style: italic;">i</span>=0;i&lt;n.length;i++) {
+    <span style="font-weight: bold;">var</span> <span style="font-weight: bold; font-style: italic;">nn</span> = n[i].children[2].children[2].innerText;
+    <span style="font-weight: bold;">var</span> <span style="font-weight: bold; font-style: italic;">mp</span> = n[i].children[3].children[0].innerText;
+    <span style="font-weight: bold;">var</span> <span style="font-weight: bold; font-style: italic;">qq</span> = n[i].children[4].innerText;
+    t += qq + <span style="font-style: italic;">'\t'</span>+ nn.trim() + <span style="font-style: italic;">'\t'</span> + mp.trim() + <span style="font-style: italic;">'\n'</span>;
+}
+console.log(t);
+</pre>
+</div>
+<p>
+得到的列表有三列, 分别为QQ号, 昵称, 群名片.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgc76041f" class="outline-2">
+<h2 id="orgc76041f"><span class="section-number-2">2.</span> <a href="#orgc76041f">交叉对比</a></h2>
+<div class="outline-text-2" id="text-2">
+<p>
+交叉对比两个群的QQ号:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">comm -1 -2 &lt;(cut -f1 group1.txt | sort) &lt;(cut -f1 group2.txt | sort)
+</pre>
+</div>
+<p>
+其中 <code>cut -f1</code> 用来选取列表第一列,
+<code>comm</code> 用来对比两个文件的相同处 (需要提前用 <code>sort</code> 排序).
+</p>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<hr><table class="postamble">
+  <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
+  <tr><td class="org-right">Created</td><td class="org-left">2022-09-29 16:05</td></tr>
+  <tr><td class="org-right">Modified</td><td class="org-left">2022-09-29 16:09</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2022-09-29 16:12</td></tr>
+  <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 28.2 (<a href="https://orgmode.org">Org</a> mode 9.5.5)</td></tr>
+  <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://github.com/thebesttv/thebesttv.github.io/blob/main/content/qq-group-export.org">content/qq-group-export.org</a></td></tr>
+</table>
+</div>
+</body>
+</html>
