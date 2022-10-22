@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- 2022-10-22 17:07 -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vectored IO</title>
+<meta name="author" content="thebesttv" />
+<meta name="generator" content="Org Mode" />
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-21YM95T3BQ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-21YM95T3BQ');
+</script>
+<!-- favicon -->
+<link rel="icon" type="image/x-icon" href="../../favicon.ico">
+<!-- CSS -->
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/latex.css/style.css">
+<link rel="stylesheet" type="text/css" href="../../css/org-default.css">
+<link rel="stylesheet" type="text/css" href="../../css/style.css">
+</head>
+<body>
+<div id="preamble" class="status">
+<nav class="org-center">
+<a href="../../index.html">Home</a>
+</nav>
+</div>
+<div id="content" class="content">
+<header>
+<h1 class="title">Vectored IO</h1>
+</header><nav id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#org73b7dd6">1. What is Vectored IO</a></li>
+<li><a href="#orgb13cea6">2. Vectored IO in Linux</a></li>
+<li><a href="#orgb30aa2d">3. Comparison with <code>read()</code> &amp; <code>write()</code></a></li>
+<li><a href="#orge595079">4. Examples</a>
+<ul>
+<li><a href="#org647ba57">4.1. <code>write()</code></a></li>
+<li><a href="#org28da8da">4.2. <code>writev()</code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+</nav>
+<hr style="width: 80%;">
+<p>
+在做网络编程的 异步TCP 作业的时候, <a href="./liburing.html">想用 <code>liburing</code></a>,
+发现要先学一下 <code>readv()</code> 和 <code>writev()</code>:
+</p>
+<ul class="org-ul">
+<li><a href="https://en.wikipedia.org/wiki/Vectored_I/O">Wiki: Vectored I/O</a></li>
+<li><a href="https://www.oreilly.com/library/view/linux-system-programming/0596009585/ch04.html#:~:text=fun%20to%20implement.-,readv(%20)%20and%20writev(%20),-POSIX%201003.1%2D2001">Chapter 4. Advanced File I/O &#x2014; Linux System Programming by Robert Love</a></li>
+</ul>
+
+<div id="outline-container-org73b7dd6" class="outline-2">
+<h2 id="org73b7dd6"><span class="section-number-2">1.</span> <a href="#org73b7dd6">What is Vectored IO</a></h2>
+<div class="outline-text-2" id="text-1">
+<p>
+<i>Vectored IO</i> is doing IO with <b>a vector of buffers</b>, instead of using
+just a single buffer as in <code>read()</code> and <code>write()</code>.  It is also called
+<i>scatter/gather IO</i>, as it scatters data into, or gathers data from, a
+set of buffers.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgb13cea6" class="outline-2">
+<h2 id="orgb13cea6"><span class="section-number-2">2.</span> <a href="#orgb13cea6">Vectored IO in Linux</a></h2>
+<div class="outline-text-2" id="text-2">
+<p>
+<code>readv()</code> (scatter input) and <code>writev()</code> (gather output) are Linux
+implementations of vectored IO.  They share the exact same signature:
+</p>
+<div class="org-src-container">
+<pre class="src src-c"><span style="font-weight: bold;">#include</span> <span style="font-style: italic;">&lt;sys/uio.h&gt;</span>
+<span style="font-weight: bold; text-decoration: underline;">ssize_t</span> <span style="font-weight: bold;">readv</span>(<span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">fd</span>, <span style="font-weight: bold;">const</span> <span style="font-weight: bold;">struct</span> <span style="font-weight: bold; text-decoration: underline;">iovec</span> *<span style="font-weight: bold; font-style: italic;">iov</span>, <span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">iovcnt</span>);
+<span style="font-weight: bold; text-decoration: underline;">ssize_t</span> <span style="font-weight: bold;">writev</span>(<span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">fd</span>, <span style="font-weight: bold;">const</span> <span style="font-weight: bold;">struct</span> <span style="font-weight: bold; text-decoration: underline;">iovec</span> *<span style="font-weight: bold; font-style: italic;">iov</span>, <span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">iovcnt</span>);
+</pre>
+</div>
+<p>
+Here <code>iov</code> is an array of buffers, and <code>iovcnt</code> is the length of the
+array (i.e. it counts how many buffers there are in the array).  A
+description of the <code>iov</code> array from <code>man 3 iovec</code>:
+</p>
+<blockquote>
+<p>
+each element of the array represents a memory region, and the whole
+array represents a vector of memory regions.
+</p>
+</blockquote>
+
+<p>
+Each buffer in the <code>iov</code> array is a <code>struct iovec</code>:
+</p>
+<div class="org-src-container">
+<pre class="src src-c"><span style="font-weight: bold;">#include</span> <span style="font-style: italic;">&lt;sys/uio.h&gt;</span>
+<span style="font-weight: bold;">struct</span> <span style="font-weight: bold; text-decoration: underline;">iovec</span> {
+  <span style="font-weight: bold; text-decoration: underline;">void</span>   *<span style="font-weight: bold; font-style: italic;">iov_base</span>;  <span style="font-weight: bold; font-style: italic;">/* </span><span style="font-weight: bold; font-style: italic;">Starting address</span><span style="font-weight: bold; font-style: italic;"> */</span>
+  <span style="font-weight: bold; text-decoration: underline;">size_t</span>  <span style="font-weight: bold; font-style: italic;">iov_len</span>;   <span style="font-weight: bold; font-style: italic;">/* </span><span style="font-weight: bold; font-style: italic;">Size of the memory pointed to by iov_base.</span><span style="font-weight: bold; font-style: italic;"> */</span>
+};
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgb30aa2d" class="outline-2">
+<h2 id="orgb30aa2d"><span class="section-number-2">3.</span> <a href="#orgb30aa2d">Comparison with <code>read()</code> &amp; <code>write()</code></a></h2>
+<div class="outline-text-2" id="text-3">
+<p>
+Traditional <code>read()</code> and <code>write()</code> functions have similar signatures
+except for the single buffer <code>buf</code>, which is non-<code>const</code> with <code>read()</code>
+(as data is written to <code>buf</code>) and <code>const</code> with <code>write()</code> (as data is
+only read from <code>buf</code>).
+</p>
+<div class="org-src-container">
+<pre class="src src-c"><span style="font-weight: bold;">#include</span> <span style="font-style: italic;">&lt;unistd.h&gt;</span>
+<span style="font-weight: bold; text-decoration: underline;">ssize_t</span> <span style="font-weight: bold;">read</span>(<span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">fd</span>, <span style="font-weight: bold; text-decoration: underline;">void</span> *<span style="font-weight: bold; font-style: italic;">buf</span>, <span style="font-weight: bold; text-decoration: underline;">size_t</span> <span style="font-weight: bold; font-style: italic;">count</span>);
+<span style="font-weight: bold; text-decoration: underline;">ssize_t</span> <span style="font-weight: bold;">write</span>(<span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">fd</span>, <span style="font-weight: bold;">const</span> <span style="font-weight: bold; text-decoration: underline;">void</span> *<span style="font-weight: bold; font-style: italic;">buf</span>, <span style="font-weight: bold; text-decoration: underline;">size_t</span> <span style="font-weight: bold; font-style: italic;">count</span>);
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orge595079" class="outline-2">
+<h2 id="orge595079"><span class="section-number-2">4.</span> <a href="#orge595079">Examples</a></h2>
+<div class="outline-text-2" id="text-4">
+</div>
+<div id="outline-container-org647ba57" class="outline-3">
+<h3 id="org647ba57"><span class="section-number-3">4.1.</span> <a href="#org647ba57"><code>write()</code></a></h3>
+<div class="outline-text-3" id="text-4-1">
+<p>
+Printing a message to stdout with <code>write()</code>:
+</p>
+<div class="org-src-container">
+<pre class="src src-c"><span style="font-weight: bold;">#include</span> <span style="font-style: italic;">&lt;stdio.h&gt;</span>              <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">perror()</span>
+<span style="font-weight: bold;">#include</span> <span style="font-style: italic;">&lt;stdlib.h&gt;</span>             <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">exit(), EXIT_SUCCESS, EXIT_FAILURE</span>
+<span style="font-weight: bold;">#include</span> <span style="font-style: italic;">&lt;unistd.h&gt;</span>             <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">write(), STDOUT_FILENO</span>
+
+<span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold;">main</span>() {
+  <span style="font-weight: bold;">const</span> <span style="font-weight: bold; text-decoration: underline;">char</span> <span style="font-weight: bold; font-style: italic;">buf</span>[] = <span style="font-style: italic;">"Hello world from thebesttv!\n"</span>;
+  <span style="font-weight: bold;">if</span> (write(STDOUT_FILENO, buf, <span style="font-weight: bold;">sizeof</span>(buf)) == -1) {
+    perror(<span style="font-style: italic;">"write()"</span>);
+    exit(EXIT_FAILURE);
+  }
+  <span style="font-weight: bold;">return</span> EXIT_SUCCESS;
+}
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org28da8da" class="outline-3">
+<h3 id="org28da8da"><span class="section-number-3">4.2.</span> <a href="#org28da8da"><code>writev()</code></a></h3>
+<div class="outline-text-3" id="text-4-2">
+<p>
+Splitting the message into 3 separate buffers and printing them to
+stdout with <code>writev()</code>:
+</p>
+<div class="org-src-container">
+<pre class="src src-c"><span style="font-weight: bold;">#include</span> <span style="font-style: italic;">&lt;stdio.h&gt;</span>              <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">perror()</span>
+<span style="font-weight: bold;">#include</span> <span style="font-style: italic;">&lt;string.h&gt;</span>             <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">strlen()</span>
+<span style="font-weight: bold;">#include</span> <span style="font-style: italic;">&lt;stdlib.h&gt;</span>             <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">exit(), EXIT_SUCCESS, EXIT_FAILURE</span>
+<span style="font-weight: bold;">#include</span> <span style="font-style: italic;">&lt;unistd.h&gt;</span>             <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">STDOUT_FILENO</span>
+<span style="font-weight: bold;">#include</span> <span style="font-style: italic;">&lt;sys/uio.h&gt;</span>            <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">vectored IO: iovec, writev()</span>
+
+<span style="font-weight: bold;">#define</span> <span style="font-weight: bold; font-style: italic;">LENGTH</span> 3
+
+<span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold;">main</span>() {
+  <span style="font-weight: bold;">const</span> <span style="font-weight: bold; text-decoration: underline;">char</span> *<span style="font-weight: bold; font-style: italic;">bufs</span>[LENGTH] = {<span style="font-style: italic;">"Hello "</span>, <span style="font-style: italic;">"world "</span>, <span style="font-style: italic;">"from thebesttv!\n"</span>};
+
+  <span style="font-weight: bold;">struct</span> <span style="font-weight: bold; text-decoration: underline;">iovec</span> <span style="font-weight: bold; font-style: italic;">vecs</span>[LENGTH];
+  <span style="font-weight: bold;">for</span> (<span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">i</span> = 0; i &lt; LENGTH; i++) {
+    vecs[i].iov_base = (<span style="font-weight: bold; text-decoration: underline;">void</span> *)bufs[i];
+    vecs[i].iov_len = strlen(bufs[i]);
+  };
+
+  <span style="font-weight: bold;">if</span> (writev(STDOUT_FILENO, vecs, LENGTH) == -1) {
+    perror(<span style="font-style: italic;">"writev()"</span>);
+    exit(EXIT_FAILURE);
+  }
+  <span style="font-weight: bold;">return</span> EXIT_SUCCESS;
+}
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<hr><table class="postamble">
+  <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
+  <tr><td class="org-right">Created</td><td class="org-left">2022-10-22 16:07</td></tr>
+  <tr><td class="org-right">Modified</td><td class="org-left">2022-10-22 17:06</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2022-10-22 17:07</td></tr>
+  <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 28.2 (<a href="https://orgmode.org">Org</a> mode 9.5.5)</td></tr>
+  <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://github.com/thebesttv/thebesttv.github.io/blob/main/content/linux/vectored-io.org">content/linux/vectored-io.org</a></td></tr>
+</table>
+</div>
+</body>
+</html>

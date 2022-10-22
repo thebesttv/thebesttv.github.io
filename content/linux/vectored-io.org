@@ -1,0 +1,66 @@
+#+title: Vectored IO
+#+date: <2022-10-22 Sat 16:07>
+#+author: thebesttv
+
+在做网络编程的 异步TCP 作业的时候, [[file:./liburing.org][想用 =liburing=]],
+发现要先学一下 =readv()= 和 =writev()=:
+- [[https://en.wikipedia.org/wiki/Vectored_I/O][Wiki: Vectored I/O]]
+- [[https://www.oreilly.com/library/view/linux-system-programming/0596009585/ch04.html#:~:text=fun%20to%20implement.-,readv(%20)%20and%20writev(%20),-POSIX%201003.1%2D2001][Chapter 4. Advanced File I/O --- Linux System Programming by Robert Love]]
+
+* What is Vectored IO
+
+/Vectored IO/ is doing IO with *a vector of buffers*, instead of using
+just a single buffer as in =read()= and =write()=.  It is also called
+/scatter/gather IO/, as it scatters data into, or gathers data from, a
+set of buffers.
+
+* Vectored IO in Linux
+
+=readv()= (scatter input) and =writev()= (gather output) are Linux
+implementations of vectored IO.  They share the exact same signature:
+#+begin_src c
+  #include <sys/uio.h>
+  ssize_t readv(int fd, const struct iovec *iov, int iovcnt);
+  ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
+#+end_src
+Here =iov= is an array of buffers, and =iovcnt= is the length of the
+array (i.e. it counts how many buffers there are in the array).  A
+description of the =iov= array from =man 3 iovec=:
+#+begin_quote
+each element of the array represents a memory region, and the whole
+array represents a vector of memory regions.
+#+end_quote
+
+Each buffer in the =iov= array is a =struct iovec=:
+#+begin_src c
+  #include <sys/uio.h>
+  struct iovec {
+    void   *iov_base;  /* Starting address */
+    size_t  iov_len;   /* Size of the memory pointed to by iov_base. */
+  };
+#+end_src
+
+* Comparison with =read()= & =write()=
+
+Traditional =read()= and =write()= functions have similar signatures
+except for the single buffer =buf=, which is non-=const= with =read()=
+(as data is written to =buf=) and =const= with =write()= (as data is
+only read from =buf=).
+#+begin_src c
+  #include <unistd.h>
+  ssize_t read(int fd, void *buf, size_t count);
+  ssize_t write(int fd, const void *buf, size_t count);
+#+end_src
+
+* Examples
+
+** =write()=
+
+Printing a message to stdout with =write()=:
+#+include: vectored-io/hw-write.c src c
+
+** =writev()=
+
+Splitting the message into 3 separate buffers and printing them to
+stdout with =writev()=:
+#+include: vectored-io/hw-writev.c src c
