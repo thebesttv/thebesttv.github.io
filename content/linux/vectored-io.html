@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-<!-- 2022-10-25 03:07 -->
+<!-- 2022-10-25 16:15 -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Vectored IO</title>
@@ -22,27 +22,37 @@
 <link rel="stylesheet" type="text/css" href="https://unpkg.com/latex.css/style.css">
 <link rel="stylesheet" type="text/css" href="../../css/org-default.css">
 <link rel="stylesheet" type="text/css" href="../../css/style.css">
+<!-- pagefind -->
+<link rel="stylesheet" type="text/css" href="../../_pagefind/pagefind-ui.css">
+<script src="../../_pagefind/pagefind-ui.js" type="text/javascript"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+      new PagefindUI({element: "#search", showImages: false, resetStyles: false});
+  });
+</script>
 </head>
 <body>
 <div id="preamble" class="status">
 <nav class="org-center">
 <a href="../../index.html">Home</a>
+<div id="search"></div>
+<hr>
 </nav>
 </div>
 <div id="content" class="content">
 <header>
 <h1 class="title">Vectored IO</h1>
 </header><nav id="table-of-contents" role="doc-toc">
-<h2>Table of Contents</h2>
+<h2>&#30446;&#24405;</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org39e3328">1. What is Vectored IO</a></li>
-<li><a href="#orgbfc10c6">2. Vectored IO in Linux</a></li>
-<li><a href="#orgf349926">3. Comparison with <code>read()</code> &amp; <code>write()</code></a></li>
-<li><a href="#org2a5d14a">4. Examples</a>
+<li><a href="#org67be359">1. What is Vectored IO</a></li>
+<li><a href="#orgf16cfb4">2. Vectored IO in Linux</a></li>
+<li><a href="#org5589ab1">3. Comparison with <code>read()</code> &amp; <code>write()</code></a></li>
+<li><a href="#org206ea8a">4. Examples</a>
 <ul>
-<li><a href="#org0ffdb9e">4.1. <code>write()</code></a></li>
-<li><a href="#org41442fa">4.2. <code>writev()</code></a></li>
+<li><a href="#orge85ce9f">4.1. <code>write()</code></a></li>
+<li><a href="#orgad95af1">4.2. <code>writev()</code></a></li>
 </ul>
 </li>
 </ul>
@@ -58,8 +68,8 @@
 <li><a href="https://www.oreilly.com/library/view/linux-system-programming/0596009585/ch04.html#:~:text=fun%20to%20implement.-,readv(%20)%20and%20writev(%20),-POSIX%201003.1%2D2001">Chapter 4. Advanced File I/O &#x2014; Linux System Programming by Robert Love</a></li>
 </ul>
 
-<div id="outline-container-org39e3328" class="outline-2">
-<h2 id="org39e3328"><span class="section-number-2">1.</span> <a href="#org39e3328">What is Vectored IO</a></h2>
+<div id="outline-container-org67be359" class="outline-2">
+<h2 id="org67be359"><span class="section-number-2">1.</span> <a href="#org67be359">What is Vectored IO</a></h2>
 <div class="outline-text-2" id="text-1">
 <p>
 <i>Vectored IO</i> is doing IO with <b>a vector of buffers</b>, instead of using
@@ -70,8 +80,8 @@ set of buffers.
 </div>
 </div>
 
-<div id="outline-container-orgbfc10c6" class="outline-2">
-<h2 id="orgbfc10c6"><span class="section-number-2">2.</span> <a href="#orgbfc10c6">Vectored IO in Linux</a></h2>
+<div id="outline-container-orgf16cfb4" class="outline-2">
+<h2 id="orgf16cfb4"><span class="section-number-2">2.</span> <a href="#orgf16cfb4">Vectored IO in Linux</a></h2>
 <div class="outline-text-2" id="text-2">
 <p>
 <code>readv()</code> (scatter input) and <code>writev()</code> (gather output) are Linux
@@ -109,8 +119,8 @@ Each buffer in the <code>iov</code> array is a <code>struct iovec</code>:
 </div>
 </div>
 
-<div id="outline-container-orgf349926" class="outline-2">
-<h2 id="orgf349926"><span class="section-number-2">3.</span> <a href="#orgf349926">Comparison with <code>read()</code> &amp; <code>write()</code></a></h2>
+<div id="outline-container-org5589ab1" class="outline-2">
+<h2 id="org5589ab1"><span class="section-number-2">3.</span> <a href="#org5589ab1">Comparison with <code>read()</code> &amp; <code>write()</code></a></h2>
 <div class="outline-text-2" id="text-3">
 <p>
 Traditional <code>read()</code> and <code>write()</code> functions have similar signatures
@@ -127,12 +137,12 @@ only read from <code>buf</code>).
 </div>
 </div>
 
-<div id="outline-container-org2a5d14a" class="outline-2">
-<h2 id="org2a5d14a"><span class="section-number-2">4.</span> <a href="#org2a5d14a">Examples</a></h2>
+<div id="outline-container-org206ea8a" class="outline-2">
+<h2 id="org206ea8a"><span class="section-number-2">4.</span> <a href="#org206ea8a">Examples</a></h2>
 <div class="outline-text-2" id="text-4">
 </div>
-<div id="outline-container-org0ffdb9e" class="outline-3">
-<h3 id="org0ffdb9e"><span class="section-number-3">4.1.</span> <a href="#org0ffdb9e"><code>write()</code></a></h3>
+<div id="outline-container-orge85ce9f" class="outline-3">
+<h3 id="orge85ce9f"><span class="section-number-3">4.1.</span> <a href="#orge85ce9f"><code>write()</code></a></h3>
 <div class="outline-text-3" id="text-4-1">
 <p>
 Printing a message to stdout with <code>write()</code>:
@@ -155,8 +165,8 @@ Printing a message to stdout with <code>write()</code>:
 </div>
 </div>
 
-<div id="outline-container-org41442fa" class="outline-3">
-<h3 id="org41442fa"><span class="section-number-3">4.2.</span> <a href="#org41442fa"><code>writev()</code></a></h3>
+<div id="outline-container-orgad95af1" class="outline-3">
+<h3 id="orgad95af1"><span class="section-number-3">4.2.</span> <a href="#orgad95af1"><code>writev()</code></a></h3>
 <div class="outline-text-3" id="text-4-2">
 <p>
 Splitting the message into 3 separate buffers and printing them to
@@ -197,7 +207,7 @@ stdout with <code>writev()</code>:
   <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
   <tr><td class="org-right">Created</td><td class="org-left">2022-10-22 16:07</td></tr>
   <tr><td class="org-right">Modified</td><td class="org-left">2022-10-22 17:06</td></tr>
-  <tr><td class="org-right">Generated</td><td class="org-left">2022-10-25 03:07</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2022-10-25 16:15</td></tr>
   <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 28.2 (<a href="https://orgmode.org">Org</a> mode 9.5.5)</td></tr>
   <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://github.com/thebesttv/thebesttv.github.io/blob/main/content/linux/vectored-io.org">content/linux/vectored-io.org</a></td></tr>
 </table>
