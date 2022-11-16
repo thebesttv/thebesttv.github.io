@@ -1,0 +1,101 @@
+#+title: JUnit4 初见
+#+date: <2022-11-16 Wed 10:24>
+#+author: thebesttv
+
+在试图搞懂怎么用 Tai-e, 比较好的办法是看八个 Lab 的测试代码,
+酱就能知道如何获取和使用 Tai-e 的结果了.
+Tai-e 用的 [[https://junit.org/junit4/][JUnit4]], 在这里稍微学一下.
+
+已经有 [[https://junit.org/junit5/][JUnit5]] 了, 将来或许可以学一下:
+[[https://blogs.oracle.com/javamagazine/post/migrating-from-junit-4-to-junit-5-important-differences-and-benefits][Migrating from JUnit 4 to JUnit 5: Important Differences and Benefits]].
+
+* JUnit4 with Gradle
+
+想要在 Gradle 中使用 JUnit4, 在 =build.gradle.kts= 中放入以下即可:
+#+begin_src kotlin
+  dependencies {
+      testImplementation("junit:junit:4.13")
+  }
+
+  tasks.test {
+      useJUnit()
+      maxHeapSize = "1G"
+  }
+#+end_src
+
+* Creating Tests
+
+在 =src/test/java= 中建立一个类, 再在每个测试的函数上加上 =@Test= 即可.
+注, 运行测试的函数必须是 =public void= 的.
+#+begin_src java
+  public class AssertTests {
+      @Test
+      public void testAssertEquals() {
+          assertEquals("failure - strings are not equal", "text", "text");
+      }
+      @Test
+      public void testAssertFalse() {
+          assertFalse("failure - should be false", false);
+      }
+  }
+#+end_src
+
+在测试函数中使用不同的 assertion (如 =assertEquals=, =assertFalse= 等)
+判断是否通过测试.  See [[https://github.com/junit-team/junit4/wiki/Assertions][here]] for a list of assertions.
+
+* Test Filtering
+
+#+begin_quote
+With Gradle’s test filtering you can select tests to run based on:
+- A _fully-qualified class name_ or _fully qualified method name_,
+  e.g. =org.gradle.SomeTest=, =org.gradle.SomeTest.someMethod=
+- A _simple class name or method name_ if the pattern *starts with an
+  upper-case letter*, e.g. =SomeTest=, =SomeTest.someMethod= (since
+  Gradle 4.7)
+- ='*'= wildcard matching
+
+Since 4.7, Gradle has treated a pattern starting with an uppercase
+letter as a simple class name, or a class name + method name.
+#+end_quote
+
+假设有两个 Test 类, =thebesttv.blog.{SimpleTest,ComplexTest}=:
+#+begin_src java
+  public class SimpleTest {
+      @Test public void test1() { }
+      @Test public void test2() { }
+  }
+  public class ComplexTest {
+      @Test public void test3() { }
+      @Test public void test4() { }
+  }
+#+end_src
+则
+#+begin_src bash
+  # runs all tests in SimpleTest (test1 & test2)
+  $ gradle test --tests SimpleTest
+  # runs only test1
+  $ gradle test --tests SimpleTest.test1
+  $ gradle test --tests SimpleTest.*1
+  # runs test1 & test3
+  $ gradle test --tests SimpleTest.test1 --tests ComplexTest.test3
+#+end_src
+
+具体见 [[https://docs.gradle.org/current/userguide/java_testing.html#test_filtering][Doc: Test filtering]].
+
+* 显示 =gradle test= 运行的所有测试
+
+可以用 [[https://github.com/radarsh/gradle-test-logger-plugin][gradle-test-logger-plugin]] 来显示所有执行的测试.
+最简单地, 在 =build.gradle.kts= 中加入一个 plugin 即可:
+#+begin_src kotlin
+  plugins {
+      id("com.adarshr.test-logger") version "3.2.0"
+  }
+#+end_src
+可以修改不同的 theme, 也可以改成并行的:
+#+begin_src kotlin
+  testlogger {
+      theme = com.adarshr.gradle.testlogger.theme.ThemeType.STANDARD_PARALLEL
+  }
+#+end_src
+不同 theme 的效果见 [[https://github.com/radarsh/gradle-test-logger-plugin/blob/develop/docs/SCREENSHOTS.md][Screenshots]].
+使用 Kotlin DSL 配置时具体语法见 [[https://github.com/radarsh/gradle-test-logger-plugin#kotlin-dsl][Kotlin DSL]].
