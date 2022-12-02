@@ -1,0 +1,530 @@
+#+title: All about Soot (draft)
+#+date: <2022-11-15 Tue 12:51>
+#+author: thebesttv
+
+- [[https://soot-oss.github.io/soot/docs/4.4.0-SNAPSHOT/options/soot_options.html][Soot cli Options]]
+- [[https://soot-oss.github.io/soot/docs/4.4.0-SNAPSHOT/jdoc/index.html][Soot javadoc]]
+- [[https://github.com/soot-oss/soot/wiki][Soot wiki]]
+
+- [[https://github.com/noidsirius/SootTutorial][SootTutorial]] A step-by-step tutorial for Soot
+- [[https://blog.csdn.net/qq_45401577/article/details/123958021][Soot入门(1): 安装与生成Jimple文件]]
+
+- [[https://www.brics.dk/SootGuide/][A Survivor's Guide to Java Program Analysis with Soot]]
+  简直是救世主!!!
+  里面的代码是 Latin1 编码的, 转换成 UTF8 好点.
+  #+begin_src bash
+    find . -name '*.java' -exec iconv -f latin1 -t utf8 -o \{} \{} \;
+  #+end_src
+
+* Preliminaries
+
+JVM 4 种函数调用
+- invoke special: call constructor, superclass methods, private method
+- invoke virtual: normal instance method call (virtual dispatch)
+- invoke interface: like invoke virtual, but cannot optimize,
+  additionally, check interface implementation
+- invoke static: call static methods
+- invoke dynamic (after Java 7): allows dynamic typing language to run
+  on JVM (Java is static typing)
+
+* Basic concepts
+
+Soot has its own class path, which by default is empty.  When specifying
+class path of Soot using =-cp=, do not use =~=.  Instead, use absolute
+or relative paths.
+
+Jimple 尖括号中为 method signature: =class-name: return-type method-name
+(parameter-type1, ...)=
+
+** Three types of classes
+:PROPERTIES:
+:CUSTOM_ID: analyzed-classes
+:END:
+
+There're [[https://soot-oss.github.io/soot/docs/4.4.0-SNAPSHOT/options/soot_options.html#description][three kinds of classes]] (these are classes *analyzed by Soot*,
+not the ones [[#main-impl-classes][owned by Soot]]):
+- argument class: specified explicitly in Soot cli as argument, also
+  become application class
+- *application class*: classes that Soot analyzes, transforms, and turns
+  into output files
+- library class: classes which are *referred to*, directly or
+  indirectly, by the application classes, but which are not themselves
+  application classes.  Only used for *type resolution*.
+Since argument classes automatically become application classes,
+there're inherently only two classes---application class & library
+class.
+
+When you use the =-app= option, however, then Soot also processes all
+classes referenced by these classes.  It will not, however, process any
+classes in the JDK, i.e. classes in one of the =java.*= and =com.sun.*=
+packages.  If you wish to include those too you have to use the special
+=–i= option, e.g. =-i= java.
+
+** Packs & phases
+
+#+begin_quote
+The execution of Soot is separated into several phases called /packs/.
+#+end_quote
+
+The role of a pack
+- =b=: body creation
+- =t=: user-defined transformations.  This is of special interest since
+  it allows us to inject custom analysis.
+- =o=: optimizations
+- =a=: annotation (attribute generation)
+
+*** Whole Program Analysis Packs
+
+Before running the aforementioned packs, some packs are run
+- =wjpp=: here =w= stands for /whole-program/.
+- =cg=: call-graph generation
+- =wjtp=: whole Jimple transformation pack
+- =wjop=: whole Jimple optimization pack (this is disabled unless =-W=
+  is specified)
+- =wjap=: whole Jimple annotation pack
+The information generated in these packs are made available to the rest
+of Soot through =Scene.v()=.
+
+*** Cli Options
+
+To show help:
+- =-pl=, =-phase-list=: Print list of available phases
+- =-ph PACK=, =-phase-help PACK=: Print help for the specified =PACK=.
+  Here =PACK= can be either generic (e.g. =jop=), or specific
+  (e.g. =jop.cpf=)
+
+To set an option to a pack, use =-p= or =-phase-option= in the form of
+=-p PACK OPTION:VALUE=, which sets =PACK='s =OPTION= to =VALUE=, e.g. to
+turn off all user-defined intra-procedural transformations (in pack
+=jtp=):
+#+begin_src bash
+  soot -p jtp enabled:false ...
+#+end_src
+
+* Building Soot
+
+#+begin_src bash
+  mvn clean compile assembly:single
+#+end_src
+
+** Javadoc
+
+#+begin_src bash
+  mvn javadoc:javadoc
+#+end_src
+
+* Soot in cli
+
+#+begin_src bash
+  soot -v -process-dir code/ -d out
+  soot -cp . -pp Circle
+  soot -cp . -pp Circle -p cg.spark verbose:true,on-fly-cg:true
+#+end_src
+
+Cli options are defined in =src/main/xml/options/soot_options.xml=.
+
+* Different IRs
+
+{{{fig(Soot IRs, ir, 80)}}}
+[[./soot/ir.jpg]]
+
+** Baf
+
+Baf is
+- a compact representation of bytecode
+- stack-based
+
+The common interface is =soot.baf.Inst=.
+
+Available optimizations are in =soot.baf.toolkits.base=.
+
+** Jimple
+
+Jimple is
+- typed: all local variables are typed
+- stackless
+- 3-address (statements reference at most 3 local variables or
+  constants)
+  - this requires linearization of some complex expressions, e.g. =a*b +
+    c*d= is converted to multiple 3-address statements.
+
+For a complete explanation of Jimple, see [[#jimple][section Jimple]].
+
+** Shimple
+
+Shimple is
+- SSA-version (Static Single Assignment) of Jimple: each local variable
+  has a single static point of definition.
+  - this introduces a /Phi node/.
+
+** Grimp
+
+Grimp preserves =new= operator and complex expressions (no
+linearization).
+
+** Dava
+
+* Main implementation classes
+:PROPERTIES:
+:CUSTOM_ID: main-impl-classes
+:END:
+
+Thses are *implementation classes of Soot*, i.e. they are owned by Soot.
+For a classification of classes *analyzed by Soot*, see [[#analyzed-classes][this section]].
+Fig. [[main-class-relation]] shows fun-call relations of some of the most
+important classes.
+
+{{{fig(Main class relationships, main-class-relation, 80)}}}
+[[./soot/main-class-relation.jpg]]
+
+- [[https://soot-oss.github.io/soot/docs/4.4.0-SNAPSHOT/jdoc/soot/Scene.html][=Scene=]] Manages the =SootClass=​es of the application being analyzed.
+- [[https://soot-oss.github.io/soot/docs/4.4.0-SNAPSHOT/jdoc/soot/SootClass.html][=SootClass=]] Soot representation of a Java class.  They are usually
+  created by a =Scene=, but can also be constructed manually through the
+  given constructors.
+  #+begin_src java
+    // for methods
+    SootMethod getMethod(String subsignature);
+    SootMethod getMethod(String name, List<Type> parameterTypes);
+    SootMethod getMethodByName(String name);
+    int getMethodCount();
+    List<SootMethod> getMethods();
+    // for fields, alike
+    Chain<SootField> getFields();
+  #+end_src
+- =SootMethod=
+  - =Body=, =JimpleBody=
+- =SootField=
+- =Unit=
+- =UnitGraph=
+  - =ExceptionalUnitGraph=: use
+    =ExceptionalUnitGraphFactory.createExceptionalUnitGraph()= to create
+
+** Scene
+
+=Scene= is a singleton class that keeps all classes which are
+represented by =SootClass=.  Each =SootClass= may contain several
+methods (=SootMethod=) and each method may have a =Body= object that
+keeps the statements (=Unit=​s).
+
+Scene
+
+There are two scenes:
+- =soot.Scene=: which manages all the =SootClass=​es being analyzed.
+- =soot.ModuleScene=: a subclass of =Scene= used to analyze Java 9
+  modules.
+
+Methods of =soot.Scene=:
+- =loadClassAndSupport(String className)=: loads the given class and all
+  the required support classes.
+- =loadNecessaryClass(String name)=
+  #+begin_src java
+    protected void loadNecessaryClass(String name) {
+        loadClassAndSupport(name).setApplicationClass();
+    }
+  #+end_src
+- =loadNecessaryClasses()=: loads the set of classes that soot needs,
+  including those *specified on the command-line*.  This is the standard
+  way of initialising the list of classes soot should use.
+
+  The classes specified in the command-line include:
+  - individual classes specified in command-line.  e.g. =java soot.Main
+    -cp . -pp A B=, then =opts.classes()= returns the list ={"A", "B"}=.
+    #+begin_src java
+      for (String name : opts.classes()) {
+          loadNecessaryClass(name);
+      }
+    #+end_src
+  - =-process-dir=: all classes specified in directories
+    #+begin_src java
+      for (String path : opts.process_dir()) {
+          for (String cl : SourceLocator.v().getClassesUnder(path)) {
+              SootClass theClass = loadClassAndSupport(cl);
+              if (!theClass.isPhantom) {
+                  theClass.setApplicationClass();
+              }
+          }
+      }
+    #+end_src
+
+** SootMethod
+
+SootMethod
+- =getActiveBody()= throws an exception when no active body is present.
+  This cannot be called before =PackManager.v().runPacks();= in =Main=.
+- =retrieveActiveBody()= will construct an active body if none is
+  present.
+
+*** Printing a Method
+
+In =soot.Body::toString()=, =Printer.v().printTo()= is used to print a
+method body:
+#+begin_src java
+  Printer.v().printTo(this, writerOut);
+#+end_src
+
+** SootField
+
+** Graph
+
+Different kinds of graphs (partial)
+#+begin_example
+  DirectedBodyGraph (I)
+      ExceptionalGraph (I)
+          CompleteUnitGraph (C)
+          ExceptionalUnitGraph (C)
+              CompleteUnitGraph (C)
+          CompleteBlockGraph (C)
+          ExceptionalBlockGraph (C)
+              CompleteBlockGraph (C)
+      CompleteUnitGraph (C)
+      ExceptionalUnitGraph (C)
+          CompleteUnitGraph (C)
+      BriefUnitGraph (C)
+      TrapUnitGraph (C)
+      UnitGraph (C)
+          ExceptionalUnitGraph (C)
+              CompleteUnitGraph (C)
+          BriefUnitGraph (C)
+          TrapUnitGraph (C)
+#+end_example
+
+* Jimple
+:PROPERTIES:
+:CUSTOM_ID: jimple
+:END:
+
+The common interface is =soot.jimple.Stmt=.
+
+There are 15 =Stmt=​s (=Stmt= is instance of =Unit=)
+- Core statements
+  - =NopStmt=
+  - =DefinitionStmt=: its left op can either be a primitive (=PrimType=)
+    or a ref-like type (=RefLikeType=).  To check:
+    #+begin_src java
+      if (defStmt.getLeftOp().getType() instanceof RefLikeType) {
+          // ...
+      }
+    #+end_src
+    - =IdentityStmt=: assigns parameters and =this= reference to local
+      variables.  This ensures that all local variables have at least
+      one definition point.
+      #+begin_src text
+        r0 := @this;
+        i1 := @parameter0;
+      #+end_src
+    - =AssignStmt=
+- Intra-procedual control-flow statements
+  - =IfStmt=
+    #+begin_src text
+      if r1 != null goto label0;
+    #+end_src
+    In a =BranchedFlowAnalysis=, there're two flows out of an =IfStmt=:
+    the fall-through flow and branched flow.
+  - =GotoStmt=
+  - =SwitchStmt=
+    - =TableSwitchStmt=
+    - =LookupSwitchStmt=
+- Inter-procedual control-flow statements
+  - =InvokeStmt=
+  - =ReturnStmt=
+  - =ReturnVoidStmt=
+- Monitor statements: for mutual exclusion
+  - =EnterMonitorStmt=
+  - =ExitMonitorStmt=
+- =ThrowStmt=: throws an exception
+- =RetStmt=: not used; returns from a JSR
+  - JSR & RET are JVM instructions for subroutine.  It seems that they
+    are [[https://stackoverflow.com/q/5871190/11938767][deprecated Java bytecode]], as using them causes more harm than
+    good.  According to [[http://www.sable.mcgill.ca/listarchives/soot-list/msg00509.html][this]] mail and its [[http://www.sable.mcgill.ca/listarchives/soot-list/msg00510.html][reply]], JVM subroutines (JSR &
+    RET) "cause huge problems with analysis and optimization" and are
+    removed by Jimple's JSR inliner.
+
+#+begin_quote
+The local variables which start with a =$= sign represent *stack
+positions* and not local variables in the original program whereas those
+without =$= represent real local variables e.g. =i0= in the main method
+corresponds to =a= in the Java source.
+#+end_quote
+
+- See the [[https://soot-oss.github.io/soot/docs/4.4.0-SNAPSHOT/jdoc/soot/jimple/internal/package-tree.html][Hierarchy For Package soot.jimple.internal]], all statements are
+  under =soot.AbstractUnit= \to =soot.jimple.internal.AbstractStmt=.
+
+** FieldRef
+
+=FieldRef= 分为 =InstanceFieldRef= 和 =StaticFieldRef=
+#+begin_example
+FieldRef (I)
+|- InstanceFieldRef (I)
+|  |- JInstanceFieldRef (C, for Jimple)
+|  |- GInstanceFieldRef (C, for Grimp)
+|  `- ...
+|- StaticFieldRef (C)
+`- ...
+#+end_example
+
+** Labels
+
+Labels are displayed using =Printer=.
+
+* Body
+
+Body has three chains
+- Units chain: the actual code.  Jimple provides the =Stmt=
+  implementation of =Unit=, while Grimp provides the =Inst=
+  implementation.
+- Locals chain: local variables
+- Traps chain: trap handlers, in the form of
+  #+begin_src text
+    catch java.lang.Exception from label0 to label1 with label2;
+  #+end_src
+
+* Value
+
+Value
+- =Local=: a local variable
+  - =JimpleLocal=
+- =Expr=: expression.  An =Expr= carries out some action on one or
+  several =Value=​s and returns another =Value=.
+  - package =soot.jimple=
+    - =BinopExpr=
+    - =NewExpr=
+    - =NewArrayExpr=
+    - =NewMultiArrayExpr=
+  - package =soot.jimple.internal=
+    - =JCastExpr=
+    - ...
+  - ...
+- =Immediate=
+  - =Constant=
+- =Ref=
+  - =ParameterRef=
+  - =CaughtExceptionRef=
+  - =ThisRef=
+
+** ValueBox
+
+A =ValueBox= is a pointer to some value.  It can be visualized as a box
+containing some value.
+
+- =getValue()=: dereferences the pointer
+- =setValue()=: mutates value in the box
+- A unit has both DefBox & UseBox
+  - =getUseBoxes()= returns a list of =ValueBox=​es, corresponding to
+    *all* =Value=​s used in the unit.
+  - =getDefBoxes()= returns all =Values=​s defined in the unit.
+  - For example, for unit =x=y*z=, there're 3 use boxes: =[y*z]= (an
+    =Expr=), =[y]= (a =Local=), and =[z]= (another =Local=); and one
+    def box: =[x]= (a =Local=).  The brackets (=[]=) represent the
+    box.
+
+For example, the following Java code
+#+begin_src java
+  int a = 12;
+  int b = 24;
+  int x = a * b;
+#+end_src
+is translated to
+#+begin_src text
+  a = 12;
+  b = 24;
+  temp$0 = a * b;
+  x = temp$0;
+#+end_src
+The DefBox & UseBox of each statement is as follows
+#+begin_src text
+  a = 12
+    Def:
+      LinkedVariableBox[JimpleLocal: a]
+    Use:
+      LinkedRValueBox[IntConstant: 12]
+
+  b = 24
+    Def:
+      LinkedVariableBox[JimpleLocal: b]
+    Use:
+      LinkedRValueBox[IntConstant: 24]
+
+  temp$0 = a * b
+    Def:
+      LinkedVariableBox[JimpleLocal: temp$0]
+    Use:
+      LinkedRValueBox[JMulExpr: a * b]
+      ImmediateBox[JimpleLocal: a]
+      ImmediateBox[JimpleLocal: b]
+
+  x = temp$0
+    Def:
+      LinkedVariableBox[JimpleLocal: x]
+    Use:
+      LinkedRValueBox[JimpleLocal: temp$0]
+#+end_src
+
+* Type
+
+Class hierarchy of =Type=:
+#+begin_src text
+  Type
+  |- PrimType: including int, float, char ...
+  |  |- BooleanType
+  |  |- CharType
+  |  |- IntType
+  |  `- ...
+  |- RefLikeType
+  |  |- ArrayType: array reference
+  |  |- NullType
+  |  `- RefType: simple reference
+  `- VoidType: void
+#+end_src
+
+* Analyses
+
+** Off-The-Shelf Analyses
+
+- Null Pointer Checker
+  - =jap.npc=
+  - =jap.npcolorer=
+- Array Bound Checker
+  - =jap.abc=
+- Liveness Analysis
+  - =jap.lvtagger=
+
+** Custom Analyses
+
+Inject custom inter-procedural analyses into =wjtp= pack and
+intra-procedural analyses into =jtp= pack.
+
+#+begin_src java
+  public class MySootMainExtension {
+      public static void main(String[] args) {
+          // Inject the analysis tagger into Soot
+          PackManager.v().getPack("jtp")
+              .add(new Transform("jpt.myanalysistagger",
+                                 MyAnalysisTagger.instance()));
+          // Invoke soot.Main with arguments given
+          Main.main(args);
+      }
+  }
+#+end_src
+
+*** Very Busy Expressions Analysis
+
+- [[https://www.cis.upenn.edu/~mhnaik/edu/cis700/lessons/dataflow_analysis.pdf][dataflow_analysis.pdf]] very good explanation
+- [[https://pages.cs.wisc.edu/~fischer/cs701.f08/lectures/Lecture18.4up.pdf][Lecture18.4up.pdf]] another explanation
+
+The goal of Very Busy Expressions analysis is to compute expressions
+that are very busy at the exit from each program point.
+
+An expression is very busy if, *no matter what path is taken*, the
+expression is always used before any of the variables occurring in it
+are redefined.
+
+This is a must analysis, since if in either one of the path, the
+expression $e$ is not used, it is not considered very busy.
+
+This is a backwards analysis, as the fact at node $d$ is deduced from
+later (TODO: change word) nodes.
+
+For expression $e = x + y$ from node $s$ to $p$, if either $x$ or $y$ is
+redefined along the path, then even if $p$ uses expression $e$, it's not
+very busy at $s$.
+

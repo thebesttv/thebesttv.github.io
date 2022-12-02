@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 2022-12-02 22:07 -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>All about Soot (draft)</title>
+<meta name="author" content="thebesttv" />
+<meta name="generator" content="Org Mode" />
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-21YM95T3BQ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-21YM95T3BQ');
+</script>
+<!-- favicon -->
+<link rel="icon" type="image/x-icon" href="../../favicon.ico">
+<!-- CSS -->
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/latex.css/style.css">
+<link rel="stylesheet" type="text/css" href="../../css/org-default.css">
+<link rel="stylesheet" type="text/css" href="../../css/style.css">
+<!-- pagefind -->
+<link rel="stylesheet" type="text/css" href="../../_pagefind/pagefind-ui.css">
+<script src="../../_pagefind/pagefind-ui.js" type="text/javascript"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+      new PagefindUI({element: "#search", showImages: false, resetStyles: false});
+  });
+</script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        displayAlign: "center",
+        displayIndent: "0em",
+
+        "HTML-CSS": { scale: 100,
+                        linebreaks: { automatic: "false" },
+                        webFont: "TeX"
+                       },
+        SVG: {scale: 100,
+              linebreaks: { automatic: "false" },
+              font: "TeX"},
+        NativeMML: {scale: 100},
+        TeX: { equationNumbers: {autoNumber: "AMS"},
+               MultLineWidth: "85%",
+               TagSide: "right",
+               TagIndent: ".8em"
+             }
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML"></script>
+</head>
+<body>
+<div id="preamble" class="status">
+<nav class="org-center">
+<a href="../../index.html">Home</a>
+<div id="search"></div>
+<hr>
+</nav>
+</div>
+<div id="content" class="content">
+<header>
+<h1 class="title">All about Soot (draft)</h1>
+</header><nav id="table-of-contents" role="doc-toc">
+<h2>&#30446;&#24405;</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#orged5b359">1. Preliminaries</a></li>
+<li><a href="#orge49c6db">2. Basic concepts</a>
+<ul>
+<li><a href="#analyzed-classes">2.1. Three types of classes</a></li>
+<li><a href="#orgf291310">2.2. Packs &amp; phases</a>
+<ul>
+<li><a href="#org3f3484c">2.2.1. Whole Program Analysis Packs</a></li>
+<li><a href="#org1529efa">2.2.2. Cli Options</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#org1cd010b">3. Building Soot</a>
+<ul>
+<li><a href="#org043a676">3.1. Javadoc</a></li>
+</ul>
+</li>
+<li><a href="#org41f26aa">4. Soot in cli</a></li>
+<li><a href="#org1daf91b">5. Different IRs</a>
+<ul>
+<li><a href="#org4afe19b">5.1. Baf</a></li>
+<li><a href="#orgd8c2829">5.2. Jimple</a></li>
+<li><a href="#org7c15114">5.3. Shimple</a></li>
+<li><a href="#orgf615863">5.4. Grimp</a></li>
+<li><a href="#orged36a79">5.5. Dava</a></li>
+</ul>
+</li>
+<li><a href="#main-impl-classes">6. Main implementation classes</a>
+<ul>
+<li><a href="#org12951d4">6.1. Scene</a></li>
+<li><a href="#orgf77ef6d">6.2. SootMethod</a>
+<ul>
+<li><a href="#orgb639ed5">6.2.1. Printing a Method</a></li>
+</ul>
+</li>
+<li><a href="#org3e3b148">6.3. SootField</a></li>
+<li><a href="#orgfd7ca4a">6.4. Graph</a></li>
+</ul>
+</li>
+<li><a href="#jimple">7. Jimple</a>
+<ul>
+<li><a href="#org525bec7">7.1. FieldRef</a></li>
+<li><a href="#org988b592">7.2. Labels</a></li>
+</ul>
+</li>
+<li><a href="#org3fe043d">8. Body</a></li>
+<li><a href="#org016de43">9. Value</a>
+<ul>
+<li><a href="#orgfaaac25">9.1. ValueBox</a></li>
+</ul>
+</li>
+<li><a href="#orgec1198c">10. Type</a></li>
+<li><a href="#org0aa8682">11. Analyses</a>
+<ul>
+<li><a href="#orge7d6e49">11.1. Off-The-Shelf Analyses</a></li>
+<li><a href="#org83a5afb">11.2. Custom Analyses</a>
+<ul>
+<li><a href="#orgcfbc21a">11.2.1. Very Busy Expressions Analysis</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</nav>
+<hr style="width: 80%;">
+<ul class="org-ul">
+<li><a href="https://soot-oss.github.io/soot/docs/4.4.0-SNAPSHOT/options/soot_options.html">Soot cli Options</a></li>
+<li><a href="https://soot-oss.github.io/soot/docs/4.4.0-SNAPSHOT/jdoc/index.html">Soot javadoc</a></li>
+<li><a href="https://github.com/soot-oss/soot/wiki">Soot wiki</a></li>
+
+<li><a href="https://github.com/noidsirius/SootTutorial">SootTutorial</a> A step-by-step tutorial for Soot</li>
+<li><a href="https://blog.csdn.net/qq_45401577/article/details/123958021">Soot入门(1): 安装与生成Jimple文件</a></li>
+
+<li><p>
+<a href="https://www.brics.dk/SootGuide/">A Survivor's Guide to Java Program Analysis with Soot</a>
+简直是救世主!!!
+里面的代码是 Latin1 编码的, 转换成 UTF8 好点.
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">find . -name <span style="font-style: italic;">'*.java'</span> -exec iconv -f latin1 -t utf8 -o <span style="font-style: italic;">\{</span>} <span style="font-style: italic;">\{</span>} <span style="font-style: italic;">\;</span>
+</pre>
+</div></li>
+</ul>
+
+<div id="outline-container-orged5b359" class="outline-2">
+<h2 id="orged5b359"><span class="section-number-2">1.</span> <a href="#orged5b359">Preliminaries</a></h2>
+<div class="outline-text-2" id="text-1">
+<p>
+JVM 4 种函数调用
+</p>
+<ul class="org-ul">
+<li>invoke special: call constructor, superclass methods, private method</li>
+<li>invoke virtual: normal instance method call (virtual dispatch)</li>
+<li>invoke interface: like invoke virtual, but cannot optimize,
+additionally, check interface implementation</li>
+<li>invoke static: call static methods</li>
+<li>invoke dynamic (after Java 7): allows dynamic typing language to run
+on JVM (Java is static typing)</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orge49c6db" class="outline-2">
+<h2 id="orge49c6db"><span class="section-number-2">2.</span> <a href="#orge49c6db">Basic concepts</a></h2>
+<div class="outline-text-2" id="text-2">
+<p>
+Soot has its own class path, which by default is empty.  When specifying
+class path of Soot using <code>-cp</code>, do not use <code>~</code>.  Instead, use absolute
+or relative paths.
+</p>
+
+<p>
+Jimple 尖括号中为 method signature: <code>class-name: return-type method-name
+(parameter-type1, ...)</code>
+</p>
+</div>
+
+<div id="outline-container-analyzed-classes" class="outline-3">
+<h3 id="analyzed-classes"><span class="section-number-3">2.1.</span> <a href="#analyzed-classes">Three types of classes</a></h3>
+<div class="outline-text-3" id="text-analyzed-classes">
+<p>
+There're <a href="https://soot-oss.github.io/soot/docs/4.4.0-SNAPSHOT/options/soot_options.html#description">three kinds of classes</a> (these are classes <b>analyzed by Soot</b>,
+not the ones <a href="#main-impl-classes">owned by Soot</a>):
+</p>
+<ul class="org-ul">
+<li>argument class: specified explicitly in Soot cli as argument, also
+become application class</li>
+<li><b>application class</b>: classes that Soot analyzes, transforms, and turns
+into output files</li>
+<li>library class: classes which are <b>referred to</b>, directly or
+indirectly, by the application classes, but which are not themselves
+application classes.  Only used for <b>type resolution</b>.</li>
+</ul>
+<p>
+Since argument classes automatically become application classes,
+there're inherently only two classes&#x2014;application class &amp; library
+class.
+</p>
+
+<p>
+When you use the <code>-app</code> option, however, then Soot also processes all
+classes referenced by these classes.  It will not, however, process any
+classes in the JDK, i.e. classes in one of the <code>java.*</code> and <code>com.sun.*</code>
+packages.  If you wish to include those too you have to use the special
+<code>–i</code> option, e.g. <code>-i</code> java.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgf291310" class="outline-3">
+<h3 id="orgf291310"><span class="section-number-3">2.2.</span> <a href="#orgf291310">Packs &amp; phases</a></h3>
+<div class="outline-text-3" id="text-2-2">
+<blockquote>
+<p>
+The execution of Soot is separated into several phases called <i>packs</i>.
+</p>
+</blockquote>
+
+<p>
+The role of a pack
+</p>
+<ul class="org-ul">
+<li><code>b</code>: body creation</li>
+<li><code>t</code>: user-defined transformations.  This is of special interest since
+it allows us to inject custom analysis.</li>
+<li><code>o</code>: optimizations</li>
+<li><code>a</code>: annotation (attribute generation)</li>
+</ul>
+</div>
+
+<div id="outline-container-org3f3484c" class="outline-4">
+<h4 id="org3f3484c"><span class="section-number-4">2.2.1.</span> <a href="#org3f3484c">Whole Program Analysis Packs</a></h4>
+<div class="outline-text-4" id="text-2-2-1">
+<p>
+Before running the aforementioned packs, some packs are run
+</p>
+<ul class="org-ul">
+<li><code>wjpp</code>: here <code>w</code> stands for <i>whole-program</i>.</li>
+<li><code>cg</code>: call-graph generation</li>
+<li><code>wjtp</code>: whole Jimple transformation pack</li>
+<li><code>wjop</code>: whole Jimple optimization pack (this is disabled unless <code>-W</code>
+is specified)</li>
+<li><code>wjap</code>: whole Jimple annotation pack</li>
+</ul>
+<p>
+The information generated in these packs are made available to the rest
+of Soot through <code>Scene.v()</code>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org1529efa" class="outline-4">
+<h4 id="org1529efa"><span class="section-number-4">2.2.2.</span> <a href="#org1529efa">Cli Options</a></h4>
+<div class="outline-text-4" id="text-2-2-2">
+<p>
+To show help:
+</p>
+<ul class="org-ul">
+<li><code>-pl</code>, <code>-phase-list</code>: Print list of available phases</li>
+<li><code>-ph PACK</code>, <code>-phase-help PACK</code>: Print help for the specified <code>PACK</code>.
+Here <code>PACK</code> can be either generic (e.g. <code>jop</code>), or specific
+(e.g. <code>jop.cpf</code>)</li>
+</ul>
+
+<p>
+To set an option to a pack, use <code>-p</code> or <code>-phase-option</code> in the form of
+<code>-p PACK OPTION:VALUE</code>, which sets <code>PACK</code>'s <code>OPTION</code> to <code>VALUE</code>, e.g. to
+turn off all user-defined intra-procedural transformations (in pack
+<code>jtp</code>):
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">soot -p jtp enabled:false ...
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org1cd010b" class="outline-2">
+<h2 id="org1cd010b"><span class="section-number-2">3.</span> <a href="#org1cd010b">Building Soot</a></h2>
+<div class="outline-text-2" id="text-3">
+<div class="org-src-container">
+<pre class="src src-bash">mvn clean compile assembly:single
+</pre>
+</div>
+</div>
+
+<div id="outline-container-org043a676" class="outline-3">
+<h3 id="org043a676"><span class="section-number-3">3.1.</span> <a href="#org043a676">Javadoc</a></h3>
+<div class="outline-text-3" id="text-3-1">
+<div class="org-src-container">
+<pre class="src src-bash">mvn javadoc:javadoc
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org41f26aa" class="outline-2">
+<h2 id="org41f26aa"><span class="section-number-2">4.</span> <a href="#org41f26aa">Soot in cli</a></h2>
+<div class="outline-text-2" id="text-4">
+<div class="org-src-container">
+<pre class="src src-bash">soot -v -process-dir code/ -d out
+soot -cp . -pp Circle
+soot -cp . -pp Circle -p cg.spark verbose:true,on-fly-cg:true
+</pre>
+</div>
+
+<p>
+Cli options are defined in <code>src/main/xml/options/soot_options.xml</code>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org1daf91b" class="outline-2">
+<h2 id="org1daf91b"><span class="section-number-2">5.</span> <a href="#org1daf91b">Different IRs</a></h2>
+<div class="outline-text-2" id="text-5">
+
+<figure id="org06c1089">
+<img src="./soot/ir.jpg" alt="ir.jpg" width="80%" style="margin-left: auto; margin-right: auto;">
+
+<figcaption><span class="figure-number">&#22270;1&nbsp; </span>Soot IRs</figcaption>
+</figure>
+</div>
+
+<div id="outline-container-org4afe19b" class="outline-3">
+<h3 id="org4afe19b"><span class="section-number-3">5.1.</span> <a href="#org4afe19b">Baf</a></h3>
+<div class="outline-text-3" id="text-5-1">
+<p>
+Baf is
+</p>
+<ul class="org-ul">
+<li>a compact representation of bytecode</li>
+<li>stack-based</li>
+</ul>
+
+<p>
+The common interface is <code>soot.baf.Inst</code>.
+</p>
+
+<p>
+Available optimizations are in <code>soot.baf.toolkits.base</code>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgd8c2829" class="outline-3">
+<h3 id="orgd8c2829"><span class="section-number-3">5.2.</span> <a href="#orgd8c2829">Jimple</a></h3>
+<div class="outline-text-3" id="text-5-2">
+<p>
+Jimple is
+</p>
+<ul class="org-ul">
+<li>typed: all local variables are typed</li>
+<li>stackless</li>
+<li>3-address (statements reference at most 3 local variables or
+constants)
+<ul class="org-ul">
+<li>this requires linearization of some complex expressions, e.g. <code>a*b +
+    c*d</code> is converted to multiple 3-address statements.</li>
+</ul></li>
+</ul>
+
+<p>
+For a complete explanation of Jimple, see <a href="#jimple">section Jimple</a>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org7c15114" class="outline-3">
+<h3 id="org7c15114"><span class="section-number-3">5.3.</span> <a href="#org7c15114">Shimple</a></h3>
+<div class="outline-text-3" id="text-5-3">
+<p>
+Shimple is
+</p>
+<ul class="org-ul">
+<li>SSA-version (Static Single Assignment) of Jimple: each local variable
+has a single static point of definition.
+<ul class="org-ul">
+<li>this introduces a <i>Phi node</i>.</li>
+</ul></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgf615863" class="outline-3">
+<h3 id="orgf615863"><span class="section-number-3">5.4.</span> <a href="#orgf615863">Grimp</a></h3>
+<div class="outline-text-3" id="text-5-4">
+<p>
+Grimp preserves <code>new</code> operator and complex expressions (no
+linearization).
+</p>
+</div>
+</div>
+
+<div id="outline-container-orged36a79" class="outline-3">
+<h3 id="orged36a79"><span class="section-number-3">5.5.</span> <a href="#orged36a79">Dava</a></h3>
+</div>
+</div>
+
+<div id="outline-container-main-impl-classes" class="outline-2">
+<h2 id="main-impl-classes"><span class="section-number-2">6.</span> <a href="#main-impl-classes">Main implementation classes</a></h2>
+<div class="outline-text-2" id="text-main-impl-classes">
+<p>
+Thses are <b>implementation classes of Soot</b>, i.e. they are owned by Soot.
+For a classification of classes <b>analyzed by Soot</b>, see <a href="#analyzed-classes">this section</a>.
+Fig. <a href="#org5c7294f">2</a> shows fun-call relations of some of the most
+important classes.
+</p>
+
+
+<figure id="org5c7294f">
+<img src="./soot/main-class-relation.jpg" alt="main-class-relation.jpg" width="80%" style="margin-left: auto; margin-right: auto;">
+
+<figcaption><span class="figure-number">&#22270;2&nbsp; </span>Main class relationships</figcaption>
+</figure>
+
+<ul class="org-ul">
+<li><a href="https://soot-oss.github.io/soot/docs/4.4.0-SNAPSHOT/jdoc/soot/Scene.html"><code>Scene</code></a> Manages the <code>SootClass</code>es of the application being analyzed.</li>
+<li><p>
+<a href="https://soot-oss.github.io/soot/docs/4.4.0-SNAPSHOT/jdoc/soot/SootClass.html"><code>SootClass</code></a> Soot representation of a Java class.  They are usually
+created by a <code>Scene</code>, but can also be constructed manually through the
+given constructors.
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">for methods</span>
+<span style="font-weight: bold; text-decoration: underline;">SootMethod</span> <span style="font-weight: bold;">getMethod</span>(<span style="font-weight: bold; text-decoration: underline;">String</span> <span style="font-weight: bold; font-style: italic;">subsignature</span>);
+<span style="font-weight: bold; text-decoration: underline;">SootMethod</span> <span style="font-weight: bold;">getMethod</span>(<span style="font-weight: bold; text-decoration: underline;">String</span> <span style="font-weight: bold; font-style: italic;">name</span>, <span style="font-weight: bold; text-decoration: underline;">List</span>&lt;<span style="font-weight: bold; text-decoration: underline;">Type</span>&gt; <span style="font-weight: bold; font-style: italic;">parameterTypes</span>);
+<span style="font-weight: bold; text-decoration: underline;">SootMethod</span> <span style="font-weight: bold;">getMethodByName</span>(<span style="font-weight: bold; text-decoration: underline;">String</span> <span style="font-weight: bold; font-style: italic;">name</span>);
+<span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold;">getMethodCount</span>();
+<span style="font-weight: bold; text-decoration: underline;">List</span>&lt;<span style="font-weight: bold; text-decoration: underline;">SootMethod</span>&gt; <span style="font-weight: bold;">getMethods</span>();
+<span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">for fields, alike</span>
+<span style="font-weight: bold; text-decoration: underline;">Chain</span>&lt;<span style="font-weight: bold; text-decoration: underline;">SootField</span>&gt; <span style="font-weight: bold;">getFields</span>();
+</pre>
+</div></li>
+<li><code>SootMethod</code>
+<ul class="org-ul">
+<li><code>Body</code>, <code>JimpleBody</code></li>
+</ul></li>
+<li><code>SootField</code></li>
+<li><code>Unit</code></li>
+<li><code>UnitGraph</code>
+<ul class="org-ul">
+<li><code>ExceptionalUnitGraph</code>: use
+<code>ExceptionalUnitGraphFactory.createExceptionalUnitGraph()</code> to create</li>
+</ul></li>
+</ul>
+</div>
+
+<div id="outline-container-org12951d4" class="outline-3">
+<h3 id="org12951d4"><span class="section-number-3">6.1.</span> <a href="#org12951d4">Scene</a></h3>
+<div class="outline-text-3" id="text-6-1">
+<p>
+<code>Scene</code> is a singleton class that keeps all classes which are
+represented by <code>SootClass</code>.  Each <code>SootClass</code> may contain several
+methods (<code>SootMethod</code>) and each method may have a <code>Body</code> object that
+keeps the statements (<code>Unit</code>s).
+</p>
+
+<p>
+Scene
+</p>
+
+<p>
+There are two scenes:
+</p>
+<ul class="org-ul">
+<li><code>soot.Scene</code>: which manages all the <code>SootClass</code>es being analyzed.</li>
+<li><code>soot.ModuleScene</code>: a subclass of <code>Scene</code> used to analyze Java 9
+modules.</li>
+</ul>
+
+<p>
+Methods of <code>soot.Scene</code>:
+</p>
+<ul class="org-ul">
+<li><code>loadClassAndSupport(String className)</code>: loads the given class and all
+the required support classes.</li>
+<li><p>
+<code>loadNecessaryClass(String name)</code>
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="font-weight: bold;">protected</span> <span style="font-weight: bold; text-decoration: underline;">void</span> <span style="font-weight: bold;">loadNecessaryClass</span>(<span style="font-weight: bold; text-decoration: underline;">String</span> <span style="font-weight: bold; font-style: italic;">name</span>) {
+    loadClassAndSupport(name).setApplicationClass();
+}
+</pre>
+</div></li>
+<li><p>
+<code>loadNecessaryClasses()</code>: loads the set of classes that soot needs,
+including those <b>specified on the command-line</b>.  This is the standard
+way of initialising the list of classes soot should use.
+</p>
+
+<p>
+The classes specified in the command-line include:
+</p>
+<ul class="org-ul">
+<li><p>
+individual classes specified in command-line.  e.g. <code>java soot.Main
+    -cp . -pp A B</code>, then <code>opts.classes()</code> returns the list <code>{"A", "B"}</code>.
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="font-weight: bold;">for</span> (<span style="font-weight: bold; text-decoration: underline;">String</span> <span style="font-weight: bold; font-style: italic;">name</span> : opts.classes()) {
+    loadNecessaryClass(name);
+}
+</pre>
+</div></li>
+<li><p>
+<code>-process-dir</code>: all classes specified in directories
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="font-weight: bold;">for</span> (<span style="font-weight: bold; text-decoration: underline;">String</span> <span style="font-weight: bold; font-style: italic;">path</span> : opts.process_dir()) {
+    <span style="font-weight: bold;">for</span> (<span style="font-weight: bold; text-decoration: underline;">String</span> <span style="font-weight: bold; font-style: italic;">cl</span> : SourceLocator.v().getClassesUnder(path)) {
+        <span style="font-weight: bold; text-decoration: underline;">SootClass</span> <span style="font-weight: bold; font-style: italic;">theClass</span> = loadClassAndSupport(cl);
+        <span style="font-weight: bold;">if</span> (!theClass.isPhantom) {
+            theClass.setApplicationClass();
+        }
+    }
+}
+</pre>
+</div></li>
+</ul></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgf77ef6d" class="outline-3">
+<h3 id="orgf77ef6d"><span class="section-number-3">6.2.</span> <a href="#orgf77ef6d">SootMethod</a></h3>
+<div class="outline-text-3" id="text-6-2">
+<p>
+SootMethod
+</p>
+<ul class="org-ul">
+<li><code>getActiveBody()</code> throws an exception when no active body is present.
+This cannot be called before <code>PackManager.v().runPacks();</code> in <code>Main</code>.</li>
+<li><code>retrieveActiveBody()</code> will construct an active body if none is
+present.</li>
+</ul>
+</div>
+
+<div id="outline-container-orgb639ed5" class="outline-4">
+<h4 id="orgb639ed5"><span class="section-number-4">6.2.1.</span> <a href="#orgb639ed5">Printing a Method</a></h4>
+<div class="outline-text-4" id="text-6-2-1">
+<p>
+In <code>soot.Body::toString()</code>, <code>Printer.v().printTo()</code> is used to print a
+method body:
+</p>
+<div class="org-src-container">
+<pre class="src src-java">Printer.v().printTo(<span style="font-weight: bold;">this</span>, writerOut);
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org3e3b148" class="outline-3">
+<h3 id="org3e3b148"><span class="section-number-3">6.3.</span> <a href="#org3e3b148">SootField</a></h3>
+</div>
+
+<div id="outline-container-orgfd7ca4a" class="outline-3">
+<h3 id="orgfd7ca4a"><span class="section-number-3">6.4.</span> <a href="#orgfd7ca4a">Graph</a></h3>
+<div class="outline-text-3" id="text-6-4">
+<p>
+Different kinds of graphs (partial)
+</p>
+<pre class="example" id="org28a63d6">
+DirectedBodyGraph (I)
+    ExceptionalGraph (I)
+        CompleteUnitGraph (C)
+        ExceptionalUnitGraph (C)
+            CompleteUnitGraph (C)
+        CompleteBlockGraph (C)
+        ExceptionalBlockGraph (C)
+            CompleteBlockGraph (C)
+    CompleteUnitGraph (C)
+    ExceptionalUnitGraph (C)
+        CompleteUnitGraph (C)
+    BriefUnitGraph (C)
+    TrapUnitGraph (C)
+    UnitGraph (C)
+        ExceptionalUnitGraph (C)
+            CompleteUnitGraph (C)
+        BriefUnitGraph (C)
+        TrapUnitGraph (C)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-jimple" class="outline-2">
+<h2 id="jimple"><span class="section-number-2">7.</span> <a href="#jimple">Jimple</a></h2>
+<div class="outline-text-2" id="text-jimple">
+<p>
+The common interface is <code>soot.jimple.Stmt</code>.
+</p>
+
+<p>
+There are 15 <code>Stmt</code>s (<code>Stmt</code> is instance of <code>Unit</code>)
+</p>
+<ul class="org-ul">
+<li>Core statements
+<ul class="org-ul">
+<li><code>NopStmt</code></li>
+<li><p>
+<code>DefinitionStmt</code>: its left op can either be a primitive (<code>PrimType</code>)
+or a ref-like type (<code>RefLikeType</code>).  To check:
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="font-weight: bold;">if</span> (defStmt.getLeftOp().getType() <span style="font-weight: bold;">instanceof</span> RefLikeType) {
+    <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">...</span>
+}
+</pre>
+</div>
+<ul class="org-ul">
+<li><p>
+<code>IdentityStmt</code>: assigns parameters and <code>this</code> reference to local
+variables.  This ensures that all local variables have at least
+one definition point.
+</p>
+<div class="org-src-container">
+<pre class="src src-text">r0 := @this;
+i1 := @parameter0;
+</pre>
+</div></li>
+<li><code>AssignStmt</code></li>
+</ul></li>
+</ul></li>
+<li>Intra-procedual control-flow statements
+<ul class="org-ul">
+<li><p>
+<code>IfStmt</code>
+</p>
+<div class="org-src-container">
+<pre class="src src-text">if r1 != null goto label0;
+</pre>
+</div>
+<p>
+In a <code>BranchedFlowAnalysis</code>, there're two flows out of an <code>IfStmt</code>:
+the fall-through flow and branched flow.
+</p></li>
+<li><code>GotoStmt</code></li>
+<li><code>SwitchStmt</code>
+<ul class="org-ul">
+<li><code>TableSwitchStmt</code></li>
+<li><code>LookupSwitchStmt</code></li>
+</ul></li>
+</ul></li>
+<li>Inter-procedual control-flow statements
+<ul class="org-ul">
+<li><code>InvokeStmt</code></li>
+<li><code>ReturnStmt</code></li>
+<li><code>ReturnVoidStmt</code></li>
+</ul></li>
+<li>Monitor statements: for mutual exclusion
+<ul class="org-ul">
+<li><code>EnterMonitorStmt</code></li>
+<li><code>ExitMonitorStmt</code></li>
+</ul></li>
+<li><code>ThrowStmt</code>: throws an exception</li>
+<li><code>RetStmt</code>: not used; returns from a JSR
+<ul class="org-ul">
+<li>JSR &amp; RET are JVM instructions for subroutine.  It seems that they
+are <a href="https://stackoverflow.com/q/5871190/11938767">deprecated Java bytecode</a>, as using them causes more harm than
+good.  According to <a href="http://www.sable.mcgill.ca/listarchives/soot-list/msg00509.html">this</a> mail and its <a href="http://www.sable.mcgill.ca/listarchives/soot-list/msg00510.html">reply</a>, JVM subroutines (JSR &amp;
+RET) "cause huge problems with analysis and optimization" and are
+removed by Jimple's JSR inliner.</li>
+</ul></li>
+</ul>
+
+<blockquote>
+<p>
+The local variables which start with a <code>$</code> sign represent <b>stack
+positions</b> and not local variables in the original program whereas those
+without <code>$</code> represent real local variables e.g. <code>i0</code> in the main method
+corresponds to <code>a</code> in the Java source.
+</p>
+</blockquote>
+
+<ul class="org-ul">
+<li>See the <a href="https://soot-oss.github.io/soot/docs/4.4.0-SNAPSHOT/jdoc/soot/jimple/internal/package-tree.html">Hierarchy For Package soot.jimple.internal</a>, all statements are
+under <code>soot.AbstractUnit</code> &rarr; <code>soot.jimple.internal.AbstractStmt</code>.</li>
+</ul>
+</div>
+
+<div id="outline-container-org525bec7" class="outline-3">
+<h3 id="org525bec7"><span class="section-number-3">7.1.</span> <a href="#org525bec7">FieldRef</a></h3>
+<div class="outline-text-3" id="text-7-1">
+<p>
+<code>FieldRef</code> 分为 <code>InstanceFieldRef</code> 和 <code>StaticFieldRef</code>
+</p>
+<pre class="example" id="org2cf2409">
+FieldRef (I)
+|- InstanceFieldRef (I)
+|  |- JInstanceFieldRef (C, for Jimple)
+|  |- GInstanceFieldRef (C, for Grimp)
+|  `- ...
+|- StaticFieldRef (C)
+`- ...
+</pre>
+</div>
+</div>
+
+<div id="outline-container-org988b592" class="outline-3">
+<h3 id="org988b592"><span class="section-number-3">7.2.</span> <a href="#org988b592">Labels</a></h3>
+<div class="outline-text-3" id="text-7-2">
+<p>
+Labels are displayed using <code>Printer</code>.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org3fe043d" class="outline-2">
+<h2 id="org3fe043d"><span class="section-number-2">8.</span> <a href="#org3fe043d">Body</a></h2>
+<div class="outline-text-2" id="text-8">
+<p>
+Body has three chains
+</p>
+<ul class="org-ul">
+<li>Units chain: the actual code.  Jimple provides the <code>Stmt</code>
+implementation of <code>Unit</code>, while Grimp provides the <code>Inst</code>
+implementation.</li>
+<li>Locals chain: local variables</li>
+<li><p>
+Traps chain: trap handlers, in the form of
+</p>
+<div class="org-src-container">
+<pre class="src src-text">catch java.lang.Exception from label0 to label1 with label2;
+</pre>
+</div></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org016de43" class="outline-2">
+<h2 id="org016de43"><span class="section-number-2">9.</span> <a href="#org016de43">Value</a></h2>
+<div class="outline-text-2" id="text-9">
+<p>
+Value
+</p>
+<ul class="org-ul">
+<li><code>Local</code>: a local variable
+<ul class="org-ul">
+<li><code>JimpleLocal</code></li>
+</ul></li>
+<li><code>Expr</code>: expression.  An <code>Expr</code> carries out some action on one or
+several <code>Value</code>s and returns another <code>Value</code>.
+<ul class="org-ul">
+<li>package <code>soot.jimple</code>
+<ul class="org-ul">
+<li><code>BinopExpr</code></li>
+<li><code>NewExpr</code></li>
+<li><code>NewArrayExpr</code></li>
+<li><code>NewMultiArrayExpr</code></li>
+</ul></li>
+<li>package <code>soot.jimple.internal</code>
+<ul class="org-ul">
+<li><code>JCastExpr</code></li>
+<li>&#x2026;</li>
+</ul></li>
+<li>&#x2026;</li>
+</ul></li>
+<li><code>Immediate</code>
+<ul class="org-ul">
+<li><code>Constant</code></li>
+</ul></li>
+<li><code>Ref</code>
+<ul class="org-ul">
+<li><code>ParameterRef</code></li>
+<li><code>CaughtExceptionRef</code></li>
+<li><code>ThisRef</code></li>
+</ul></li>
+</ul>
+</div>
+
+<div id="outline-container-orgfaaac25" class="outline-3">
+<h3 id="orgfaaac25"><span class="section-number-3">9.1.</span> <a href="#orgfaaac25">ValueBox</a></h3>
+<div class="outline-text-3" id="text-9-1">
+<p>
+A <code>ValueBox</code> is a pointer to some value.  It can be visualized as a box
+containing some value.
+</p>
+
+<ul class="org-ul">
+<li><code>getValue()</code>: dereferences the pointer</li>
+<li><code>setValue()</code>: mutates value in the box</li>
+<li>A unit has both DefBox &amp; UseBox
+<ul class="org-ul">
+<li><code>getUseBoxes()</code> returns a list of <code>ValueBox</code>es, corresponding to
+<b>all</b> <code>Value</code>s used in the unit.</li>
+<li><code>getDefBoxes()</code> returns all <code>Values</code>s defined in the unit.</li>
+<li>For example, for unit <code>x=y*z</code>, there're 3 use boxes: <code>[y*z]</code> (an
+<code>Expr</code>), <code>[y]</code> (a <code>Local</code>), and <code>[z]</code> (another <code>Local</code>); and one
+def box: <code>[x]</code> (a <code>Local</code>).  The brackets (<code>[]</code>) represent the
+box.</li>
+</ul></li>
+</ul>
+
+<p>
+For example, the following Java code
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">a</span> = 12;
+<span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">b</span> = 24;
+<span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold; font-style: italic;">x</span> = a * b;
+</pre>
+</div>
+<p>
+is translated to
+</p>
+<div class="org-src-container">
+<pre class="src src-text">a = 12;
+b = 24;
+temp$0 = a * b;
+x = temp$0;
+</pre>
+</div>
+<p>
+The DefBox &amp; UseBox of each statement is as follows
+</p>
+<div class="org-src-container">
+<pre class="src src-text">a = 12
+  Def:
+    LinkedVariableBox[JimpleLocal: a]
+  Use:
+    LinkedRValueBox[IntConstant: 12]
+
+b = 24
+  Def:
+    LinkedVariableBox[JimpleLocal: b]
+  Use:
+    LinkedRValueBox[IntConstant: 24]
+
+temp$0 = a * b
+  Def:
+    LinkedVariableBox[JimpleLocal: temp$0]
+  Use:
+    LinkedRValueBox[JMulExpr: a * b]
+    ImmediateBox[JimpleLocal: a]
+    ImmediateBox[JimpleLocal: b]
+
+x = temp$0
+  Def:
+    LinkedVariableBox[JimpleLocal: x]
+  Use:
+    LinkedRValueBox[JimpleLocal: temp$0]
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgec1198c" class="outline-2">
+<h2 id="orgec1198c"><span class="section-number-2">10.</span> <a href="#orgec1198c">Type</a></h2>
+<div class="outline-text-2" id="text-10">
+<p>
+Class hierarchy of <code>Type</code>:
+</p>
+<div class="org-src-container">
+<pre class="src src-text">Type
+|- PrimType: including int, float, char ...
+|  |- BooleanType
+|  |- CharType
+|  |- IntType
+|  `- ...
+|- RefLikeType
+|  |- ArrayType: array reference
+|  |- NullType
+|  `- RefType: simple reference
+`- VoidType: void
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org0aa8682" class="outline-2">
+<h2 id="org0aa8682"><span class="section-number-2">11.</span> <a href="#org0aa8682">Analyses</a></h2>
+<div class="outline-text-2" id="text-11">
+</div>
+<div id="outline-container-orge7d6e49" class="outline-3">
+<h3 id="orge7d6e49"><span class="section-number-3">11.1.</span> <a href="#orge7d6e49">Off-The-Shelf Analyses</a></h3>
+<div class="outline-text-3" id="text-11-1">
+<ul class="org-ul">
+<li>Null Pointer Checker
+<ul class="org-ul">
+<li><code>jap.npc</code></li>
+<li><code>jap.npcolorer</code></li>
+</ul></li>
+<li>Array Bound Checker
+<ul class="org-ul">
+<li><code>jap.abc</code></li>
+</ul></li>
+<li>Liveness Analysis
+<ul class="org-ul">
+<li><code>jap.lvtagger</code></li>
+</ul></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org83a5afb" class="outline-3">
+<h3 id="org83a5afb"><span class="section-number-3">11.2.</span> <a href="#org83a5afb">Custom Analyses</a></h3>
+<div class="outline-text-3" id="text-11-2">
+<p>
+Inject custom inter-procedural analyses into <code>wjtp</code> pack and
+intra-procedural analyses into <code>jtp</code> pack.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-java"><span style="font-weight: bold;">public</span> <span style="font-weight: bold;">class</span> <span style="font-weight: bold; text-decoration: underline;">MySootMainExtension</span> {
+    <span style="font-weight: bold;">public</span> <span style="font-weight: bold;">static</span> <span style="font-weight: bold; text-decoration: underline;">void</span> <span style="font-weight: bold;">main</span>(<span style="font-weight: bold; text-decoration: underline;">String</span>[] <span style="font-weight: bold; font-style: italic;">args</span>) {
+        <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">Inject the analysis tagger into Soot</span>
+        PackManager.v().getPack(<span style="font-style: italic;">"jtp"</span>)
+            .add(<span style="font-weight: bold;">new</span> <span style="font-weight: bold; text-decoration: underline;">Transform</span>(<span style="font-style: italic;">"jpt.myanalysistagger"</span>,
+                               MyAnalysisTagger.instance()));
+        <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">Invoke soot.Main with arguments given</span>
+        Main.main(args);
+    }
+}
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgcfbc21a" class="outline-4">
+<h4 id="orgcfbc21a"><span class="section-number-4">11.2.1.</span> <a href="#orgcfbc21a">Very Busy Expressions Analysis</a></h4>
+<div class="outline-text-4" id="text-11-2-1">
+<ul class="org-ul">
+<li><a href="https://www.cis.upenn.edu/~mhnaik/edu/cis700/lessons/dataflow_analysis.pdf">dataflow<sub>analysis.pdf</sub></a> very good explanation</li>
+<li><a href="https://pages.cs.wisc.edu/~fischer/cs701.f08/lectures/Lecture18.4up.pdf">Lecture18.4up.pdf</a> another explanation</li>
+</ul>
+
+<p>
+The goal of Very Busy Expressions analysis is to compute expressions
+that are very busy at the exit from each program point.
+</p>
+
+<p>
+An expression is very busy if, <b>no matter what path is taken</b>, the
+expression is always used before any of the variables occurring in it
+are redefined.
+</p>
+
+<p>
+This is a must analysis, since if in either one of the path, the
+expression \(e\) is not used, it is not considered very busy.
+</p>
+
+<p>
+This is a backwards analysis, as the fact at node \(d\) is deduced from
+later (TODO: change word) nodes.
+</p>
+
+<p>
+For expression \(e = x + y\) from node \(s\) to \(p\), if either \(x\) or \(y\) is
+redefined along the path, then even if \(p\) uses expression \(e\), it's not
+very busy at \(s\).
+</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<hr><table class="postamble">
+  <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
+  <tr><td class="org-right">Created</td><td class="org-left">2022-11-15 12:51</td></tr>
+  <tr><td class="org-right">Modified</td><td class="org-left">2022-12-02 22:05</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2022-12-02 22:07</td></tr>
+  <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 28.2 (<a href="https://orgmode.org">Org</a> mode 9.5.5)</td></tr>
+  <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://github.com/thebesttv/thebesttv.github.io/blob/main/content/soot/soot.org">content/soot/soot.org</a></td></tr>
+</table>
+</div>
+</body>
+</html>
