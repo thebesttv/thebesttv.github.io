@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 2022-12-03 22:46 -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Org-mode Hyperlinks</title>
+<meta name="author" content="thebesttv" />
+<meta name="generator" content="Org Mode" />
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-21YM95T3BQ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-21YM95T3BQ');
+</script>
+<!-- favicon -->
+<link rel="icon" type="image/x-icon" href="../../favicon.ico">
+<!-- CSS -->
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/latex.css/style.css">
+<link rel="stylesheet" type="text/css" href="../../css/org-default.css">
+<link rel="stylesheet" type="text/css" href="../../css/style.css">
+<!-- pagefind -->
+<link rel="stylesheet" type="text/css" href="../../_pagefind/pagefind-ui.css">
+<script src="../../_pagefind/pagefind-ui.js" type="text/javascript"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+      new PagefindUI({element: "#search", showImages: false, resetStyles: false});
+  });
+</script>
+</head>
+<body>
+<div id="preamble" class="status">
+<nav class="org-center">
+<a href="../../index.html">Home</a>
+<div id="search"></div>
+<hr>
+</nav>
+</div>
+<div id="content" class="content">
+<header>
+<h1 class="title">Org-mode Hyperlinks</h1>
+</header><nav id="table-of-contents" role="doc-toc">
+<h2>&#30446;&#24405;</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#hlinks">1. Headings</a></li>
+<li><a href="#org3a35ca2">2. Files</a></li>
+<li><a href="#org3c614fa">3. Named Elements</a></li>
+<li><a href="#orgadfb161">4. Dedicated Targets</a></li>
+<li><a href="#orgcf9fd85">5. Radio Targets</a></li>
+<li><a href="#example-section">6. Something to Refer to</a>
+<ul>
+<li><a href="#org00016d8">6.1. A sub-section</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</nav>
+<hr style="width: 80%;">
+
+<div id="outline-container-hlinks" class="outline-2">
+<h2 id="hlinks"><span class="section-number-2">1.</span> <a href="#hlinks">Headings</a></h2>
+<div class="outline-text-2" id="text-hlinks">
+<p>
+Use <code>C-c C-x p</code> to add <code>CUSTOM_ID</code> property to headings:
+</p>
+<div class="org-src-container">
+<pre class="src src-org"><span style="font-weight: bold;">* Headings</span>
+<span style="font-weight: bold;">:PROPERTIES:</span>
+<span style="font-weight: bold;">:CUSTOM_ID:</span> hlinks
+<span style="font-weight: bold;">:END:</span>
+</pre>
+</div>
+<p>
+Then you can use <code>[[#hlinks]]</code> to reference it.  For example,
+</p>
+<p class="verse">
+"<code>see Section [[#hlinks]]</code>" &rarr; see Section <a href="#hlinks">1</a>;<br>
+"<code>see Section [[#hlinks][/Hyperlinks/]]</code>" &rarr; see Section <a href="#hlinks"><i>Hyperlinks</i></a>.<br>
+</p>
+
+<p>
+Use <code>[[* Headings]]</code> to directly refer to the name of a heading.  Note
+that there's only one asterisk (<code>*</code>), no matter how deep the heading is.
+</p>
+<p class="verse">
+"<code>see Section [[* Named Elements]]</code>" &rarr; see Section <a href="#org3c614fa">3</a>;<br>
+"<code>see the [[* A sub-section][sub-section]]</code> &rarr; see the <a href="#org00016d8">sub-section</a>.<br>
+</p>
+
+<p>
+Use <code>C-c C-o</code> to nevigate to the target, and <code>C-c &amp;</code> to go back.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org3a35ca2" class="outline-2">
+<h2 id="org3a35ca2"><span class="section-number-2">2.</span> <a href="#org3a35ca2">Files</a></h2>
+<div class="outline-text-2" id="text-2">
+<p>
+You can go to a specific line in a file with by appending <code>::N</code> at the
+end of file name, e.g. <code>[[./org-hyperlink.org::10]]</code>.  However, this
+does can't be exported to HTML.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org3c614fa" class="outline-2">
+<h2 id="org3c614fa"><span class="section-number-2">3.</span> <a href="#org3c614fa">Named Elements</a></h2>
+<div class="outline-text-2" id="text-3">
+<p>
+Elements can be given a name:
+</p>
+<div class="org-src-container">
+<pre class="src src-org"><span style="font-weight: bold; font-style: italic;">#+name: named source block</span>
+<span style="font-weight: bold; font-style: italic;">#+caption:</span> simple code
+<span style="font-weight: bold; font-style: italic;">#+begin_src elisp</span>
+  (<span style="font-weight: bold;">let</span> ((x 2))
+    (coderef)
+    (1+ x))
+<span style="font-weight: bold; font-style: italic;">#+end_src</span>
+</pre>
+</div>
+
+<p>
+Three main elements that can be named:
+</p>
+<ul class="org-ul">
+<li>image: exported as "Figure N"</li>
+<li>table: exported as "Table N"</li>
+<li>code block: exported as "Listing N" in HTML and "Figure N" in LaTeX.</li>
+<li>even a paragraph can be given a name</li>
+</ul>
+
+<p>
+You can refer to named elements using <code>[[named source block]]</code>, e.g.
+Fig. <a href="#orgcca91cc">1</a>, Listing <a href="#orge8894fb">1</a>, and Table <a href="#org2732593">1</a>.
+</p>
+
+<p>
+Adding <code>#+caption: xxx</code> is highly recommended, for without it, caption
+numbers like "Figure N" whould not show.
+</p>
+<blockquote>
+<p>
+When targeting a ‘NAME’ keyword, the ‘CAPTION’ keyword is mandatory in
+order to get proper numbering.
+&#x2014;<a href="https://www.gnu.org/software/emacs/manual/html_mono/org.html#Internal-Links">Org manual 4.2 Internal Links</a>
+</p>
+</blockquote>
+</div>
+</div>
+
+<div id="outline-container-orgadfb161" class="outline-2">
+<h2 id="orgadfb161"><span class="section-number-2">4.</span> <a href="#orgadfb161">Dedicated Targets</a></h2>
+<div class="outline-text-2" id="text-4">
+<p>
+Dedicated targets can be used to refer to a paragraph or an item in a
+list.
+</p>
+<ul class="org-ul">
+<li>paragraph: <code>[[target][prefixed sentence]]</code> &rarr; <a href="#orgdafeed0">prefixed sentence</a></li>
+<li>unordered list:  <code>the [[unordered target]]^th in the list</code> &rarr;
+the <a href="#org4dd41d4">3</a><sup>th</sup> in the list</li>
+<li>ordered list: <code>[[ordered target][lalala]]</code> &rarr; <a href="#org2be3abf">lalala</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgcf9fd85" class="outline-2">
+<h2 id="orgcf9fd85"><span class="section-number-2">5.</span> <a href="#orgcf9fd85">Radio Targets</a></h2>
+<div class="outline-text-2" id="text-5">
+<p>
+A radio target radiates its position.  It is enclosed in three angular
+brackets, e.g. <code>&lt;&lt;&lt;thebesttv&gt;&gt;&gt;</code> and <code>&lt;&lt;&lt;do re me&gt;&gt;&gt;</code> in section
+<a href="#example-section">6</a>.
+</p>
+
+<p>
+When a radio target is defined, any occurence of that word (or the
+words) in the document, e.g. <a href="#org70b2b2e">thebesttv</a>, is automatically linked to the
+originating target.  This can be used for linking all the occurences of
+a terminology with its definition.  See the song of "<a href="#orgffd7dd8">do re me</a>".
+</p>
+
+<p>
+See the manual: <a href="https://orgmode.org/manual/Radio-Targets.html">4.3 Radio Targets</a>.
+Again, <a href="#org70b2b2e">thebesttv</a> and <a href="#orgffd7dd8">do re me</a>.
+</p>
+</div>
+</div>
+<div id="outline-container-example-section" class="outline-2">
+<h2 id="example-section"><span class="section-number-2">6.</span> <a href="#example-section">Something to Refer to</a></h2>
+<div class="outline-text-2" id="text-example-section">
+<p>
+This section presents some example code and their exported results for
+later use.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-org"><span style="text-decoration: underline;">&lt;&lt;target&gt;&gt;</span> This is a sentence prefixed with a <span style="font-style: italic;">/dedicated target/</span>.
+
+- unordered list
+- some item
+- <span style="text-decoration: underline;">&lt;&lt;unordered target&gt;&gt;</span> target in an unordered list
+
+
+1. ordered list
+2. <span style="text-decoration: underline;">&lt;&lt;ordered target&gt;&gt;</span> target in an ordered list
+
+This word---&#8203;<span style="text-decoration: underline;">&lt;&lt;&lt;thebesttv&gt;&gt;&gt;</span>&#8203;---is a radio target.
+<span style="text-decoration: underline;">&lt;&lt;&lt;Do re me&gt;&gt;&gt;</span>, a radio target, also a <span style="text-decoration: underline;"><a href="https://en.wikipedia.org/wiki/Do-Re-Mi">song</a></span>.
+</pre>
+</div>
+
+<p>
+<a id="orgdafeed0"></a> This is a sentence prefixed with a <i>dedicated target</i>.
+</p>
+
+<ul class="org-ul">
+<li>unordered list</li>
+<li>some item</li>
+<li><a id="org4dd41d4"></a> target in an unordered list</li>
+</ul>
+
+
+<ol class="org-ol">
+<li>ordered list</li>
+<li><a id="org2be3abf"></a> target in an ordered list</li>
+</ol>
+
+<p>
+This word&#x2014;<a id="org70b2b2e">thebesttv</a>&#x2014;is a radio target.
+<a id="orgffd7dd8">Do re me</a>, a radio target, also a <a href="https://en.wikipedia.org/wiki/Do-Re-Mi">song</a>.
+</p>
+</div>
+
+<div id="outline-container-org00016d8" class="outline-3">
+<h3 id="org00016d8"><span class="section-number-3">6.1.</span> <a href="#org00016d8">A sub-section</a></h3>
+<div class="outline-text-3" id="text-6-1">
+<div class="org-src-container">
+<pre class="src src-org"><span style="text-decoration: underline;">{{{image(30)}}}</span>
+<span style="font-weight: bold; font-style: italic;">#+name: named image</span>
+<span style="font-weight: bold; font-style: italic;">#+caption:</span> sample image
+<span style="text-decoration: underline;"><a href="../daily/2021-05-20/lights-3.jpg">../daily/2021-05-20/lights-3.jpg</a></span>
+
+<span style="font-weight: bold; font-style: italic;">#+name: named source block</span>
+<span style="font-weight: bold; font-style: italic;">#+caption:</span> sample code
+<span style="font-weight: bold; font-style: italic;">#+begin_src elisp</span>
+  (<span style="font-weight: bold;">let</span> ((x 2))
+    (coderef)
+    (1+ x))
+<span style="font-weight: bold; font-style: italic;">#+end_src</span>
+
+<span style="font-weight: bold; font-style: italic;">#+name: named table</span>
+<span style="font-weight: bold; font-style: italic;">#+caption:</span> sample table
+| a | b | c | d |
+|---+---+---+---|
+| 1 | 2 | 3 | 4 |
+</pre>
+</div>
+
+
+<figure id="orgcca91cc">
+<img src="../daily/2021-05-20/lights-3.jpg" alt="lights-3.jpg" width="30%" style="margin-left: auto; margin-right: auto;">
+
+<figcaption><span class="figure-number">&#22270;1&nbsp; </span>sample image</figcaption>
+</figure>
+
+<div class="org-src-container">
+<label class="org-src-name"><span class="listing-number">&#20195;&#30721;1&nbsp; </span>sample code</label><pre class="src src-elisp" id="orge8894fb">(<span style="font-weight: bold;">let</span> ((x 2))
+  (coderef)
+  (1+ x))
+</pre>
+</div>
+
+<table id="org2732593">
+<caption class="t-above"><span class="table-number">&#34920;1&nbsp;</span> sample table</caption>
+
+<colgroup>
+<col  class="org-right">
+
+<col  class="org-right">
+
+<col  class="org-right">
+
+<col  class="org-right">
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-right">a</th>
+<th scope="col" class="org-right">b</th>
+<th scope="col" class="org-right">c</th>
+<th scope="col" class="org-right">d</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">1</td>
+<td class="org-right">2</td>
+<td class="org-right">3</td>
+<td class="org-right">4</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<hr><table class="postamble">
+  <tr><td class="org-right">Author</td><td class="org-left"><a href="#org70b2b2e">thebesttv</a></td></tr>
+  <tr><td class="org-right">Created</td><td class="org-left">2022-09-22 20:15</td></tr>
+  <tr><td class="org-right">Modified</td><td class="org-left">2022-12-03 22:44</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2022-12-03 22:46</td></tr>
+  <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 28.2 (<a href="https://orgmode.org">Org</a> mode 9.5.5)</td></tr>
+  <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://github.com/thebesttv/thebesttv.github.io/blob/main/content/emacs/org-hyperlink.org">content/emacs/org-hyperlink.org</a></td></tr>
+</table>
+</div>
+</body>
+</html>
