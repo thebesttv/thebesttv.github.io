@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 2022-12-05 22:16 -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>piCore 编译 ADB 小记</title>
+<meta name="author" content="thebesttv" />
+<meta name="generator" content="Org Mode" />
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-21YM95T3BQ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-21YM95T3BQ');
+</script>
+<!-- favicon -->
+<link rel="icon" type="image/x-icon" href="../favicon.ico">
+<!-- CSS -->
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/latex.css/style.css">
+<link rel="stylesheet" type="text/css" href="../css/org-default.css">
+<link rel="stylesheet" type="text/css" href="../css/style.css">
+<!-- pagefind -->
+<link rel="stylesheet" type="text/css" href="../_pagefind/pagefind-ui.css">
+<script src="../_pagefind/pagefind-ui.js" type="text/javascript"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+      new PagefindUI({element: "#search", showImages: false, resetStyles: false});
+  });
+</script>
+</head>
+<body>
+<div id="preamble" class="status">
+<nav class="org-center">
+<a href="../index.html">Home</a>
+<div id="search"></div>
+<hr>
+</nav>
+</div>
+<div id="content" class="content">
+<header>
+<h1 class="title">piCore 编译 ADB 小记</h1>
+</header><nav id="table-of-contents" role="doc-toc">
+<h2>&#30446;&#24405;</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#orgab6627c">1. 烧录 piCore</a></li>
+<li><a href="#orgc48f065">2. 基本配置</a></li>
+<li><a href="#org2c2655e">3. 各种依赖</a>
+<ul>
+<li><a href="#orgf747212">3.1. protobuf</a></li>
+<li><a href="#org0c229d3">3.2. brotli</a></li>
+<li><a href="#org6d23a12">3.3. GoogleTest</a></li>
+<li><a href="#orga129f28">3.4. Go</a></li>
+</ul>
+</li>
+<li><a href="#org3560abd">4. 编译 ADB</a></li>
+<li><a href="#org927f59e">5. 内网穿透</a></li>
+<li><a href="#org5b63534">6. 小结</a></li>
+</ul>
+</div>
+</nav>
+<hr style="width: 80%;">
+<ul class="org-ul">
+<li><a href="http://tinycorelinux.net/12.x/armv7/releases/RPi/README">12.X armv7 版本的 README</a> 和 <a href="http://tinycorelinux.net/12.x/armv7/releases/RPi/IMPORTANT">IMPORTANT</a>, 介绍了 piCore 的基本信息,
+登录后最基本的配置, 帐号密码等.  不同版本之间的主要内容大差不差~</li>
+<li><a href="http://tinycorelinux.net/book.html">Core book</a> 值得一看的书, 讲的是 Tiny Core 的配置, 不过大同小异.
+重点看一下如何打包 (extension).</li>
+<li><a href="https://archlinux.org/packages/community/x86_64/android-tools/">ArchLinux package: android-tools</a>, 上游的 repo 见下, 可以用来编译 ADB</li>
+<li><a href="https://github.com/nmeum/android-tools">android-tools</a>, 只要配置好依赖就能用这个 repo 简单地编译 ADB 了~
+注意要去 release 页面下载源码, 不要 git clone recursive (白花了4G流量&#x2026;)</li>
+</ul>
+
+<p>
+在 8G 的树莓派 4B 上运行 piCore 并且编译一个 ADB.
+编译好后在树莓派 3B 上运行, 且开机启动 frp.
+包含了 piCore 的最基本的配置方法.
+</p>
+
+<p>
+如果编译一个删一个, 而且每个都单线程编译的话,
+可能可以在树莓派3B的1G内存下直接编译, 不过我也没试过~
+然后交叉编译啥的就更不会了😵
+</p>
+
+<div id="outline-container-orgab6627c" class="outline-2">
+<h2 id="orgab6627c"><span class="section-number-2">1.</span> <a href="#orgab6627c">烧录 piCore</a></h2>
+<div class="outline-text-2" id="text-1">
+<p>
+Tiny Core 目前的版本是 13.X, 在<a href="http://tinycorelinux.net/downloads.html">官网的下载页面</a>底部有各种移植版的<a href="http://tinycorelinux.net/ports.html">下载页面</a>.
+13.X 版各种架构的下载页面在<a href="http://tinycorelinux.net/13.x/">这里</a>.  这次选择的是 armv7 架构的 <a href="http://tinycorelinux.net/13.x/armv7/releases/RPi/piCore-13.1.0.zip"><code>piCore-13.1.0.zip</code></a>.
+</p>
+
+<p>
+将压缩包解压, 得到 <code>piCore-13.1.0.img</code>.
+使用 <code>lsblk</code> 确定 SD 卡为设备 <code>/dev/sdb</code>, 使用 <code>dd</code> 写入.
+(每次写的时候都要检查好几遍, 生怕设备写成硬盘&#x2026;)
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">sudo dd <span style="font-weight: bold; font-style: italic;">if</span>=piCore-13.1.0.img <span style="font-weight: bold; font-style: italic;">of</span>=/dev/sdb <span style="font-weight: bold; font-style: italic;">bs</span>=1M <span style="font-weight: bold; font-style: italic;">status</span>=progress
+</pre>
+</div>
+<p>
+写完也可以用 <code>lsblk</code> 或者 <code>fdisk</code> 检查一下, 可以看到现在有两个分区,
+第二个 Linux 的只有 16MB, 需要在开机后 expand 一下
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ sudo fdisk -l /dev/sdb
+Disk /dev/sdb: 30 GiB, 32212254720 bytes, 62914560 sectors
+Disk model: SD/MMC/MS PRO
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0xe85b7916
+
+Device     Boot  Start    End Sectors Size Id Type
+/dev/sdb1         8192 139263  131072  64M  c W95 FAT32 (LBA)
+/dev/sdb2       139264 172031   32768  16M 83 Linux
+</pre>
+</div>
+
+<p>
+树莓派需要连接网线, 上电后可以直接 <code>ssh</code>, 用户名为 <code>tc</code>, 初始密码为
+<code>piCore</code>, 不能以 <code>root</code> 登录.  第一次开机时, 需要生成 SSH key,
+所以会比较慢.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgc48f065" class="outline-2">
+<h2 id="orgc48f065"><span class="section-number-2">2.</span> <a href="#orgc48f065">基本配置</a></h2>
+<div class="outline-text-2" id="text-2">
+<p>
+登录后, 有两个最重要的事情
+</p>
+<ol class="org-ol">
+<li><p>
+备份刚生成的 SSH key (还有 <code>ssh-copy-id</code> 导入的公钥之类的)
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">filetool.sh -b
+</pre>
+</div></li>
+<li><p>
+用 <code>fdisk</code> 扩展之前只有 16MB 的 SD 卡分区.
+用 <code>p</code> 查看当前分区, 记录下第二个分区 (<code>/dev/mmcblk0p2</code>) 的起始块号 (StartLBA).
+用 <code>d</code> 删除第二个分区, 再用 <code>n</code> 新建分区, 起始块号与之前相同, 结束块号在最后.
+最后用 <code>w</code> 写入分区表.
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ sudo fdisk -u /dev/mmcblk0
+
+The number of cylinders for this disk is set to 983040.
+There is nothing wrong with that, but this is larger than 1024,
+and could<span style="font-weight: bold;"> in</span> certain setups cause problems with:
+1) software that runs at boot time (e.g., old versions of LILO)
+2) booting and partitioning software from other OSs
+   (e.g., DOS FDISK, OS/2 FDISK)
+
+<span style="font-weight: bold;">Command</span> (m for help): p
+Disk /dev/mmcblk0: 30 GB, 32212254720 bytes, 62914560 sectors
+983040 cylinders, 4 heads, 16 sectors/track
+Units: sectors of 1 * 512 = 512 bytes
+
+Device       Boot StartCHS    EndCHS        StartLBA     EndLBA    Sectors  Size Id Type
+/dev/mmcblk0p1    128,0,1     127,3,16          8192     139263     131072 64.0M  c Win95 FAT32 (LBA)
+/dev/mmcblk0p2    128,0,1     639,3,16        139264     172031      32768 16.0M 83 Linux
+
+<span style="font-weight: bold;">Command</span> (m for help): d
+Partition number (1-4): 2
+
+<span style="font-weight: bold;">Command</span> (m for help): n
+Partition type
+   p   primary partition (1-4)
+   e   extended
+p
+Partition number (1-4): 2
+First sector (16-62914559, default 16): 139264
+Last sector or +size{,K,M,G,T} (139264-62914559, default 62914559):
+Using default value 62914559
+
+<span style="font-weight: bold;">Command</span> (m for help): p
+Disk /dev/mmcblk0: 30 GB, 32212254720 bytes, 62914560 sectors
+983040 cylinders, 4 heads, 16 sectors/track
+Units: sectors of 1 * 512 = 512 bytes
+
+Device       Boot StartCHS    EndCHS        StartLBA     EndLBA    Sectors  Size Id Type
+/dev/mmcblk0p1    128,0,1     127,3,16          8192     139263     131072 64.0M  c Win95 FAT32 (LBA)
+/dev/mmcblk0p2    1023,3,16   1023,3,16       139264   62914559   62775296 29.9G 83 Linux
+
+<span style="font-weight: bold;">Command</span> (m for help): w
+The partition table has been altered.
+Calling ioctl() to re-read partition table
+fdisk: WARNING: rereading partition table failed, kernel still uses old table: Device or resource busy
+</pre>
+</div>
+<p>
+注意, 写入后会有一个 warning, 但可以忽略.
+</p>
+
+<p>
+最后<b>重启树莓派</b>, resize 分区二
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">sudo resize2fs /dev/mmcblk0p2
+</pre>
+</div></li>
+</ol>
+
+<p>
+由于包的源在国外, 可能会比较慢, 可以用代理
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">http_proxy</span>=<span style="font-style: italic;">'http://192.168.1.123:8889'</span>
+</pre>
+</div>
+<p>
+安装一些必要的包
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">tce-load -wi bash vim openssh file htop git
+</pre>
+</div>
+<p>
+这些是编译需要的&#x2014;<code>compiletc</code> 包含了 <code>gcc</code>, <code>binutils</code>, <code>m4</code>, <code>make</code> 等;
+还需要 <code>coreutils</code>, <code>cmake</code> 等
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">tce-load -wi compiletc coreutils <span style="font-style: italic;">\</span>
+         cmake autoconf automake perl5 <span style="font-style: italic;">\</span>
+         squashfs-tools
+</pre>
+</div>
+
+<p>
+把 <code>tc</code> 和 <code>root</code> 的 shell 设置成 <code>bash</code>
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">sudo sed -i <span style="font-style: italic;">'/root/s_/bin/sh_/bin/bash_'</span> /etc/passwd
+sudo sed -i <span style="font-style: italic;">'/tc/s_/bin/sh_/bin/bash_'</span> /etc/passwd
+</pre>
+</div>
+
+<p>
+弄好后需要备份一下
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">filetool.sh -b
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org2c2655e" class="outline-2">
+<h2 id="org2c2655e"><span class="section-number-2">3.</span> <a href="#org2c2655e">各种依赖</a></h2>
+<div class="outline-text-2" id="text-3">
+<p>
+准备 ADB 需要的<a href="https://github.com/nmeum/android-tools#dependencies">依赖</a>, 有的可以用 <code>tce-load</code> 直接下载
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">tce-load -wi <span style="font-style: italic;">\</span>
+         libtool libtool-dev <span style="font-style: italic;">\</span>
+         zstd zstd-dev <span style="font-style: italic;">\</span>
+         liblz4 liblz4-dev <span style="font-style: italic;">\</span>
+         libusb libusb-dev <span style="font-style: italic;">\</span>
+         pcre2 pcre2-dev
+</pre>
+</div>
+<p>
+剩下的就要自己编译了.  所有编译和安装都在 <code>/tmp</code> 下进行.
+</p>
+</div>
+
+<div id="outline-container-orgf747212" class="outline-3">
+<h3 id="orgf747212"><span class="section-number-3">3.1.</span> <a href="#orgf747212">protobuf</a></h3>
+<div class="outline-text-3" id="text-3-1">
+<p>
+安装方法见 <a href="https://github.com/protocolbuffers/protobuf/blob/main/src/README.md">README</a>, 下载源码 <a href="https://github.com/protocolbuffers/protobuf/releases/download/v21.4/protobuf-cpp-3.21.4.tar.gz"><code>protobuf-cpp-3.21.4.tar.gz</code></a> 编译
+(ps. <code>nproc</code> 在包 <code>coreutils</code> 中)
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="font-weight: bold;">cd</span> /tmp
+tar xf protobuf-cpp-3.21.4.tar.gz
+<span style="font-weight: bold;">cd</span> protobuf-3.21.4
+./configure
+make -j$(nproc)
+</pre>
+</div>
+<p>
+然后打包
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">sudo make <span style="font-weight: bold; font-style: italic;">DESTDIR</span>=/tmp/dest-protobuf install
+<span style="font-weight: bold;">cd</span> /tmp
+mksquashfs dest-protobuf/ tbt-protobuf-3.21.4.tcz
+</pre>
+</div>
+<p>
+存入SD卡中并设置开机装载
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">mv tbt-protobuf-3.21.4.tcz /mnt/mmcblk0p2/tce/optional/
+<span style="font-weight: bold;">echo</span> <span style="font-style: italic;">'tbt-protobuf-3.21.4.tcz'</span> &gt;&gt; /mnt/mmcblk0p2/tce/onboot.lst
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org0c229d3" class="outline-3">
+<h3 id="org0c229d3"><span class="section-number-3">3.2.</span> <a href="#org0c229d3">brotli</a></h3>
+<div class="outline-text-3" id="text-3-2">
+<p>
+从 <a href="https://github.com/google/brotli">repo</a> 下载 <a href="https://github.com/google/brotli/archive/refs/tags/v1.0.9.tar.gz"><code>brotli-1.0.9.tar.gz</code></a> 编译打包
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="font-weight: bold;">cd</span> /tmp
+tar xf brotli-1.0.9.tar.gz
+<span style="font-weight: bold;">cd</span> brotli-1.0.9
+mkdir out &amp;&amp; <span style="font-weight: bold;">cd</span> out
+../configure-cmake              <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">&#20250;&#26377;&#20960;&#20010; warning, &#19981;&#29992;&#31649;</span>
+make
+sudo make <span style="font-weight: bold; font-style: italic;">DESTDIR</span>=/tmp/dest-brotli install
+<span style="font-weight: bold;">cd</span> /tmp
+mksquashfs dest-brotli/ tbt-brotli-1.0.9.tcz
+mv tbt-brotli-1.0.9.tcz /mnt/mmcblk0p2/tce/optional/
+<span style="font-weight: bold;">echo</span> <span style="font-style: italic;">'tbt-brotli-1.0.9.tcz'</span> &gt;&gt; /mnt/mmcblk0p2/tce/onboot.lst
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org6d23a12" class="outline-3">
+<h3 id="org6d23a12"><span class="section-number-3">3.3.</span> <a href="#org6d23a12">GoogleTest</a></h3>
+<div class="outline-text-3" id="text-3-3">
+<p>
+从 <a href="https://github.com/google/googletest">repo</a> 下载 <a href="https://github.com/google/googletest/archive/refs/tags/release-1.12.1.tar.gz"><code>googletest-release-1.12.1.tar.gz</code></a> , 根据 <a href="https://github.com/google/googletest/blob/main/googletest/README.md">README</a> 编译打包
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="font-weight: bold;">cd</span> /tmp
+tar xf googletest-release-1.12.1.tar.gz
+<span style="font-weight: bold;">cd</span> googletest-release-1.12.1
+mkdir build &amp;&amp; <span style="font-weight: bold;">cd</span> build
+cmake ..
+make
+sudo make <span style="font-weight: bold; font-style: italic;">DESTDIR</span>=/tmp/dest-googletest install
+<span style="font-weight: bold;">cd</span> /tmp
+mksquashfs dest-googletest/ tbt-googletest-1.12.1.tcz
+mv tbt-googletest-1.12.1.tcz /mnt/mmcblk0p2/tce/optional/
+<span style="font-weight: bold;">echo</span> <span style="font-style: italic;">'tbt-googletest-1.12.1.tcz'</span> &gt;&gt; /mnt/mmcblk0p2/tce/onboot.lst
+</pre>
+</div>
+
+<p>
+三个依赖编译并安装完成后, 手动 load 这三个包
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">tce-load -i <span style="font-style: italic;">\</span>
+         tbt-protobuf-3.21.4.tcz <span style="font-style: italic;">\</span>
+         tbt-brotli-1.0.9.tcz <span style="font-style: italic;">\</span>
+         tbt-googletest-1.12.1.tcz
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orga129f28" class="outline-3">
+<h3 id="orga129f28"><span class="section-number-3">3.4.</span> <a href="#orga129f28">Go</a></h3>
+<div class="outline-text-3" id="text-3-4">
+<p>
+从<a href="https://go.dev/dl/">这里</a>下载已经编译好的 Go 语言工具链 (<a href="https://go.dev/dl/go1.19.linux-armv6l.tar.gz"><code>go1.19.linux-armv6l.tar.gz</code></a>).
+由于 Go 编译器只是安装时需要的依赖, 不用打包, 直接解压到 <code>/usr/local</code>
+并修改 <code>PATH</code> 即可.
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">sudo tar -C /usr/local/ -xf go1.19.linux-armv6l.tar.gz
+<span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">PATH</span>=/usr/local/go/bin:$<span style="font-weight: bold; font-style: italic;">PATH</span>
+</pre>
+</div>
+
+<p>
+之后编译 adb 时会用到 https 代理和 CA 证书
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">https_proxy</span>=<span style="font-style: italic;">'http://192.168.1.123:8889'</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">this is needed for golang while building adb</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">https://stackoverflow.com/a/67622500/11938767</span>
+<span style="font-weight: bold;">export</span> <span style="font-weight: bold; font-style: italic;">SSL_CERT_FILE</span>=/usr/local/etc/ssl/certs/ca-certificates.crt
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org3560abd" class="outline-2">
+<h2 id="org3560abd"><span class="section-number-2">4.</span> <a href="#org3560abd">编译 ADB</a></h2>
+<div class="outline-text-2" id="text-4">
+<p>
+从 <a href="https://github.com/nmeum/android-tools">repo</a> 下载 release <a href="https://github.com/nmeum/android-tools/releases/download/31.0.3p2/android-tools-31.0.3p2.tar.xz"><code>android-tools-31.0.3p2.tar.xz</code></a>
+(ps. 不大, 只有20M+, 千万不要带着 submodule clone, 5555&#x2026;)
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash">tar xf android-tools-31.0.3p2.tar.xz
+<span style="font-weight: bold;">cd</span> android-tools-31.0.3p2
+mkdir build &amp;&amp; <span style="font-weight: bold;">cd</span> build
+cmake ..
+make
+sudo make <span style="font-weight: bold; font-style: italic;">DESTDIR</span>=/tmp/dest-android-tools install
+<span style="font-weight: bold;">cd</span> /tmp
+mksquashfs dest-android-tools/ tbt-android-tools-31.0.3p2.tcz
+<span style="font-weight: bold;">echo</span> <span style="font-style: italic;">'tbt-android-tools-31.0.3p2.tcz'</span> &gt;&gt; /mnt/mmcblk0p2/tce/onboot.lst
+tce-load -i tbt-android-tools-31.0.3p2.tcz
+</pre>
+</div>
+
+<p>
+然后运行 <code>adb</code>, 没错误就代表成功啦~
+</p>
+
+<p>
+在编译时, Go 在 home 目录下会建一个文件夹 <code>go</code>, 可以直接删了
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">rm -rf ~/go
+</pre>
+</div>
+
+<p>
+最后一定要记得备份一下文件 (虽然其实也没啥要备份的)
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">filetool.sh -b
+</pre>
+</div>
+
+<p>
+最后的最后, 可以备份一下 <code>/mnt/mmcblk0p2/tce</code>.
+</p>
+
+<p>
+此时就可以放到树莓派3上跑了, 剩下的也可以直接在3上配置.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org927f59e" class="outline-2">
+<h2 id="org927f59e"><span class="section-number-2">5.</span> <a href="#org927f59e">内网穿透</a></h2>
+<div class="outline-text-2" id="text-5">
+<p>
+为了远程访问方便, 加一个 frp 的包.
+</p>
+
+<p>
+下载 <a href="https://github.com/fatedier/frp/releases/download/v0.44.0/frp_0.44.0_linux_arm.tar.gz"><code>frp_0.44.0_linux_arm.tar.gz</code></a> 到 <code>/tmp</code> 下, 解压, 制作包
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">tar xf frp_0.44.0_linux_arm.tar.gz
+mkdir -vp dest-frp/usr/local/{bin,etc/frp}
+mv frp_0.44.0_linux_arm/frp{c,s} dest-frp/usr/local/bin/
+mv frp_0.44.0_linux_arm/frp*.ini dest-frp/usr/local/etc/frp/
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">&#36825;&#37324;&#21487;&#20197;&#25913;&#19968;&#19979;&#37197;&#32622;</span>
+cat &lt;&lt;ConfigEndsHERE &gt; dest-frp/usr/local/etc/frp/frpc.ini
+<span style="font-weight: bold;">[common]</span>
+<span style="font-weight: bold;">server_addr = 127.0.0.1</span>
+<span style="font-weight: bold;">server_port = 7000</span>
+
+<span style="font-weight: bold;">[ssh]</span>
+<span style="font-weight: bold;">type = tcp</span>
+<span style="font-weight: bold;">local_ip = 127.0.0.1</span>
+<span style="font-weight: bold;">local_port = 22</span>
+<span style="font-weight: bold;">remote_port = 6000</span>
+<span style="font-weight: bold;">ConfigEndsHERE</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">&#37117;&#25913;&#20026; root</span>
+sudo chown -R root: dest-frp
+
+mksquashfs dest-frp/ tbt-frp-0.44.0.tcz
+mv tbt-frp-0.44.0.tcz /mnt/mmcblk0p2/tce/optional/
+<span style="font-weight: bold;">echo</span> <span style="font-style: italic;">'tbt-frp-0.44.0.tcz'</span> &gt;&gt; /mnt/mmcblk0p2/tce/onboot.lst
+</pre>
+</div>
+<p>
+目录结构如下
+</p>
+<div class="org-src-container">
+<pre class="src src-text">dest-frp
+&#9492;&#9472;&#9472; usr
+    &#9492;&#9472;&#9472; local
+        &#9500;&#9472;&#9472; bin
+        &#9474;&#160;&#160; &#9500;&#9472;&#9472; frpc
+        &#9474;&#160;&#160; &#9492;&#9472;&#9472; frps
+        &#9492;&#9472;&#9472; etc
+            &#9492;&#9472;&#9472; frp
+                &#9500;&#9472;&#9472; frpc_full.ini
+                &#9500;&#9472;&#9472; frpc.ini
+                &#9500;&#9472;&#9472; frps_full.ini
+                &#9492;&#9472;&#9472; frps.ini
+</pre>
+</div>
+
+<p>
+最后, 把 <code>frpc</code> 的开机脚本放到 <code>/opt/bootlocal.sh</code> 中
+(ps. <code>/opt</code> 下有两个开机脚本: <code>bootlocal.sh</code> 和 <code>bootsync.sh</code>,
+后者会把前者放到后台运行, 以免阻塞开机进程)
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">cat &lt;&lt;<span style="font-style: italic;">'CmdEndsHERE'</span> &gt;&gt; /opt/bootlocal.sh
+<span style="font-weight: bold;"># wait for network and then start frpc</span>
+<span style="font-weight: bold;"># for loop from https://stackoverflow.com/a/24897831/11938767</span>
+<span style="font-weight: bold;">i=1</span>
+<span style="font-weight: bold;">while [ $i -le 20 ]; do</span>
+<span style="font-weight: bold;">  sleep 1</span>
+<span style="font-weight: bold;">  touch /tmp/waiting-${i}s</span>
+<span style="font-weight: bold;">  i=$(expr $i + 1)</span>
+<span style="font-weight: bold;">  if pidof udhcpc &gt; /dev/null; then</span>
+<span style="font-weight: bold;">    /usr/local/bin/frpc -c /usr/local/etc/frp/frpc.ini &gt;/tmp/frpc.log 2&gt;&amp;1 &amp;</span>
+<span style="font-weight: bold;">    break</span>
+<span style="font-weight: bold;">  fi</span>
+<span style="font-weight: bold;">done</span>
+<span style="font-weight: bold;">CmdEndsHERE</span>
+</pre>
+</div>
+<p>
+根据 <code>/etc/init.d/dhcp.sh</code>, 在执行 <code>frpc</code> 之前 DHCP 可能还没启动,
+所以需要测试 DHCP 是否启动.  由 <code>/etc/init.d/services/dhcp</code>,
+可以使用 <code>pidof udhcpc</code> 测试 DHCP 状态.
+</p>
+
+<p>
+再次备份, 重启, 就可以直接通过 frp 访问树莓派啦~
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">filetool.sh -b
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org5b63534" class="outline-2">
+<h2 id="org5b63534"><span class="section-number-2">6.</span> <a href="#org5b63534">小结</a></h2>
+<div class="outline-text-2" id="text-6">
+<p>
+感觉用 piCore 再自己编译打包各种东西着实有点麻烦了,
+可能直接把 Raspberry Pi OS 配置好再在 <code>raspi-config</code> 里设置成 SD 卡只读会更简单也更靠谱一点.  不过还是挺有意思的,
+而且也学到了一些东西, 算是把之前 LFS 的编译命令用了下.
+</p>
+
+<p>
+由于自己编译的几个包都是开机直接 load 的, 可能导致开机速度慢了不少.
+实测从上电到 frp 连接成功需要大约 25s, reboot 则需要 34s 左右.
+</p>
+
+<p>
+然后如果运行期间 frp 断掉或者出其他什么状况的话是无解的, 只能重启.
+准备买一个米家的智能开关, 出问题就直接远程断电重开.
+</p>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<hr><table class="postamble">
+  <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
+  <tr><td class="org-right">Created</td><td class="org-left">2022-08-09 23:51</td></tr>
+  <tr><td class="org-right">Modified</td><td class="org-left">2022-12-05 22:13</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2022-12-05 22:16</td></tr>
+  <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 28.2 (<a href="https://orgmode.org">Org</a> mode 9.5.5)</td></tr>
+  <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://github.com/thebesttv/thebesttv.github.io/blob/main/content/picore-adb.org">content/picore-adb.org</a></td></tr>
+</table>
+</div>
+</body>
+</html>
