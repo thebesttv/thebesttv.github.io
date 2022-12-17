@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 2022-12-17 14:32 -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Changing screen brightness</title>
+<meta name="author" content="thebesttv" />
+<meta name="generator" content="Org Mode" />
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-21YM95T3BQ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-21YM95T3BQ');
+</script>
+<!-- favicon -->
+<link rel="icon" type="image/x-icon" href="../../favicon.ico">
+<!-- CSS -->
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/latex.css/style.css">
+<link rel="stylesheet" type="text/css" href="../../css/org-default.css">
+<link rel="stylesheet" type="text/css" href="../../css/style.css">
+<!-- pagefind -->
+<link rel="stylesheet" type="text/css" href="../../_pagefind/pagefind-ui.css">
+<script src="../../_pagefind/pagefind-ui.js" type="text/javascript"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+      new PagefindUI({element: "#search", showImages: false, resetStyles: false});
+  });
+</script>
+</head>
+<body>
+<div id="preamble" class="status">
+<nav class="org-center">
+<a href="../../index.html">Home</a>
+<div id="search"></div>
+<hr>
+</nav>
+</div>
+<div id="content" class="content">
+<header>
+<h1 class="title">Changing screen brightness</h1>
+</header><nav id="table-of-contents" role="doc-toc">
+<h2>&#30446;&#24405;</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#org6f0f585">1. Laptop screen</a></li>
+<li><a href="#org29de380">2. External monitors</a>
+<ul>
+<li><a href="#orged5f2fe">2.1. Install <code>ddcutil</code></a>
+<ul>
+<li><a href="#orged8b96f">2.1.1. Load I2C module</a></li>
+<li><a href="#org39acdcb">2.1.2. Add to user group</a></li>
+</ul>
+</li>
+<li><a href="#org26dab57">2.2. Overview</a></li>
+<li><a href="#orgc5dd6f9">2.3. Changing &amp; querying brightness</a></li>
+<li><a href="#org9785006">2.4. Speedup</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</nav>
+<hr style="width: 80%;">
+<ul class="org-ul">
+<li><a href="https://wiki.archlinux.org/title/Backlight">Backlight - ArchWiki</a> introduces different ways to adjust screen
+backlight, for both laptops and external monitors.</li>
+</ul>
+
+<div id="outline-container-org6f0f585" class="outline-2">
+<h2 id="org6f0f585"><span class="section-number-2">1.</span> <a href="#org6f0f585">Laptop screen</a></h2>
+<div class="outline-text-2" id="text-1">
+<p>
+Use <code>xbacklight</code> from the <a href="https://archlinux.org/packages/extra/x86_64/xorg-xbacklight/"><code>xorg-xbacklight</code></a> package to adjust brightness
+for laptop screens:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ sudo pacman -S xorg-xbacklight
+</pre>
+</div>
+
+<p>
+Control brightness using <code>-set</code>, <code>-inc</code>, <code>-dec</code>:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ xbacklight -set 20            <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">set brightness to 20</span>
+$ xbacklight -inc 20            <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">+20</span>
+$ xbacklight -dec 20            <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">-20</span>
+</pre>
+</div>
+<p>
+By default, brightness gradually fades into the target value&#x2014;20 steps
+in 200ms.  Set <code>-steps</code> to 1 to avoid the fading effect:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ xbacklight -steps 1 -dec 10
+</pre>
+</div>
+
+<p>
+Get current brightness using <code>-get</code>:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ xbacklight -get
+60.000000
+$ xbacklight -get | sed <span style="font-style: italic;">'s/\..*//'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">remove decimal part</span>
+60
+</pre>
+</div>
+
+<p>
+i3 config:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">bindsym XF86MonBrightnessDown exec --no-startup-id <span style="font-style: italic;">\</span>
+        xbacklight -steps 1 -dec 10 &amp;&amp;<span style="font-style: italic;">\</span>
+        notify-send -t 1000 <span style="font-style: italic;">"Laptop brightness $(xbacklight -get | sed 's/\..*//')"</span>
+bindsym XF86MonBrightnessUp   exec --no-startup-id <span style="font-style: italic;">\</span>
+        xbacklight -steps 1 -inc 10 &amp;&amp;<span style="font-style: italic;">\</span>
+        notify-send -t 1000 <span style="font-style: italic;">"Laptop brightness $(xbacklight -get | sed 's/\..*//')"</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org29de380" class="outline-2">
+<h2 id="org29de380"><span class="section-number-2">2.</span> <a href="#org29de380">External monitors</a></h2>
+<div class="outline-text-2" id="text-2">
+<p>
+<a href="https://en.wikipedia.org/wiki/Display_Data_Channel">Display Data Channel</a> (DDC) allows computer to adjust monitor parameters
+such as brightness and contrast.  <a href="http://www.ddcutil.com/"><code>ddcutil</code></a> is a tool that can control
+monitors through DDC.
+</p>
+
+<ul class="org-ul">
+<li><a href="https://moverest.xyz/blog/control-display-with-ddc-ci/">Control your display with DDC/CI on Linux</a></li>
+<li><a href="https://wiki.archlinux.org/title/I2C">I2C - ArchWiki</a></li>
+</ul>
+</div>
+
+<div id="outline-container-orged5f2fe" class="outline-3">
+<h3 id="orged5f2fe"><span class="section-number-3">2.1.</span> <a href="#orged5f2fe">Install <code>ddcutil</code></a></h3>
+<div class="outline-text-3" id="text-2-1">
+<p>
+First, install <code>ddcutil</code> and <code>i2c-tools</code>:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ sudo pacman -S ddcutil i2c-tools
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orged8b96f" class="outline-4">
+<h4 id="orged8b96f"><span class="section-number-4">2.1.1.</span> <a href="#orged8b96f">Load I2C module</a></h4>
+<div class="outline-text-4" id="text-2-1-1">
+<p>
+The <code>i2c-dev</code> module needs to be loaded manually:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ modprobe i2c-dev
+</pre>
+</div>
+<p>
+If the module is loaded properly, you should see a list of <code>/dev/i2c-*</code>
+devices:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ ls /dev/i2c-*
+/dev/i2c-0  /dev/i2c-2  /dev/i2c-4  /dev/i2c-6  /dev/i2c-8
+/dev/i2c-1  /dev/i2c-3  /dev/i2c-5  /dev/i2c-7
+</pre>
+</div>
+
+<p>
+To load the module at boot, create <code>/etc/modules-load.d/i2c-dev.conf</code>
+with:
+</p>
+<div class="org-src-container">
+<pre class="src src-text">i2c-dev
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org39acdcb" class="outline-4">
+<h4 id="org39acdcb"><span class="section-number-4">2.1.2.</span> <a href="#org39acdcb">Add to user group</a></h4>
+<div class="outline-text-4" id="text-2-1-2">
+<p>
+Grant RW access to the <code>/dev/i2c-*</code> devices by adding the current user
+to the <code>i2c</code> user group:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ sudo usermod $<span style="font-weight: bold; font-style: italic;">USER</span> -aG i2c
+</pre>
+</div>
+
+<p>
+Reboot to see the effect, or log in to new group for the current shell
+(the i3 config only works after reboot):
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ newgrp i2c
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org26dab57" class="outline-3">
+<h3 id="org26dab57"><span class="section-number-3">2.2.</span> <a href="#org26dab57">Overview</a></h3>
+<div class="outline-text-3" id="text-2-2">
+<p>
+Running <code>ddcutil</code> on my laptop produces the following warnings:
+</p>
+<div class="org-src-container">
+<pre class="src src-text">Unable to open directory /sys/bus/i2c/devices/i2c--1: No such file or directory
+Device /dev/i2c-255 does not exist. Error = ENOENT(2): No such file or directory
+/sys/bus/i2c buses without /dev/i2c-N devices: /sys/bus/i2c/devices/i2c-255
+Driver i2c_dev must be loaded or builtin
+See https://www.ddcutil.com/kernel_module
+</pre>
+</div>
+<p>
+But the tool functions properly so far, so they can be ignored.
+All the results shown below will have the warning removed.
+</p>
+
+<p>
+Detect monitors:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ ddcutil detect
+Invalid display
+   I2C bus:  /dev/i2c-4
+   DRM connector:           card0-eDP-1
+   EDID synopsis:
+      Mfg id:               CMN - Chimei Innolux Corporation
+      Model:
+      Product code:         5332  (0x14d4)
+      Serial number:
+      Binary serial number: 0 (0x00000000)
+      Manufacture year:     2017,  Week: 48
+   DDC communication failed
+   This is an eDP laptop display. Laptop displays do not support DDC/CI.
+
+Display 1
+   I2C bus:  /dev/i2c-5
+   DRM connector:           card0-DP-1
+   EDID synopsis:
+      Mfg id:               AOC - UNK
+      Model:                Q27P2G5
+      Product code:         9986  (0x2702)
+      Serial number:        TAUNAHA006059
+      Binary serial number: 6059 (0x000017ab)
+      Manufacture year:     2022,  Week: 42
+   VCP version:         2.2
+</pre>
+</div>
+<p>
+Two monitors are detected:
+</p>
+<ol class="org-ol">
+<li><code>Invalid display</code>: my laptop's monitor, which, unsurprisingly, does
+not support DDC/CI.</li>
+<li><code>Display 1</code>: external AOC monitor, which supports DDC/CI, and is on
+bus 5 (<code>/dev/i2c-5</code>).  This is the target screen.</li>
+</ol>
+
+<p>
+Show all VCP Feature Codes that <code>ddcutil</code> understands for display 1:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ ddcutil -d 1 getvcp known
+VCP code 0x02 (New control value             ): One or more new control values have been saved (0x02)
+VCP code 0x0b (Color temperature increment   ): 100 degree(s) Kelvin
+VCP code 0x0c (Color temperature request     ): 3000 + 35 * (feature 0B color temp increment) degree(s) Kelvin
+VCP code 0x10 (Brightness                    ): current value =    50, max value =   100
+VCP code 0x12 (Contrast                      ): current value =    50, max value =   100
+VCP code 0x14 (Select color preset           ): 6500 K (0x05), Tolerance: Unspecified (0x00)
+VCP code 0x16 (Video gain: Red               ): current value =    50, max value =   100
+VCP code 0x18 (Video gain: Green             ): current value =    50, max value =   100
+VCP code 0x1a (Video gain: Blue              ): current value =    50, max value =   100
+VCP code 0x1e (Auto setup                    ): Auto setup not active (<span style="font-weight: bold; font-style: italic;">sl</span>=0x00)
+VCP code 0x20 (Horizontal Position (Phase)   ): current value =     0, max value =   100
+VCP code 0x30 (Vertical Position (Phase)     ): current value =     0, max value =   100
+VCP code 0x52 (Active control                ): Value: 0x00
+VCP code 0x60 (Input Source                  ): DisplayPort-2 (<span style="font-weight: bold; font-style: italic;">sl</span>=0x10)
+VCP code 0x62 (Audio speaker volume          ): Volume level: 80 (00x50)
+VCP code 0x6c (Video black level: Red        ): current value =    80, max value =   100
+VCP code 0x6e (Video black level: Green      ): current value =    80, max value =   100
+VCP code 0x70 (Video black level: Blue       ): current value =    80, max value =   100
+VCP code 0x7e (Trapezoid                     ): Maximum retries exceeded
+VCP code 0x86 (Display Scaling               ): Max image, no aspect ration distortion (<span style="font-weight: bold; font-style: italic;">sl</span>=0x02)
+VCP code 0x87 (Sharpness                     ): current value =    50, max value =   100
+VCP code 0xac (Horizontal frequency          ): 1093 hz
+VCP code 0xae (Vertical frequency            ): 60.00 hz
+VCP code 0xb2 (Flat panel sub-pixel layout   ): Red/Green/Blue vertical stripe (<span style="font-weight: bold; font-style: italic;">sl</span>=0x01)
+VCP code 0xb6 (Display technology type       ): LCD (active matrix) (<span style="font-weight: bold; font-style: italic;">sl</span>=0x03)
+VCP code 0xc6 (Application enable key        ): 0x0040
+VCP code 0xc8 (Display controller type       ): Mfg: RealTek (<span style="font-weight: bold; font-style: italic;">sl</span>=0x09), controller number: <span style="font-weight: bold; font-style: italic;">mh</span>=0x00, <span style="font-weight: bold; font-style: italic;">ml</span>=0x00, <span style="font-weight: bold; font-style: italic;">sh</span>=0x00
+VCP code 0xc9 (Display firmware level        ): 0.1
+VCP code 0xca (OSD/Button Control            ): OSD disabled, button events enabled (<span style="font-weight: bold; font-style: italic;">sl</span>=0x01), Host control of power unsupported (<span style="font-weight: bold; font-style: italic;">sh</span>=0x00)
+VCP code 0xcc (OSD Language                  ): Chinese (simplified / Kantai) (<span style="font-weight: bold; font-style: italic;">sl</span>=0x0d)
+VCP code 0xd6 (Power mode                    ): DPM: On,  DPMS: Off (<span style="font-weight: bold; font-style: italic;">sl</span>=0x01)
+VCP code 0xdc (Display Mode                  ): Standard/Default mode (<span style="font-weight: bold; font-style: italic;">sl</span>=0x00)
+VCP code 0xdf (VCP Version                   ): 2.2
+</pre>
+</div>
+<p>
+There are a lot of entries.  The one we are interested in is the
+brightness (VCP code <code>0x10</code>), currently at 50, the maximum being 100:
+</p>
+<div class="org-src-container">
+<pre class="src src-text">VCP code 0x10 (Brightness                    ): current value =    50, max value =   100
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgc5dd6f9" class="outline-3">
+<h3 id="orgc5dd6f9"><span class="section-number-3">2.3.</span> <a href="#orgc5dd6f9">Changing &amp; querying brightness</a></h3>
+<div class="outline-text-3" id="text-2-3">
+<p>
+Use <code>setvcp</code> to change brightness in different ways:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ ddcutil setvcp 10 25          <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">set brightness to 25</span>
+$ ddcutil setvcp 10 + 5         <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">brightness +5</span>
+$ ddcutil setvcp 10 - 5         <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">brightness -5</span>
+</pre>
+</div>
+
+<p>
+Use <code>getvcp</code> (or <code>get</code>) to obtain current brightness:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ ddcutil getvcp 10             <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">get current brightness</span>
+VCP code 0x10 (Brightness                    ): current value =    25, max value =   100
+$ ddcutil getvcp --brief 10     <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">brief output: VCP &lt;CODE&gt; C &lt;CUR&gt; &lt;MAX&gt;</span>
+VCP 10 C 25 100
+$ ddcutil getvcp --brief 10 | cut -d<span style="font-style: italic;">' '</span> -f4 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">only get current value</span>
+25
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org9785006" class="outline-3">
+<h3 id="org9785006"><span class="section-number-3">2.4.</span> <a href="#org9785006">Speedup</a></h3>
+<div class="outline-text-3" id="text-2-4">
+<p>
+The above use of <code>ddcutil</code> is simple, yet frustratingly slow:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ time sh -c <span style="font-style: italic;">"ddcutil setvcp 10 25 &amp;&amp; ddcutil get --brief 10"</span>
+VCP 10 C 25 100
+
+real    0m1.079s
+user    0m0.061s
+sys     0m0.105s
+</pre>
+</div>
+<p>
+Simply setting and getting brightness takes a whole 1 second.
+</p>
+
+<p>
+According to <a href="https://github.com/rockowitz/ddcutil/issues/240#issuecomment-991381421">rockowitz's comment</a>:
+</p>
+<ol class="org-ol">
+<li><p>
+<code>ddcutil</code> examines each <code>/dev/i2c-*</code> device on startup, which is a
+slow process.  Specifying the monitor bus number with <code>--bus</code> (or
+<code>-b</code>) reduces ~180ms:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ time ddcutil setvcp 10 25
+real    0m0.580s
+user    0m0.031s
+sys     0m0.068s
+
+$ time ddcutil --bus=5 setvcp 10 25
+real    0m0.404s
+user    0m0.011s
+sys     0m0.017s
+</pre>
+</div>
+<p>
+However, simply specifying a display number does not reduce time, as
+I2C devices are still examined to determine which one is used:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ time ddcutil --display=1 setvcp 10 25
+real    0m0.579s
+user    0m0.028s
+sys     0m0.066s
+</pre>
+</div></li>
+<li><p>
+Most of the elapsed time is spent in pauses mandated by the DDC spec.
+Use <code>--sleep-multiplier</code> to adjust the length of time spent in
+mandated sleep.  For example, <code>--sleep-multiplier=0.2</code> multiplies the
+sleep time by <code>0.2</code>:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ time ddcutil -b 5 --sleep-multiplier=0.2 --brief get 10
+VCP 10 C 25 100
+
+real    0m0.109s
+user    0m0.018s
+sys     0m0.008s
+</pre>
+</div>
+<p>
+This significantly reduces the overall time, reaching 0.1s.  However,
+reducing sleep time may incur DDC errors, see the <a href="https://github.com/rockowitz/ddcutil/issues/240#issuecomment-991381421">original comment</a>
+for detail.
+</p></li>
+<li>When using multiple monitors, using <code>--async</code> to add some
+parallelism.</li>
+</ol>
+
+<p>
+To summarize, <b>specifying bus number</b> and <b>reducing sleep time</b> together
+reduce the overall time to ~270ms, a 3.7x speedup (the redirection &amp;
+<code>tail</code> command is used to filter out error messages mentioned earlier):
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ time sh -c <span style="font-style: italic;">\</span>
+  <span style="font-style: italic;">"ddcutil --bus=5 --sleep-multiplier=0.2 setvcp 10 50 &gt;/dev/null &amp;&amp;\</span>
+<span style="font-style: italic;">   ddcutil --bus=5 --sleep-multiplier=0.2 --brief getvcp 10 | tail -n1"</span>
+VCP 10 C 50 100
+
+real    0m0.267s
+user    0m0.053s
+sys     0m0.038s
+</pre>
+</div>
+
+<p>
+Finally, the i3 config to ±10 brightness:
+</p>
+<div class="org-src-container">
+<pre class="src src-text">bindsym Shift+XF86MonBrightnessDown exec --no-startup-id \
+        ddcutil --bus=5 --sleep-multiplier=0.2 setvcp 10 - 10 &amp;&amp;\
+        notify-send -t 1000 "External brightness $(ddcutil --bus=5 --sleep-multiplier=0.2 --brief getvcp 10 | tail -n1 | cut -d' ' -f4)"
+bindsym Shift+XF86MonBrightnessUp   exec --no-startup-id \
+        ddcutil --bus=5 --sleep-multiplier=0.2 setvcp 10 + 10 &amp;&amp;\
+        notify-send -t 1000 "External brightness $(ddcutil --bus=5 --sleep-multiplier=0.2 --brief getvcp 10 | tail -n1 | cut -d' ' -f4)"
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<hr><table class="postamble">
+  <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
+  <tr><td class="org-right">Created</td><td class="org-left">2022-12-17 11:33</td></tr>
+  <tr><td class="org-right">Modified</td><td class="org-left">2022-12-17 14:30</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2022-12-17 14:32</td></tr>
+  <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 28.2 (<a href="https://orgmode.org">Org</a> mode 9.5.5)</td></tr>
+  <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://raw.githubusercontent.com/thebesttv/thebesttv.github.io/main/content/arch/screen-brightness.org">screen-brightness.org</a></td></tr>
+</table>
+</div>
+</body>
+</html>

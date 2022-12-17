@@ -1,0 +1,281 @@
+#+title: Changing screen brightness
+#+date: <2022-12-17 Sat 11:33>
+#+author: thebesttv
+
+- [[https://wiki.archlinux.org/title/Backlight][Backlight - ArchWiki]] introduces different ways to adjust screen
+  backlight, for both laptops and external monitors.
+
+* Laptop screen
+
+Use =xbacklight= from the [[https://archlinux.org/packages/extra/x86_64/xorg-xbacklight/][=xorg-xbacklight=]] package to adjust brightness
+for laptop screens:
+#+begin_src bash
+  $ sudo pacman -S xorg-xbacklight
+#+end_src
+
+Control brightness using =-set=, =-inc=, =-dec=:
+#+begin_src bash
+  $ xbacklight -set 20            # set brightness to 20
+  $ xbacklight -inc 20            # +20
+  $ xbacklight -dec 20            # -20
+#+end_src
+By default, brightness gradually fades into the target value---20 steps
+in 200ms.  Set =-steps= to 1 to avoid the fading effect:
+#+begin_src bash
+  $ xbacklight -steps 1 -dec 10
+#+end_src
+
+Get current brightness using =-get=:
+#+begin_src bash
+  $ xbacklight -get
+  60.000000
+  $ xbacklight -get | sed 's/\..*//' # remove decimal part
+  60
+#+end_src
+
+i3 config:
+#+begin_src bash
+  bindsym XF86MonBrightnessDown exec --no-startup-id \
+          xbacklight -steps 1 -dec 10 &&\
+          notify-send -t 1000 "Laptop brightness $(xbacklight -get | sed 's/\..*//')"
+  bindsym XF86MonBrightnessUp   exec --no-startup-id \
+          xbacklight -steps 1 -inc 10 &&\
+          notify-send -t 1000 "Laptop brightness $(xbacklight -get | sed 's/\..*//')"
+#+end_src
+
+* External monitors
+
+[[https://en.wikipedia.org/wiki/Display_Data_Channel][Display Data Channel]] (DDC) allows computer to adjust monitor parameters
+such as brightness and contrast.  [[http://www.ddcutil.com/][=ddcutil=]] is a tool that can control
+monitors through DDC.
+
+- [[https://moverest.xyz/blog/control-display-with-ddc-ci/][Control your display with DDC/CI on Linux]]
+- [[https://wiki.archlinux.org/title/I2C][I2C - ArchWiki]]
+
+** Install =ddcutil=
+
+First, install =ddcutil= and =i2c-tools=:
+#+begin_src bash
+  $ sudo pacman -S ddcutil i2c-tools
+#+end_src
+
+*** Load I2C module
+
+The =i2c-dev= module needs to be loaded manually:
+#+begin_src bash
+  $ modprobe i2c-dev
+#+end_src
+If the module is loaded properly, you should see a list of =/dev/i2c-*=
+devices:
+#+begin_src bash
+  $ ls /dev/i2c-*
+  /dev/i2c-0  /dev/i2c-2  /dev/i2c-4  /dev/i2c-6  /dev/i2c-8
+  /dev/i2c-1  /dev/i2c-3  /dev/i2c-5  /dev/i2c-7
+#+end_src
+
+To load the module at boot, create =/etc/modules-load.d/i2c-dev.conf=
+with:
+#+begin_src text
+  i2c-dev
+#+end_src
+
+*** Add to user group
+
+Grant RW access to the =/dev/i2c-*= devices by adding the current user
+to the =i2c= user group:
+#+begin_src bash
+  $ sudo usermod $USER -aG i2c
+#+end_src
+
+Reboot to see the effect, or log in to new group for the current shell
+(the i3 config only works after reboot):
+#+begin_src bash
+  $ newgrp i2c
+#+end_src
+
+** Overview
+
+Running =ddcutil= on my laptop produces the following warnings:
+#+begin_src text
+  Unable to open directory /sys/bus/i2c/devices/i2c--1: No such file or directory
+  Device /dev/i2c-255 does not exist. Error = ENOENT(2): No such file or directory
+  /sys/bus/i2c buses without /dev/i2c-N devices: /sys/bus/i2c/devices/i2c-255
+  Driver i2c_dev must be loaded or builtin
+  See https://www.ddcutil.com/kernel_module
+#+end_src
+But the tool functions properly so far, so they can be ignored.
+All the results shown below will have the warning removed.
+
+Detect monitors:
+#+begin_src bash
+  $ ddcutil detect
+  Invalid display
+     I2C bus:  /dev/i2c-4
+     DRM connector:           card0-eDP-1
+     EDID synopsis:
+        Mfg id:               CMN - Chimei Innolux Corporation
+        Model:
+        Product code:         5332  (0x14d4)
+        Serial number:
+        Binary serial number: 0 (0x00000000)
+        Manufacture year:     2017,  Week: 48
+     DDC communication failed
+     This is an eDP laptop display. Laptop displays do not support DDC/CI.
+
+  Display 1
+     I2C bus:  /dev/i2c-5
+     DRM connector:           card0-DP-1
+     EDID synopsis:
+        Mfg id:               AOC - UNK
+        Model:                Q27P2G5
+        Product code:         9986  (0x2702)
+        Serial number:        TAUNAHA006059
+        Binary serial number: 6059 (0x000017ab)
+        Manufacture year:     2022,  Week: 42
+     VCP version:         2.2
+#+end_src
+Two monitors are detected:
+1. =Invalid display=: my laptop's monitor, which, unsurprisingly, does
+   not support DDC/CI.
+2. =Display 1=: external AOC monitor, which supports DDC/CI, and is on
+   bus 5 (=/dev/i2c-5=).  This is the target screen.
+
+Show all VCP Feature Codes that =ddcutil= understands for display 1:
+#+begin_src bash
+  $ ddcutil -d 1 getvcp known
+  VCP code 0x02 (New control value             ): One or more new control values have been saved (0x02)
+  VCP code 0x0b (Color temperature increment   ): 100 degree(s) Kelvin
+  VCP code 0x0c (Color temperature request     ): 3000 + 35 * (feature 0B color temp increment) degree(s) Kelvin
+  VCP code 0x10 (Brightness                    ): current value =    50, max value =   100
+  VCP code 0x12 (Contrast                      ): current value =    50, max value =   100
+  VCP code 0x14 (Select color preset           ): 6500 K (0x05), Tolerance: Unspecified (0x00)
+  VCP code 0x16 (Video gain: Red               ): current value =    50, max value =   100
+  VCP code 0x18 (Video gain: Green             ): current value =    50, max value =   100
+  VCP code 0x1a (Video gain: Blue              ): current value =    50, max value =   100
+  VCP code 0x1e (Auto setup                    ): Auto setup not active (sl=0x00)
+  VCP code 0x20 (Horizontal Position (Phase)   ): current value =     0, max value =   100
+  VCP code 0x30 (Vertical Position (Phase)     ): current value =     0, max value =   100
+  VCP code 0x52 (Active control                ): Value: 0x00
+  VCP code 0x60 (Input Source                  ): DisplayPort-2 (sl=0x10)
+  VCP code 0x62 (Audio speaker volume          ): Volume level: 80 (00x50)
+  VCP code 0x6c (Video black level: Red        ): current value =    80, max value =   100
+  VCP code 0x6e (Video black level: Green      ): current value =    80, max value =   100
+  VCP code 0x70 (Video black level: Blue       ): current value =    80, max value =   100
+  VCP code 0x7e (Trapezoid                     ): Maximum retries exceeded
+  VCP code 0x86 (Display Scaling               ): Max image, no aspect ration distortion (sl=0x02)
+  VCP code 0x87 (Sharpness                     ): current value =    50, max value =   100
+  VCP code 0xac (Horizontal frequency          ): 1093 hz
+  VCP code 0xae (Vertical frequency            ): 60.00 hz
+  VCP code 0xb2 (Flat panel sub-pixel layout   ): Red/Green/Blue vertical stripe (sl=0x01)
+  VCP code 0xb6 (Display technology type       ): LCD (active matrix) (sl=0x03)
+  VCP code 0xc6 (Application enable key        ): 0x0040
+  VCP code 0xc8 (Display controller type       ): Mfg: RealTek (sl=0x09), controller number: mh=0x00, ml=0x00, sh=0x00
+  VCP code 0xc9 (Display firmware level        ): 0.1
+  VCP code 0xca (OSD/Button Control            ): OSD disabled, button events enabled (sl=0x01), Host control of power unsupported (sh=0x00)
+  VCP code 0xcc (OSD Language                  ): Chinese (simplified / Kantai) (sl=0x0d)
+  VCP code 0xd6 (Power mode                    ): DPM: On,  DPMS: Off (sl=0x01)
+  VCP code 0xdc (Display Mode                  ): Standard/Default mode (sl=0x00)
+  VCP code 0xdf (VCP Version                   ): 2.2
+#+end_src
+There are a lot of entries.  The one we are interested in is the
+brightness (VCP code =0x10=), currently at 50, the maximum being 100:
+#+begin_src text
+  VCP code 0x10 (Brightness                    ): current value =    50, max value =   100
+#+end_src
+
+** Changing & querying brightness
+
+Use =setvcp= to change brightness in different ways:
+#+begin_src bash
+  $ ddcutil setvcp 10 25          # set brightness to 25
+  $ ddcutil setvcp 10 + 5         # brightness +5
+  $ ddcutil setvcp 10 - 5         # brightness -5
+#+end_src
+
+Use =getvcp= (or =get=) to obtain current brightness:
+#+begin_src bash
+  $ ddcutil getvcp 10             # get current brightness
+  VCP code 0x10 (Brightness                    ): current value =    25, max value =   100
+  $ ddcutil getvcp --brief 10     # brief output: VCP <CODE> C <CUR> <MAX>
+  VCP 10 C 25 100
+  $ ddcutil getvcp --brief 10 | cut -d' ' -f4 # only get current value
+  25
+#+end_src
+
+** Speedup
+
+The above use of =ddcutil= is simple, yet frustratingly slow:
+#+begin_src bash
+  $ time sh -c "ddcutil setvcp 10 25 && ddcutil get --brief 10"
+  VCP 10 C 25 100
+
+  real    0m1.079s
+  user    0m0.061s
+  sys     0m0.105s
+#+end_src
+Simply setting and getting brightness takes a whole 1 second.
+
+According to [[https://github.com/rockowitz/ddcutil/issues/240#issuecomment-991381421][rockowitz's comment]]:
+1. =ddcutil= examines each =/dev/i2c-*= device on startup, which is a
+   slow process.  Specifying the monitor bus number with =--bus= (or
+   =-b=) reduces ~180ms:
+   #+begin_src bash
+     $ time ddcutil setvcp 10 25
+     real    0m0.580s
+     user    0m0.031s
+     sys     0m0.068s
+
+     $ time ddcutil --bus=5 setvcp 10 25
+     real    0m0.404s
+     user    0m0.011s
+     sys     0m0.017s
+   #+end_src
+   However, simply specifying a display number does not reduce time, as
+   I2C devices are still examined to determine which one is used:
+   #+begin_src bash
+     $ time ddcutil --display=1 setvcp 10 25
+     real    0m0.579s
+     user    0m0.028s
+     sys     0m0.066s
+   #+end_src
+2. Most of the elapsed time is spent in pauses mandated by the DDC spec.
+   Use =--sleep-multiplier= to adjust the length of time spent in
+   mandated sleep.  For example, =--sleep-multiplier=0.2= multiplies the
+   sleep time by =0.2=:
+   #+begin_src bash
+     $ time ddcutil -b 5 --sleep-multiplier=0.2 --brief get 10
+     VCP 10 C 25 100
+
+     real    0m0.109s
+     user    0m0.018s
+     sys     0m0.008s
+   #+end_src
+   This significantly reduces the overall time, reaching 0.1s.  However,
+   reducing sleep time may incur DDC errors, see the [[https://github.com/rockowitz/ddcutil/issues/240#issuecomment-991381421][original comment]]
+   for detail.
+3. When using multiple monitors, using =--async= to add some
+   parallelism.
+
+To summarize, *specifying bus number* and *reducing sleep time* together
+reduce the overall time to ~270ms, a 3.7x speedup (the redirection &
+=tail= command is used to filter out error messages mentioned earlier):
+#+begin_src bash
+  $ time sh -c \
+    "ddcutil --bus=5 --sleep-multiplier=0.2 setvcp 10 50 >/dev/null &&\
+     ddcutil --bus=5 --sleep-multiplier=0.2 --brief getvcp 10 | tail -n1"
+  VCP 10 C 50 100
+
+  real    0m0.267s
+  user    0m0.053s
+  sys     0m0.038s
+#+end_src
+
+Finally, the i3 config to ±10 brightness:
+#+begin_src text
+  bindsym Shift+XF86MonBrightnessDown exec --no-startup-id \
+          ddcutil --bus=5 --sleep-multiplier=0.2 setvcp 10 - 10 &&\
+          notify-send -t 1000 "External brightness $(ddcutil --bus=5 --sleep-multiplier=0.2 --brief getvcp 10 | tail -n1 | cut -d' ' -f4)"
+  bindsym Shift+XF86MonBrightnessUp   exec --no-startup-id \
+          ddcutil --bus=5 --sleep-multiplier=0.2 setvcp 10 + 10 &&\
+          notify-send -t 1000 "External brightness $(ddcutil --bus=5 --sleep-multiplier=0.2 --brief getvcp 10 | tail -n1 | cut -d' ' -f4)"
+#+end_src
