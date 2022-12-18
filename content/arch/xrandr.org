@@ -1,0 +1,71 @@
+#+title: Configure screen layout using xrandr
+#+date: <2022-12-18 Sun 10:00>
+#+author: thebesttv
+
+* XrandR
+
+Most =xrandr= commands are explained in [[https://wiki.archlinux.org/title/xrandr][xrandr - ArchWiki]].
+
+* GUI front-end
+
+ARandR is a graphical front-end for XrandR, which allows changing
+monitor position in a drag-and-drop way.  Install the =arandr= package
+to use it:
+#+begin_src bash
+  sudo pacman -S arandr
+#+end_src
+
+After the screen layout is configured in ARandR, you can save the layout
+as a shell script which contains only one xrandr script (broken into
+multiple lines for clarity):
+#+begin_src bash
+  xrandr --output eDP1 --primary --mode 1920x1080 --pos 320x1440 --rotate normal\
+         --output DP1 --mode 2560x1440 --pos 0x0 --rotate normal\
+         --output HDMI1 --off\
+         --output HDMI2 --off\
+         --output VIRTUAL1 --off
+#+end_src
+
+This script automatically detects and setups dual screen layout, which
+can also be executed on i3 startup:
+#+begin_src bash
+  #!/bin/sh
+
+  # This opens 27inch monitor together with 14inch laptop screen, with the
+  # former sitting directly above the latter.
+  # The 27inch screen, identified as DP1, is connected using type-c.
+  # The xrandr command is exported via ArandR.
+
+  intern=eDP1
+  extern=DP1
+
+  if xrandr | grep "^$extern connected" > /dev/null; then
+      # external screen connected
+      xrandr --output eDP1 --primary --mode 1920x1080 --pos 320x1440 --rotate normal\
+             --output DP1 --mode 2560x1440 --pos 0x0 --rotate normal\
+             --output HDMI1 --off\
+             --output HDMI2 --off\
+             --output VIRTUAL1 --off
+
+      echo "     +----------+          "
+      echo "     |          |          "
+      echo "     |    27    |          "
+      echo "     +----------+          "
+      echo "       +------+            "
+      echo "       |  14  | (primary)  "
+      echo "       +------+            "
+
+  else
+      # external screen not connected
+      xrandr --output eDP1 --primary --mode 1920x1080 --rotate normal\
+             --output DP1 --off\
+             --output HDMI1 --off\
+             --output HDMI2 --off\
+             --output VIRTUAL1 --off
+
+      echo "       +------+            "
+      echo "       |  14  | (primary)  "
+      echo "       +------+            "
+
+  fi
+#+end_src
