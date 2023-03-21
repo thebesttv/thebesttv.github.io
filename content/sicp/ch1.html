@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 2023-03-21 19:25 -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Chapter 1 &#x2014; Building Abstractions with Procedures</title>
+<meta name="author" content="thebesttv" />
+<meta name="generator" content="Org Mode" />
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-21YM95T3BQ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-21YM95T3BQ');
+</script>
+<!-- favicon -->
+<link rel="icon" type="image/x-icon" href="../../favicon.ico">
+<!-- CSS -->
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/latex.css/style.css">
+<link rel="stylesheet" type="text/css" href="../../css/org-default.css">
+<link rel="stylesheet" type="text/css" href="../../css/style.css">
+<!-- pagefind -->
+<link rel="stylesheet" type="text/css" href="../../_pagefind/pagefind-ui.css">
+<script src="../../_pagefind/pagefind-ui.js" type="text/javascript"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+      new PagefindUI({element: "#search", showImages: false, resetStyles: false});
+  });
+</script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        displayAlign: "center",
+        displayIndent: "0em",
+
+        "HTML-CSS": { scale: 100,
+                        linebreaks: { automatic: "false" },
+                        webFont: "TeX"
+                       },
+        SVG: {scale: 100,
+              linebreaks: { automatic: "false" },
+              font: "TeX"},
+        NativeMML: {scale: 100},
+        TeX: { equationNumbers: {autoNumber: "AMS"},
+               MultLineWidth: "85%",
+               TagSide: "right",
+               TagIndent: ".8em"
+             }
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML"></script>
+</head>
+<body>
+<div id="preamble" class="status">
+<nav class="org-center">
+<a href="../../index.html">Home</a>
+<div id="search"></div>
+<hr>
+</nav>
+</div>
+<div id="content" class="content">
+<header>
+<h1 class="title">Chapter 1 &#x2014; Building Abstractions with Procedures</h1>
+</header><nav id="table-of-contents" role="doc-toc">
+<h2>&#30446;&#24405;</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#org085b888">1. conjure v.</a></li>
+<li><a href="#org478f48a">2. Applicative order vs. normal order</a></li>
+<li><a href="#org03f6817">3. Functions vs special forms</a>
+<ul>
+<li><a href="#org7d84927">3.1. <code>define</code></a></li>
+<li><a href="#org97f4705">3.2. <code>if</code> &amp; <code>cond</code></a></li>
+<li><a href="#org5a577a0">3.3. <code>and</code> &amp; <code>or</code></a></li>
+</ul>
+</li>
+<li><a href="#orge4ea839">4. Find the smallest divisor</a></li>
+<li><a href="#orgfd448a1">5. Accumulate, sum, prod</a></li>
+<li><a href="#org4f7c2e6">6. Local variables</a></li>
+<li><a href="#org9f9465b">7. Fixed-point &amp; Newton's method</a>
+<ul>
+<li><a href="#org346efb1">7.1. Fixed-point</a></li>
+<li><a href="#org06d0131">7.2. Newton's method</a></li>
+<li><a href="#org09bec82">7.3. <code>fixed-point-of-transform</code></a></li>
+</ul>
+</li>
+<li><a href="#orge9e3961">8. Compose</a></li>
+<li><a href="#orgcc1e21a">9. <code>lambda</code> for recursion</a></li>
+<li><a href="#orgef35c11">10. Exercises</a>
+<ul>
+<li><a href="#org0de22bc">10.1. Ex 1.3 &#x2014; the smallest of the three</a></li>
+<li><a href="#orgb9efc86">10.2. Ex 1.5 &#x2014; applicative-order &amp; normal-order</a></li>
+<li><a href="#orgdd29677">10.3. Ex 1.16 &#x2014; iterative fast exponentiation</a></li>
+<li><a href="#orgd26b5cc">10.4. Ex 1.44 &#x2014; order of application</a></li>
+<li><a href="#org8d65e72">10.5. Ex 1.45 &#x2014; n-th root</a></li>
+<li><a href="#org9326394">10.6. Ex 1.46 &#x2014; iterative improvement</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</nav>
+<hr style="width: 80%;">
+
+<div id="outline-container-org085b888" class="outline-2">
+<h2 id="org085b888"><span class="section-number-2">1.</span> <a href="#org085b888">conjure v.</a></h2>
+<div class="outline-text-2" id="text-1">
+<p>
+conjure v. / 'kʌndʒə(r) /
+</p>
+<ol class="org-ol">
+<li><code>~ / ~ sth</code>: make sth appear, disappear, or change as if by magic
+<ul class="org-ul">
+<li>Her grandfather taught her to <b>conjure</b>.
+她的祖父教她<b>变魔术</b>。</li>
+<li>He could conjure coins <b>from behind</b> people's ears.
+他可以从人们的耳朵后面变出硬币来。</li>
+<li>The magician conjured a rabbit out of his hat.</li>
+<li>Thirteen years ago she found herself having to <b>conjure a career
+from thin air</b>.
+13年前，她认识到自己得白手起家创造出一番事业来。</li>
+<li>They managed to <b>conjure a victory</b>.
+他们出人意料地取得了胜利。</li>
+<li>He has conjured victories from worse situations than this.</li>
+<li>He conjured a delicious meal out of a few leftovers.
+他居然用几样吃剩的东西做出了可口的一餐。</li>
+<li><code>~ up sth</code>
+<ul class="org-ul">
+<li>Every day a different chef will be conjuring up delicious dishes in
+the restaurant.
+每天，饭店里会有一位不同的大厨像变戏法似的奉上可口的菜肴。</li>
+<li>He <span class="underline">conjured up a smile</span> and reached out to squeeze her hand.
+他马上露出笑脸，伸手去捏她的手。</li>
+<li>Dieting always seems to <span class="underline">conjure up images of</span> endless salads.</li>
+<li>Somehow we have to conjure up another $10,000.</li>
+<li>Anne conjured up a most delicious home-made hot pot.
+安妮魔术般地变出了一壶烫好的极醇美的自酿酒。</li>
+</ul></li>
+</ul></li>
+<li>recall (an image); cause to feel or think of sth
+<ul class="org-ul">
+<li>she had forgotten how to conjure up the image of her mother's face.
+她已想不起她母亲的脸长得什么样了。</li>
+<li>a special tune that conjures up a particular time and place.
+令人想起特别时刻及场合的专用曲调。</li>
+</ul></li>
+<li>call upon (a spirit or ghost) to appear by means of a magic ritual.
+施魔法召唤（神灵，鬼魂）。
+<ul class="org-ul">
+<li>they hoped to conjure up the spirit of their dead friend.
+他们希望能施魔法召来已逝朋友的灵魂。</li>
+</ul></li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-org478f48a" class="outline-2">
+<h2 id="org478f48a"><span class="section-number-2">2.</span> <a href="#org478f48a">Applicative order vs. normal order</a></h2>
+<div class="outline-text-2" id="text-2">
+<p>
+In <i>applicative order</i>, the interpreter first evaluates the operator &amp;
+operands and then applies the resulting procedure to the resulting
+arguments.  But in <i>normal order</i>, the interpreter would not evaluate
+the operands <span class="underline">until their values were needed</span>.  Moreover, the value is
+evaluated every time it is needed, instead of once on entrance.
+</p>
+
+<p>
+For example, given some procedures:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">square</span> x)
+  (* x x))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sum-of-squares</span> a b)
+  (+ (square a) (square b)))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">f</span> a)
+  (sum-of-squares (+ a 1) (* a 2)))
+</pre>
+</div>
+<p>
+and evaluate the expression <code>(f 5)</code>.  In applicative order, the
+interpreter "evaluate the arguments and then apply":
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(f 5)                             <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">replace in body: a &lt;- 5</span>
+(sum-of-squares (+ 5 1) (* 5 2))  <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">evaluate operator &amp; operands</span>
+(sum-of-squares 6 10)             <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">replace in body: a &lt;- 6, b &lt;- 10</span>
+(+ (square 6) (square 10))        <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">evaluate operator &amp; operands</span>
+(+ (* 6 6) (* 10 10))
+(+ 36 100)
+136
+</pre>
+</div>
+<p>
+In normal order, the interpreter "fully expand and then reduce":
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(f 5)
+(sum-of-squares (+ 5 1) (* 5 2))
+(+ (square (+ 5 1)) (square (* 5 2)))
+(+ (* (+ 5 1) (+ 5 1)) (* (* 5 2) (* 5 2))) <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">fully expanded, start reducing</span>
+(+ (* 6 6) (* 10 10))
+(+ 36 100)
+136
+</pre>
+</div>
+<p>
+In applicative order, each operator (and operand) is evaluated only
+once.  The first operand of <code>sum-of-squares</code> (<code>(+ 5 1)</code>) is first
+evaluated to 6 and passed into the procedure body.  However, in normal
+order, that operand is directly passed into the body of
+<code>sum-of-squares</code>, and duplicated in the body of <code>square</code>.  As a result,
+<code>(+ 5 1)</code> is evaluated twice in normal order.
+</p>
+
+<p>
+Although normal order evaluation may introduce duplicated evaluation,
+its "evaluate until needed" nature allows <b>skipping the evaluation</b> of
+some of the arguments, for example:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">ite</span> condition then else)       <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">if-then-else</span>
+  (<span style="font-weight: bold;">if</span> condition then else))
+
+(ite (&gt; x y) (heavy-computation) 0)
+</pre>
+</div>
+<p>
+Even though <code>ite</code> is only a normal function (not a special form), when
+the condition <code>(&gt; x y)</code> is not met, the <code>(heavy-computation)</code> is not
+evaluated and 0 is returned.  For more information on different kinds of
+evaluation strategies, see this <a href="https://en.wikipedia.org/wiki/Evaluation_strategy">wikipedia article</a>.
+</p>
+
+<p>
+The article <a href="https://sookocheff.com/post/fp/evaluating-lambda-expressions/">Normal, Applicative and Lazy Evaluation</a> contains a more
+formal definition of normal-order evaluation.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org03f6817" class="outline-2">
+<h2 id="org03f6817"><span class="section-number-2">3.</span> <a href="#org03f6817">Functions vs special forms</a></h2>
+<div class="outline-text-2" id="text-3">
+</div>
+<div id="outline-container-org7d84927" class="outline-3">
+<h3 id="org7d84927"><span class="section-number-3">3.1.</span> <a href="#org7d84927"><code>define</code></a></h3>
+</div>
+
+<div id="outline-container-org97f4705" class="outline-3">
+<h3 id="org97f4705"><span class="section-number-3">3.2.</span> <a href="#org97f4705"><code>if</code> &amp; <code>cond</code></a></h3>
+<div class="outline-text-3" id="text-3-2">
+<p>
+In Scheme, <code>#f</code> is interpreted as false, and <code>#t</code> (or any other value
+other than <code>#f</code>) is true.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(&gt; 1 2)                                 <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#f</span>
+(&lt; 1 2)                                 <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#t</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">abs</span> x)
+  (<span style="font-weight: bold;">cond</span> [(&gt; x 0) x]
+        [(= x 0) 0]
+        [(&lt; x 0) (- x)]))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">abs</span> x)
+  (<span style="font-weight: bold;">cond</span> [(&lt; x 0) (- x)]
+        [else x]))
+</pre>
+</div>
+<p>
+<code>else</code> is a special symbol that can be used as the final predicate of
+<code>cond</code>.  In fact, any value other than <code>#f</code> can be used in place of
+<code>else</code>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org5a577a0" class="outline-3">
+<h3 id="org5a577a0"><span class="section-number-3">3.3.</span> <a href="#org5a577a0"><code>and</code> &amp; <code>or</code></a></h3>
+<div class="outline-text-3" id="text-3-3">
+<p>
+<code>and</code> and <code>or</code> are special forms, as not all operands are necessarily
+evaluated.  However, <code>not</code> is an ordinary procedure, as it only takes
+and evaluates one operand.
+</p>
+
+<p>
+<code>and</code> returns the value of the first expression that evaluates to a
+false value, or the value of the last expression, if all expressions
+evaluate to true values.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">and</span> (= 2 2) (&gt; 2 1))                   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#t</span>
+(<span style="font-weight: bold;">and</span> (= 2 2) (&lt; 2 1))                   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#f</span>
+(<span style="font-weight: bold;">and</span> 1 2 'c '(f g))                     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(f g)</span>
+(<span style="font-weight: bold;">and</span>)                                   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#t</span>
+</pre>
+</div>
+
+<p>
+Similarly, <code>or</code> returns the first expression that evaluate to a true
+value, or the value of the last expression (<code>#f</code>), if all expressions
+evaluate to false values.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">or</span> (= 2 2) (&gt; 2 1))                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#t</span>
+(<span style="font-weight: bold;">or</span> (= 2 2) (&lt; 2 1))                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#t</span>
+(<span style="font-weight: bold;">or</span> #f #f #f)                           <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#f</span>
+(<span style="font-weight: bold;">or</span> 123 (/ 3 0))                        <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">123</span>
+</pre>
+</div>
+<p>
+Note that <code>(/ 3 0)</code> is not evaluated.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orge4ea839" class="outline-2">
+<h2 id="orge4ea839"><span class="section-number-2">4.</span> <a href="#orge4ea839">Find the smallest divisor</a></h2>
+<div class="outline-text-2" id="text-4">
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">smallest-divisor</span> n)         <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">find the smallest divisior of n</span>
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">find-divisior</span> n test-divisior)
+    (<span style="font-weight: bold;">cond</span> [(&gt; (square test-divisior) n) n]
+          [(divides? test-divisior n) test-divisior]
+          [else (find-divisior n (+ test-divisior 1))]))
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">divides?</span> a b)
+    (= (remainder b a) 0))
+  (find-divisior n 2))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgfd448a1" class="outline-2">
+<h2 id="orgfd448a1"><span class="section-number-2">5.</span> <a href="#orgfd448a1">Accumulate, sum, prod</a></h2>
+<div class="outline-text-2" id="text-5">
+<p>
+<code>accumulate</code> takes an initial value (<code>null-value</code>) and a way to
+combine the running total with the new term (<code>combiner</code>).
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme"><span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">recursive</span>
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">accumulate</span> combiner null-value term a next b)
+  (<span style="font-weight: bold;">if</span> (&gt; a b)
+      null-value
+      (combiner (accumulate combiner
+                            null-value
+                            term
+                            (next a)
+                            next
+                            b)
+                (term a))))
+<span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">iterative</span>
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">accumulate</span> combiner null-value term a next b)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">iter</span> a total)
+    (<span style="font-weight: bold;">if</span> (&gt; a b)
+        total
+        (iter (next a) (combiner total (term a)))))
+  (iter a null-value))
+</pre>
+</div>
+
+<p>
+Both <code>sum</code> and <code>prod</code> can be defined in terms of <code>accumulate</code>.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sum</span> term a next b)
+  (accumulate + 0 term a next b))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">prod</span> term a next b)
+  (accumulate * 1 term a next b))
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sum-cubes</span> a b)
+  (sum cube a 1+ b))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sum-integers</span> a b)
+  (sum identity a 1+ b))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">pi-sum</span> a b)
+  (sum (<span style="font-weight: bold;">lambda</span> (x) (/ 1.0 (* x (+ x 2))))
+       a
+       (<span style="font-weight: bold;">lambda</span> (x) (+ x 4))
+       b))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">fact</span> n)
+  (prod (<span style="font-weight: bold;">lambda</span> (x) x)
+        1
+        1+
+        n))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org4f7c2e6" class="outline-2">
+<h2 id="org4f7c2e6"><span class="section-number-2">6.</span> <a href="#org4f7c2e6">Local variables</a></h2>
+<div class="outline-text-2" id="text-6">
+<p>
+Functions take parameters, which can be used as local
+variables.  Take for example the function:
+\[ f(x, y) = x(1+xy)^2 + y(1-y) + (1+xy)(1-y). \]
+Let \(a = (1+xy)\), \(b = (1-y)\), so \(f(x, y) = x a^2 + y b + a b\).
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">f</span> x y)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">f-helper</span> a b)           <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">use parameters as local variables</span>
+    (+ (* x (square a))
+       (* y b)
+       (* a b)))
+  (f-helper (+ 1 (* x y))          <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">a = 1 + xy</span>
+            (- 1 y)))              <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">b = 1 - y</span>
+</pre>
+</div>
+<p>
+The helper function is called only once, so it can be replaced with a
+lambda expression:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">f</span> x y)
+  ((<span style="font-weight: bold;">lambda</span> (a b)     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">use lambda expression instead of named functions</span>
+     (+ (* x (square a))
+        (* y b)
+        (* a b)))
+   (+ 1 (* x y))     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">a = 1 + xy</span>
+   (- 1 y)))         <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">b = 1 - y</span>
+</pre>
+</div>
+<p>
+This is equivalent to using the <code>let</code> special form:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">f</span> x y)
+  (<span style="font-weight: bold;">let</span> ((a (+ 1 (* x y)))
+        (b (- 1 y)))
+    (+ (* x (square a))
+       (* y b)
+       (* a b))))
+</pre>
+</div>
+<p>
+Another way to introduce local variable is using <code>define</code>.
+</p>
+
+<p>
+Local variables can be implemented as function parameters.
+</p>
+<blockquote>
+<p>
+No new mechanism is required in the interpreter in order to provide
+local variables.  A <code>let</code> expression is simply syntactic sugar for the
+underlying lambda application.
+</p>
+</blockquote>
+
+<p>
+Since <code>let</code> is only syntactic sugar, the local variables are
+calculated in the same way as function parameters, meaning:
+</p>
+<ul class="org-ul">
+<li><p>
+They are computed in parallel, not in sequence.  The expression
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">let</span> ([a 10]
+      [b (+ a a)])
+  b)
+</pre>
+</div>
+<p>
+results in error "Unbound variable: <code>a</code>".
+<code>b</code> cannot use the value of the preceding variable (parameter) <code>a</code>.
+</p></li>
+<li><p>
+The symbols used in their computation are from the outer scope.
+As a result, the expression
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">x</span> 2)                            <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[1]</span>
+(<span style="font-weight: bold;">let</span> ([x 3]                             <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[2]</span>
+      [y (+ x 2)])
+  (* x y))
+</pre>
+</div>
+<p>
+has 12 as the result.  The value of <code>y</code> is computed using the global
+variable <code>x</code> in [1] (outer scope), not [2].
+</p></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org9f9465b" class="outline-2">
+<h2 id="org9f9465b"><span class="section-number-2">7.</span> <a href="#org9f9465b">Fixed-point &amp; Newton's method</a></h2>
+<div class="outline-text-2" id="text-7">
+</div>
+<div id="outline-container-org346efb1" class="outline-3">
+<h3 id="org346efb1"><span class="section-number-3">7.1.</span> <a href="#org346efb1">Fixed-point</a></h3>
+<div class="outline-text-3" id="text-7-1">
+<p>
+A number \(x\) is called a <i>fixed point</i> of a function \(f\) if \(f(x) = x\).
+For some function \(f\) we can locate a fixed point by beginning with
+an initial guess and applying \(f\) repeatedly,
+\[ f(x), \quad f(f(x)), \quad f(f(f(x))), \quad \ldots \]
+until the value does not change very much.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">fixed-point</span> f initial-guess)
+  (<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">tolerance</span> 0.001)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">close-enough?</span> a b)
+    (&lt; [abs (- a b)] tolerance))
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">try</span> guess)
+    (<span style="font-weight: bold;">let</span> ([next (f guess)])
+      (<span style="font-weight: bold;">if</span> (close-enough? guess next)
+          next
+          (try next))))
+  (try initial-guess))
+</pre>
+</div>
+
+<p>
+To find \(\sqrt{x}\) means finding the fixed point of the function \(f(y)
+= x/y\).  However, consider an initial guess \(y_1\).  The next guess is
+\(y_2 = f(y_1) = x / y_1\), and the next one \(y_3 = f(y_2) = x / (x /
+y_1) = y_1\).  The guesses will oscillate between \(y_1\) and \(y_2\),
+never converging.
+</p>
+
+<p>
+Applying the technique of <i>average damping</i> can solve this problem.
+Here <code>average-damp</code> is a procedure that takes a procedure <code>f</code> and
+returns another procedure&#x2014;the average damped version of <code>f</code>.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">average</span> x y) (/ (+ x y) 2))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">average-damp</span> f)
+  (<span style="font-weight: bold;">lambda</span> (x) (average x (f x))))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sqrt</span> x)
+  (fixed-point (average-damp (<span style="font-weight: bold;">lambda</span> (y) (/ x y)))
+               1.0))
+
+(sqrt 9)                                <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">3.000000001396984</span>
+</pre>
+</div>
+
+<p>
+Notice that cube root is the fixed point of the function \(f(y) = x / y^2\):
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">cube-root</span> x)
+  (fixed-point (average-damp (<span style="font-weight: bold;">lambda</span> (y) (/ x (square y))))
+               1.0))
+
+(cube-root 27)                          <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">2.9998228753561564</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org06d0131" class="outline-3">
+<h3 id="org06d0131"><span class="section-number-3">7.2.</span> <a href="#org06d0131">Newton's method</a></h3>
+<div class="outline-text-3" id="text-7-2">
+<p>
+If \(g(x)\) is a differentiable function, then a solution of \(g(x)=0\) is
+a fixed point of the function \(f(x)\), where
+\[ f(x) = x - \frac{g(x)}{g'(x)}. \]
+</p>
+
+<p>
+First we expression the idea of a derivative:
+\[ g'(x) = \frac{g(x + dx) - g(x)}{dx}. \]
+Just like average damping, <code>deriv</code> transforms a function into another
+function:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">deriv</span> g)
+  (<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">dx</span> 0.001)
+  (<span style="font-weight: bold;">lambda</span> (x)
+    (/ (- (g (+ x dx))
+          (g x))
+       dx)))
+</pre>
+</div>
+
+<p>
+With the aid of <code>deriv</code>, we can express Newton's method as a
+fixed-point process.  Here <code>newton-transform</code> converts the problem of
+finding \(g(x) = 0\) to finding \(f(x) = x\).
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">newton-transform</span> g)
+  (<span style="font-weight: bold;">lambda</span> (x)
+    (- x (/ (g x)
+            ((deriv g) x)))))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">newtons-method</span> g guess)
+  (fixed-point (newton-transform g) guess))
+</pre>
+</div>
+
+<p>
+Thus we can calculate \(\sqrt{x}\):
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sqrt</span> x)
+  (newtons-method (<span style="font-weight: bold;">lambda</span> (y) (- (square y) x))
+                  1.0))
+
+(sqrt 9)                                <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">3.0000000174227237</span>
+</pre>
+</div>
+
+<p>
+Note that the resulting lambda expression in <code>newton-transform</code>
+calculates the derivative of \(g\) <b>every time</b> it is called, since it
+does not save the result of <code>(deriv g)</code>.  This is very inefficient.
+Using a local variable <code>dg</code> to hold the result so <code>deriv</code> is called
+only once:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">newton-transform</span> g)
+  (<span style="font-weight: bold;">let</span> ([dg (deriv g)])
+    (<span style="font-weight: bold;">lambda</span> (x)
+      (- x (/ (g x)
+              (dg x))))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org09bec82" class="outline-3">
+<h3 id="org09bec82"><span class="section-number-3">7.3.</span> <a href="#org09bec82"><code>fixed-point-of-transform</code></a></h3>
+<div class="outline-text-3" id="text-7-3">
+<p>
+We calculated <code>sqrt</code> using both the fixed point search and Newton's method:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme"><span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">fixed point</span>
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sqrt</span> x)                        <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[1]</span>
+  (fixed-point (average-damp (<span style="font-weight: bold;">lambda</span> (y) (/ x y)))
+               1.0))
+<span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">Newton's method</span>
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sqrt</span> x)                        <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[2]</span>
+  (newtons-method (<span style="font-weight: bold;">lambda</span> (y) (- (square y) x))
+                  1.0))
+</pre>
+</div>
+<p>
+The latter [2] expands to:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sqrt</span> x)                        <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[3]</span>
+  (fixed-point (newton-transform (<span style="font-weight: bold;">lambda</span> (y) (- (square y) x)))
+               1.0))
+</pre>
+</div>
+
+<p>
+Both [1] and [3] have the same pattern&#x2014;each method begins with a
+function and finds a fixed point of <span class="underline">some transformation of the
+function</span> (<code>average-damp</code> or <code>newton-transform</code>).  We can express this
+general idea itself as a procedure:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">fixed-point-of-transform</span> g transform guess)
+  (fixed-point (transform g)
+               guess))
+</pre>
+</div>
+
+<p>
+Then the two methods become:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sqrt</span> x)
+  (fixed-point-of-transform (<span style="font-weight: bold;">lambda</span> (y) (/ x y))
+                            average-damp
+                            1.0))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sqrt</span> x)
+  (fixed-point-of-transform (<span style="font-weight: bold;">lambda</span> (y) (- (square y) x))
+                            newton-transform
+                            1.0))
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orge9e3961" class="outline-2">
+<h2 id="orge9e3961"><span class="section-number-2">8.</span> <a href="#orge9e3961">Compose</a></h2>
+<div class="outline-text-2" id="text-8">
+<p>
+Let \(f\) and \(g\) be two one-argument functions.  The composition \(f\)
+after \(g\) is \(f(g(x))\):
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">compose</span> f g)
+  (<span style="font-weight: bold;">lambda</span> (x) (f (g x))))
+
+((compose square 1+) 6)                 <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">=&gt; (square (1+ 6)) =&gt; 49</span>
+</pre>
+</div>
+
+<p>
+Applying a function \(f\) \(n\) times yields
+\[ f(f(\cdots f(x) \cdots)). \] 
+We can either return \(f\) when \(n=1\), or return an identity function
+when \(n=0\).  The latter produces the correct result even when \(n=0\).
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">repeated</span> f n)
+  (<span style="font-weight: bold;">if</span> (= n 1)
+      f
+      (compose f
+               (repeated f (- n 1)))))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">repeated</span> f n)
+  (<span style="font-weight: bold;">if</span> (= n 0)
+      identity
+      (compose f
+               (repeated f (- n 1)))))
+
+((repeated 1+ 10) 5)                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">15</span>
+</pre>
+</div>
+
+<p>
+Alternatively, there's an iterative implementation:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">repeated</span> f n)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">iter</span> n res)
+    (<span style="font-weight: bold;">if</span> (= n 0)
+        res
+        (iter (- n 1) (compose f res))))
+  (iter n identity))
+
+((repeated 1+ 10) 5)                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">15</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgcc1e21a" class="outline-2">
+<h2 id="orgcc1e21a"><span class="section-number-2">9.</span> <a href="#orgcc1e21a"><code>lambda</code> for recursion</a></h2>
+<div class="outline-text-2" id="text-9">
+<p>
+How to write a recursive function using only <code>lambda</code>?  The main
+problem, of course, is how can a lambda expression call itself when it
+doesn't have a name for itself?
+</p>
+
+<p>
+<a href="https://www.scheme.com/tspl4/further.html#g55">Section 3.2</a> of <i>The Scheme Programming Language</i> gives the answer:
+simply pass the lambda procedure to itself:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">let</span> ([sum (<span style="font-weight: bold;">lambda</span> (sum l)
+             (<span style="font-weight: bold;">if</span> (null? l)
+                 0
+                 (+ (car l) (sum sum (cdr l)))))])
+  (sum sum '(1 2 3 4)))                 <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">10</span>
+</pre>
+</div>
+<p>
+The <code>let</code> expression is essentially another <code>lambda</code>, here we give it
+a better name:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">((<span style="font-weight: bold;">lambda</span> (sum)
+   (sum sum '(1 2 3 4)))
+ (<span style="font-weight: bold;">lambda</span> (self l)
+   (<span style="font-weight: bold;">if</span> (null? l)
+       0
+       (+ (car l) (self self (cdr l)))))) <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">10</span>
+</pre>
+</div>
+
+<p>
+<a href="https://stackoverflow.com/a/66166000/11938767">Here</a> is a factorial using two <code>lambda</code>s, only slight difference:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">((<span style="font-weight: bold;">lambda</span> (f x)
+   (f f x))
+ (<span style="font-weight: bold;">lambda</span> (self n)
+   (<span style="font-weight: bold;">if</span> (= n 0)
+       1
+       (* n (self self (- n 1)))))
+ 5)                                     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">120</span>
+</pre>
+</div>
+
+<p>
+<a href="https://stackoverflow.com/q/7719004/11938767">This</a> stack overflow question uses three <code>lambda</code>s.
+The answers below has an <a href="https://gist.github.com/z5h/238891">explanation</a> covering Y combinator.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(((<span style="font-weight: bold;">lambda</span> (x) (x x))                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[1]</span>
+  (<span style="font-weight: bold;">lambda</span> (fact-gen)                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[2]</span>
+    (<span style="font-weight: bold;">lambda</span> (n)                         <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[3]</span>
+      (<span style="font-weight: bold;">if</span> (zero? n)
+          1
+          (* n ((fact-gen fact-gen) (- n 1)))))))
+ 5)                                     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">120</span>
+</pre>
+</div>
+<p>
+[3] is the factorial function.  If [3] were given the name <code>fact</code>,
+then <code>(fact-gen fact-gen)</code> is just <code>fact</code> itself.  [2] is a generator
+function whose parameter (<code>fact-gen</code>) is also a generator function (so
+[2] can use itself as parameter) and returns the factorial function.
+[1] takes a generator function ([2]) and applies the function to
+itself, thereby obtaining as return value the factorial function.
+</p>
+
+<p>
+<a href="https://stackoverflow.com/a/54359987/11938767">This</a> answer uses <i>named <code>let</code></i>:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">((<span style="font-weight: bold;">lambda</span> (n)
+   (<span style="font-weight: bold;">let</span> <span style="font-weight: bold;">sub</span> ((i n) (z 1))
+     (<span style="font-weight: bold;">if</span> (zero? i)
+         z
+         (sub (- i 1) (* z i)) )))
+ 5 )                                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">120</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgef35c11" class="outline-2">
+<h2 id="orgef35c11"><span class="section-number-2">10.</span> <a href="#orgef35c11">Exercises</a></h2>
+<div class="outline-text-2" id="text-10">
+</div>
+<div id="outline-container-org0de22bc" class="outline-3">
+<h3 id="org0de22bc"><span class="section-number-3">10.1.</span> <a href="#org0de22bc">Ex 1.3 &#x2014; the smallest of the three</a></h3>
+<div class="outline-text-3" id="text-10-1">
+<blockquote>
+<p>
+Define a procedure that takes three numbers as arguments and returns
+the sum of the squares of the two larger numbers.
+</p>
+</blockquote>
+
+<p>
+When looking for the smallest value, the predicate <span class="underline">smaller or <b>equal
+to</b></span> (<code>&lt;=</code>) must be used.  If only <code>&lt;</code> is used, in evaluating <code>(f 2 2
+3)</code>, the first two <code>and</code> condition will evaluate to false.  The result
+would be <code>(sum-of-squares 2 2)</code>, which is very wrong.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sum-of-squares</span> a b)
+  (+ (* a a) (* b b)))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">f</span> a b c)
+  (<span style="font-weight: bold;">cond</span> [(<span style="font-weight: bold;">and</span> (&lt;= a b) (&lt;= a c)) (sum-of-squares b c)]
+        [(<span style="font-weight: bold;">and</span> (&lt;= b a) (&lt;= b c)) (sum-of-squares a c)]
+        [else                    (sum-of-squares a b)]))
+
+(f 2 2 3)                               <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">13</span>
+</pre>
+</div>
+
+<p>
+In order to find the two larger ones out of three, a simpler solution:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">f</span> a b c)
+  (sum-of-squares (max a b)
+                  (max (min a b) c)))
+</pre>
+</div>
+<p>
+For the first two numbers (<code>a</code>, <code>b</code>), at least one of them is in the
+result.  So the bigger one (<code>(max a b)</code>) must be in the result.  As for
+the smaller one (<code>(min a b)</code>), it needs to be compared with <code>c</code>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgb9efc86" class="outline-3">
+<h3 id="orgb9efc86"><span class="section-number-3">10.2.</span> <a href="#orgb9efc86">Ex 1.5 &#x2014; applicative-order &amp; normal-order</a></h3>
+<div class="outline-text-3" id="text-10-2">
+<blockquote>
+<p>
+Ben Bitdiddle has invented a test to determine whether the interpreter
+he is faced with is using applicative-order evaluation or normal-order
+evaluation.  He defines the following two procedures:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">p</span>) (p))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">test</span> x y)
+  (<span style="font-weight: bold;">if</span> (= x 0)
+      0
+      y))
+</pre>
+</div>
+
+<p>
+Then he evaluates the expression
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(test 0 (p))
+</pre>
+</div>
+
+<p>
+What behavior will Ben observe with an interpreter that uses
+applicative-order evaluation?  What behavior will he observe with an
+interpreter that uses normal-order evaluation?  Explain your answer.
+(Assume that the evaluation rule for the special form <code>if</code> is the same
+whether the interpreter is using normal or applicative order: The
+predicate expression is evaluated first, and the result determines
+whether to evaluate the consequent or the alternative expression.)
+</p>
+</blockquote>
+
+<p>
+Using the substitution model, <code>(p)</code> infinitely expands to itself.
+Evaluating <code>(p)</code> will lead to an endless recursion.
+</p>
+
+<p>
+In applicative-order evaluation, the interpreter first evaluates all its
+operands, including <code>(p)</code>.  So the whole expression will not evaluate to
+any result.
+</p>
+
+<p>
+However, in normal-order evaluation, not all operands will necessarily
+be evaluated (not until they are actually needed).  The expression is
+first expanded into <code>(if (= 0 0) 0 (p))</code>.  Since the predicate is true,
+the <code>(p)</code> on the false branch is never needed.  The whole expression
+evaluates to <code>0</code>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgdd29677" class="outline-3">
+<h3 id="orgdd29677"><span class="section-number-3">10.3.</span> <a href="#orgdd29677">Ex 1.16 &#x2014; iterative fast exponentiation</a></h3>
+<div class="outline-text-3" id="text-10-3">
+<blockquote>
+<p>
+Design a procedure that evolves an iterative exponentiation process
+that uses successive squaring and uses a logarithmic number of steps,
+as does <code>fast-expt</code>.  (Hint: Using the observation that \((b^{n/2})^2 =
+(b^2)^{n/2}\), keep, along with the exponent \(n\) and the base \(b\), an
+additional state variable \(a\), and define the state transformation in
+such a way that the product \(a b^n\) is unchanged from state to
+state.  At the beginning of the process a is taken to be \(1\), and the
+answer is given by the value of \(a\) at the end of the process.  In
+general, the technique of defining an invariant quantity that remains
+unchanged from state to state is a powerful way to think about the
+design of iterative algorithms.)
+</p>
+</blockquote>
+
+<p>
+Original recursive code to compute \(b^n\):
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">fast-expt</span> b n)
+  (<span style="font-weight: bold;">cond</span> [(= n 0) 1]
+        [(even? n) (square (fast-expt b (/ n 2)))]
+        [else (* b (fast-expt b (- n 1)))]))
+</pre>
+</div>
+
+<p>
+Iterative code:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">fast-expt</span> b n)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">iter</span> b n prod)
+    (<span style="font-weight: bold;">cond</span> [(= n 0) prod]
+          [(even? n) (iter (square b) (/ n 2) prod)]
+          [else (iter b (- n 1) (* prod b))]))
+  (iter b n 1))
+<span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">the same thing:</span>
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">fast-expt</span> b n)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">iter</span> a b n)                  <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">a * b^n</span>
+    (<span style="font-weight: bold;">cond</span> [(= n 0) a]
+          [(even? n) (iter a (square b) (/ n 2))]
+          [else (iter (* a b) b (- n 1))]))
+  (iter 1 b n))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgd26b5cc" class="outline-3">
+<h3 id="orgd26b5cc"><span class="section-number-3">10.4.</span> <a href="#orgd26b5cc">Ex 1.44 &#x2014; order of application</a></h3>
+<div class="outline-text-3" id="text-10-4">
+<blockquote>
+<p>
+The idea of smoothing a function is an important concept in signal
+processing.  If \(f\) is a function and \(dx\) is some small number, then
+the smoothed version of \(f\) is the function whose value at a point \(x\)
+is the average of \(f(x-dx)\), \(f(x)\), and \(f(x+dx)\).  Write a procedure
+<code>smooth</code> that takes as input a procedure that computes \(f\) and returns
+a procedure that computes the smoothed \(f\).  It is sometimes valuable
+to <b>repeatedly smooth a function</b> (that is, smooth the smoothed
+function, and so on) to obtain the n-fold smoothed function. Show how
+to generate the n-fold smoothed function of any given function using
+<code>smooth</code> and <code>repeated</code> from Exercise 1.43.
+</p>
+</blockquote>
+
+<p>
+The definition of <code>smooth</code> is quite easy:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">smooth</span> f)
+  (<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">dx</span> 0.01)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">average</span> a b c)
+    (/ (+ a b c) 3))
+  (<span style="font-weight: bold;">lambda</span> (x)
+    (average (f (- x dx))
+             (f x)
+             (f (+ x dx)))))
+
+((smooth square) 2)                     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.000066666666666</span>
+((smooth (smooth square)) 2)            <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.000133333333333</span>
+((smooth (smooth (smooth square))) 2)   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.0001999999999995</span>
+</pre>
+</div>
+
+<p>
+However, the repeated application of <code>smooth</code> should be written as:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">n-fold-smooth</span> f n)
+  ((repeated smooth n) f))
+
+((n-fold-smooth square 1) 2)            <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.000066666666666</span>
+((n-fold-smooth square 2) 2)            <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.000133333333333</span>
+((n-fold-smooth square 3) 2)            <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.0001999999999995</span>
+</pre>
+</div>
+<p>
+Not as:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">wrong</span> f n)
+  (repeated (smooth f) n))
+
+((wrong square 1) 2)                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.000066666666666</span>
+((wrong square 2) 2)                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">16.00060000444444</span>
+((wrong square 3) 2)                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">256.01926716889415</span>
+</pre>
+</div>
+<p>
+The <code>wrong</code> implementation actually expands to:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">((smooth square) ((smooth square) 2))   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">16.00060000444444</span>
+((smooth square) ((smooth square)
+                  ((smooth square) 2))) <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">256.01926716889415</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org8d65e72" class="outline-3">
+<h3 id="org8d65e72"><span class="section-number-3">10.5.</span> <a href="#org8d65e72">Ex 1.45 &#x2014; n-th root</a></h3>
+<div class="outline-text-3" id="text-10-5">
+<p>
+Comput \(\sqrt[n]{x}\) by calculating the fixed point of the function \(x
+/ y^{n-1}\) average damped \(\lfloor \log_2 n \rfloor\) times.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">nth-root</span> x n)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">log2</span> n) (/ (log n) (log 2)))
+  (<span style="font-weight: bold;">let</span> ([c (inexact-&gt;exact (floor (log2 n)))])
+    (fixed-point ((repeated average-damp c)
+                  (<span style="font-weight: bold;">lambda</span> (y) (/ x (expt y (- n 1)))))
+                 1.0)))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org9326394" class="outline-3">
+<h3 id="org9326394"><span class="section-number-3">10.6.</span> <a href="#org9326394">Ex 1.46 &#x2014; iterative improvement</a></h3>
+<div class="outline-text-3" id="text-10-6">
+<blockquote>
+<p>
+Several of the numerical methods described in this chapter are
+instances of an extremely general computational strategy known as
+<i>iterative improvement</i>.  Iterative improvement says that, to compute
+something, we start with an initial guess for the answer, test if the
+guess is good enough, and otherwise improve the guess and continue the
+process using the improved guess as the new guess.  Write a procedure
+<code>iterative-improve</code> that takes two procedures as arguments: a method
+for telling whether a guess is good enough and a method for improving
+a guess.  <code>iterative-improve</code> should return as its value a <b>procedure</b>
+that takes a guess as argument and keeps improving the guess until it
+is good enough.  Rewrite the <code>sqrt</code> procedure of Section 1.1.7 and the
+<code>fixed-point</code> procedure of Section 1.3.3 in terms of <code>iterative-improve</code>.
+</p>
+</blockquote>
+
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">iterative-improve</span>  good-enouth? improve)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">try</span> guess)
+    (<span style="font-weight: bold;">if</span> (good-enouth? guess)
+        guess
+        (try (improve guess))))
+  try)
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">fixed-point</span> f first-guess)
+  ((iterative-improve
+    (<span style="font-weight: bold;">lambda</span> (guess)
+      (&lt; [abs (- guess (f guess))] 0.00001))
+    f)
+   first-guess))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">average-damp</span> f)
+  (<span style="font-weight: bold;">lambda</span> (x) (/ (+ x (f x)) 2)))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sqrt</span> x)
+  (fixed-point (average-damp (<span style="font-weight: bold;">lambda</span> (y) (/ x y)))
+               1.0))
+
+(sqrt 9)                                <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">3.000000001396984</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<hr><table class="postamble">
+  <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
+  <tr><td class="org-right">Created</td><td class="org-left">2021-07-04 09:15</td></tr>
+  <tr><td class="org-right">Modified</td><td class="org-left">2023-03-21 19:23</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2023-03-21 19:25</td></tr>
+  <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 28.2 (<a href="https://orgmode.org">Org</a> mode 9.5.5)</td></tr>
+  <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://raw.githubusercontent.com/thebesttv/thebesttv.github.io/main/content/sicp/ch1.org">ch1.org</a></td></tr>
+</table>
+</div>
+</body>
+</html>
