@@ -1,0 +1,60 @@
+#+title: 一点 Kotlin 的小感想
+#+date: <2023-03-25 Sat 21:34>
+#+author: thebesttv
+
+[[https://kotlinlang.org/docs/delegated-properties.html][Delegated properties]] 加上 [[https://developer.android.com/reference/kotlin/androidx/compose/runtime/package-summary#remember(kotlin.Function0)][remember]] 函数, 可以把 Composable 中的状态变量
+变成类似 C 中的 static 局部变量, 比如这里:
+#+begin_src kotlin
+  @Composable
+  fun EditNumberField() {
+     var amountInput by remember { mutableStateOf("") }
+     TextField(
+         value = amountInput,
+         onValueChange = { amountInput = it },
+     )
+  }
+#+end_src
+每次 =TextField= 中的内容被修改, =amountInput= 就会被修改, 然后被记住.
+这样一来, 在 recomposition 的时候 (即重新调用 =EditNumberField()= 时),
+=amountInput= 不会变成初始值 (空字符), 而是会记住上次的结果.
+
+大量使用 lambda 函数, 并且用它来捕获变量. 如 State hoisting, 它将上面
+=EditNumberField()= 中的状态变量 =amountInput= 提升到调用它的函数中
+(=TipTimeScreen()=), 从而把 stateful Composable 变成 stateless 的, 也就
+是, 主要会增加两个参数:
+- A =value: T= parameter, which is the current value to display.
+- An =onValueChange: (T) -> Unit= – callback lambda, which is triggered
+  when the value changes so that the state can be updated elsewhere,
+  such as when a user enters some text in the text box.
+这个 =onValueChange= 是调用点传入的 lambda 函数, 它可以捕获位于调用点函
+数中, 被提升了的 =amountInput=. 最后的两个函数如下:
+#+begin_src kotlin
+  @Composable
+  fun TipTimeScreen() {
+      // State hoisting 允许本来 EditNumberField 私有的状态 amountInput
+      // 被其他 Composable 共享, 从而计算 tip 的值
+      var amountInput by remember { mutableStateOf("") }
+      val amount = amountInput.toDoubleOrNull() ?: 0.0
+      val tip = calculateTip(amount)
+
+      Column() {
+          EditNumberField(
+              value = amountInput,
+              onValueChange = { amountInput = it } // lambda 函数捕获 amountInput
+          )
+          // 展示计算出的小费
+          Text(text = stringResource(R.string.tip_amount, tip))
+      }
+  }
+
+  @Composable
+  fun EditNumberField(            // 用于获取输入金额
+         value: String,
+         onValueChange: (String) -> Unit
+     ) {
+     TextField(
+         value = value,
+         onValueChange = onValueChange,
+     )
+  }
+#+end_src

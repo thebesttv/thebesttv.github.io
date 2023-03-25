@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 2023-03-25 23:32 -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>一点 Kotlin 的小感想</title>
+<meta name="author" content="thebesttv" />
+<meta name="generator" content="Org Mode" />
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-21YM95T3BQ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-21YM95T3BQ');
+</script>
+<!-- favicon -->
+<link rel="icon" type="image/x-icon" href="../../favicon.ico">
+<!-- CSS -->
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/latex.css/style.css">
+<link rel="stylesheet" type="text/css" href="../../css/org-default.css">
+<link rel="stylesheet" type="text/css" href="../../css/style.css">
+<!-- pagefind -->
+<link rel="stylesheet" type="text/css" href="../../_pagefind/pagefind-ui.css">
+<script src="../../_pagefind/pagefind-ui.js" type="text/javascript"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+      new PagefindUI({element: "#search", showImages: false, resetStyles: false});
+  });
+</script>
+</head>
+<body>
+<div id="preamble" class="status">
+<nav class="org-center">
+<a href="../../index.html">Home</a>
+<div id="search"></div>
+<hr>
+</nav>
+</div>
+<div id="content" class="content">
+<header>
+<h1 class="title">一点 Kotlin 的小感想</h1>
+</header><hr style="width: 80%;">
+<p>
+<a href="https://kotlinlang.org/docs/delegated-properties.html">Delegated properties</a> 加上 <a href="https://developer.android.com/reference/kotlin/androidx/compose/runtime/package-summary#remember(kotlin.Function0)">remember</a> 函数, 可以把 Composable 中的状态变量变成类似 C 中的 static 局部变量, 比如这里:
+</p>
+<div class="org-src-container">
+<pre class="src src-kotlin">@Composable
+fun EditNumberField() {
+   var amountInput by remember { mutableStateOf("") }
+   TextField(
+       value = amountInput,
+       onValueChange = { amountInput = it },
+   )
+}
+</pre>
+</div>
+<p>
+每次 <code>TextField</code> 中的内容被修改, <code>amountInput</code> 就会被修改, 然后被记住.
+这样一来, 在 recomposition 的时候 (即重新调用 <code>EditNumberField()</code> 时),
+<code>amountInput</code> 不会变成初始值 (空字符), 而是会记住上次的结果.
+</p>
+
+<p>
+大量使用 lambda 函数, 并且用它来捕获变量. 如 State hoisting, 它将上面
+<code>EditNumberField()</code> 中的状态变量 <code>amountInput</code> 提升到调用它的函数中
+(<code>TipTimeScreen()</code>), 从而把 stateful Composable 变成 stateless 的, 也就是, 主要会增加两个参数:
+</p>
+<ul class="org-ul">
+<li>A <code>value: T</code> parameter, which is the current value to display.</li>
+<li>An <code>onValueChange: (T) -&gt; Unit</code> – callback lambda, which is triggered
+when the value changes so that the state can be updated elsewhere,
+such as when a user enters some text in the text box.</li>
+</ul>
+<p>
+这个 <code>onValueChange</code> 是调用点传入的 lambda 函数, 它可以捕获位于调用点函数中, 被提升了的 <code>amountInput</code>. 最后的两个函数如下:
+</p>
+<div class="org-src-container">
+<pre class="src src-kotlin">@Composable
+fun TipTimeScreen() {
+    // State hoisting 允许本来 EditNumberField 私有的状态 amountInput
+    // 被其他 Composable 共享, 从而计算 tip 的值
+    var amountInput by remember { mutableStateOf("") }
+    val amount = amountInput.toDoubleOrNull() ?: 0.0
+    val tip = calculateTip(amount)
+
+    Column() {
+	EditNumberField(
+	    value = amountInput,
+	    onValueChange = { amountInput = it } // lambda 函数捕获 amountInput
+	)
+	// 展示计算出的小费
+	Text(text = stringResource(R.string.tip_amount, tip))
+    }
+}
+
+@Composable
+fun EditNumberField(            // 用于获取输入金额
+       value: String,
+       onValueChange: (String) -&gt; Unit
+   ) {
+   TextField(
+       value = value,
+       onValueChange = onValueChange,
+   )
+}
+</pre>
+</div>
+</div>
+<div id="postamble" class="status">
+<hr><table class="postamble">
+  <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
+  <tr><td class="org-right">Created</td><td class="org-left">2023-03-25 21:34</td></tr>
+  <tr><td class="org-right">Modified</td><td class="org-left">2023-03-25 23:31</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2023-03-25 23:32</td></tr>
+  <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 28.2 (<a href="https://orgmode.org">Org</a> mode 9.5.5)</td></tr>
+  <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://raw.githubusercontent.com/thebesttv/thebesttv.github.io/main/content/daily/2023-03-25.org">2023-03-25.org</a></td></tr>
+</table>
+</div>
+</body>
+</html>
