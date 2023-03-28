@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<!-- 2023-03-28 09:57 -->
+<!-- 2023-03-28 10:22 -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>一点 Kotlin 的小感想</title>
@@ -47,12 +47,12 @@
 <a href="https://kotlinlang.org/docs/delegated-properties.html">Delegated properties</a> 加上 <a href="https://developer.android.com/reference/kotlin/androidx/compose/runtime/package-summary#remember(kotlin.Function0)">remember</a> 函数, 可以把 Composable 中的状态变量变成类似 C 中的 static 局部变量, 比如这里:
 </p>
 <div class="org-src-container">
-<pre class="src src-kotlin">@Composable
-fun EditNumberField() {
-   var amountInput by remember { mutableStateOf("") }
-   TextField(
-       value = amountInput,
-       onValueChange = { amountInput = it },
+<pre class="src src-kotlin">@<span style="font-weight: bold; text-decoration: underline;">Composable</span>
+<span style="font-weight: bold;">fun</span> <span style="font-weight: bold; text-decoration: underline;">EditNumberField</span>() {
+   <span style="font-weight: bold;">var</span> <span style="font-weight: bold; font-style: italic;">amountInput</span> <span style="font-weight: bold;">by</span> remember { mutableStateOf(<span style="font-style: italic;">""</span>) }
+   <span style="font-weight: bold; text-decoration: underline;">TextField</span>(
+       <span style="font-weight: bold;">value</span> = amountInput,
+       onValueChange = { amountInput = <span style="font-weight: bold;">it</span> },
    )
 }
 </pre>
@@ -78,31 +78,31 @@ such as when a user enters some text in the text box.</li>
 这个 <code>onValueChange</code> 是调用点传入的 lambda 函数, 它可以捕获位于调用点函数中, 被提升了的 <code>amountInput</code>. 最后的两个函数如下:
 </p>
 <div class="org-src-container">
-<pre class="src src-kotlin">@Composable
-fun TipTimeScreen() {
-    // State hoisting 允许本来 EditNumberField 私有的状态 amountInput
-    // 被其他 Composable 共享, 从而计算 tip 的值
-    var amountInput by remember { mutableStateOf("") }
-    val amount = amountInput.toDoubleOrNull() ?: 0.0
-    val tip = calculateTip(amount)
+<pre class="src src-kotlin">@<span style="font-weight: bold; text-decoration: underline;">Composable</span>
+<span style="font-weight: bold;">fun</span> <span style="font-weight: bold; text-decoration: underline;">TipTimeScreen</span>() {
+    <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">State hoisting &#20801;&#35768;&#26412;&#26469; EditNumberField &#31169;&#26377;&#30340;&#29366;&#24577; amountInput</span>
+    <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">&#34987;&#20854;&#20182; Composable &#20849;&#20139;, &#20174;&#32780;&#35745;&#31639; tip &#30340;&#20540;</span>
+    <span style="font-weight: bold;">var</span> <span style="font-weight: bold; font-style: italic;">amountInput</span> <span style="font-weight: bold;">by</span> remember { mutableStateOf(<span style="font-style: italic;">""</span>) }
+    <span style="font-weight: bold;">val</span> <span style="font-weight: bold; font-style: italic;">amount</span> = amountInput.toDoubleOrNull() ?: 0.0
+    <span style="font-weight: bold;">val</span> <span style="font-weight: bold; font-style: italic;">tip</span> = calculateTip(amount)
 
-    Column() {
-	EditNumberField(
-	    value = amountInput,
-	    onValueChange = { amountInput = it } // lambda 函数捕获 amountInput
-	)
-	// 展示计算出的小费
-	Text(text = stringResource(R.string.tip_amount, tip))
+    <span style="font-weight: bold; text-decoration: underline;">Column</span>() {
+        <span style="font-weight: bold; text-decoration: underline;">EditNumberField</span>(
+            <span style="font-weight: bold;">value</span> = amountInput,
+            onValueChange = { amountInput = <span style="font-weight: bold;">it</span> } <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">lambda &#20989;&#25968;&#25429;&#33719; amountInput</span>
+        )
+        <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">&#23637;&#31034;&#35745;&#31639;&#20986;&#30340;&#23567;&#36153;</span>
+        <span style="font-weight: bold; text-decoration: underline;">Text</span>(text = stringResource(<span style="font-weight: bold; text-decoration: underline;">R.string.tip</span>_amount, tip))
     }
 }
 
-@Composable
-fun EditNumberField(            // 用于获取输入金额
-       value: String,
-       onValueChange: (String) -&gt; Unit
+@<span style="font-weight: bold; text-decoration: underline;">Composable</span>
+<span style="font-weight: bold;">fun</span> <span style="font-weight: bold; text-decoration: underline;">EditNumberField</span>(            <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">&#29992;&#20110;&#33719;&#21462;&#36755;&#20837;&#37329;&#39069;</span>
+       <span style="font-weight: bold;">value</span>: <span style="font-weight: bold; text-decoration: underline;">String</span>,
+       onValueChange: (<span style="font-weight: bold; text-decoration: underline;">String</span>) -&gt; <span style="font-weight: bold; text-decoration: underline;">Unit</span>
    ) {
-   TextField(
-       value = value,
+   <span style="font-weight: bold; text-decoration: underline;">TextField</span>(
+       <span style="font-weight: bold;">value</span> = <span style="font-weight: bold;">value</span>,
        onValueChange = onValueChange,
    )
 }
@@ -114,7 +114,7 @@ fun EditNumberField(            // 用于获取输入金额
   <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
   <tr><td class="org-right">Created</td><td class="org-left">2023-03-25 21:34</td></tr>
   <tr><td class="org-right">Modified</td><td class="org-left">2023-03-25 23:31</td></tr>
-  <tr><td class="org-right">Generated</td><td class="org-left">2023-03-28 09:57</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2023-03-28 10:22</td></tr>
   <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 28.2 (<a href="https://orgmode.org">Org</a> mode 9.5.5)</td></tr>
   <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://raw.githubusercontent.com/thebesttv/thebesttv.github.io/main/content/daily/2023-03-25.org">2023-03-25.org</a></td></tr>
 </table>
