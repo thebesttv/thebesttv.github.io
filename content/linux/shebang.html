@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 2023-04-16 12:18 -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Shebang</title>
+<meta name="author" content="thebesttv" />
+<meta name="generator" content="Org Mode" />
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-21YM95T3BQ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-21YM95T3BQ');
+</script>
+<!-- favicon -->
+<link rel="icon" type="image/x-icon" href="../../favicon.ico">
+<!-- CSS -->
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/latex.css/style.css">
+<link rel="stylesheet" type="text/css" href="../../css/org-default.css">
+<link rel="stylesheet" type="text/css" href="../../css/style.css">
+<!-- pagefind -->
+<link rel="stylesheet" type="text/css" href="../../_pagefind/pagefind-ui.css">
+<script src="../../_pagefind/pagefind-ui.js" type="text/javascript"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+      new PagefindUI({element: "#search", showImages: false, resetStyles: false});
+  });
+</script>
+</head>
+<body>
+<div id="preamble" class="status">
+<nav class="org-center">
+<a href="../../index.html">Home</a>
+<div id="search"></div>
+<hr>
+</nav>
+</div>
+<div id="content" class="content">
+<header>
+<h1 class="title">Shebang</h1>
+</header><nav id="table-of-contents" role="doc-toc">
+<h2>&#30446;&#24405;</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#orgf0d77f4">1. Splitting arguments</a>
+<ul>
+<li><a href="#org0bb03e1">1.1. <code>env -S</code> to the rescue</a></li>
+<li><a href="#orgff78f54">1.2. An example</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</nav>
+<hr style="width: 80%;">
+<ul class="org-ul">
+<li>The bible of shebang interpretations:
+<a href="https://www.in-ulm.de/~mascheck/various/shebang/">The <code>#!</code> magic, details about the shebang/hash-bang mechanism on various Unix flavours</a></li>
+</ul>
+
+<div id="outline-container-orgf0d77f4" class="outline-2">
+<h2 id="orgf0d77f4"><span class="section-number-2">1.</span> <a href="#orgf0d77f4">Splitting arguments</a></h2>
+<div class="outline-text-2" id="text-1">
+<p>
+According to <a href="https://linuskarlsson.se/blog/shebang-shenanigans/#summary">Shebang Shenanigans</a> and <a href="https://www.in-ulm.de/~mascheck/various/shebang/#splitting">section splitting arguments</a>,
+when it comes to multiple arguments after shebang, different systems
+interpret then differently.  For example:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/local/bin/</span><span style="font-weight: bold;">args</span><span style="font-weight: bold; font-style: italic;"> -a -b --something</span>
+</pre>
+</div>
+<p>
+Linux treats <code>-a -b --something</code> as a single argument.  MacOS treats
+them as 3 separate arguments.  Some other systems may even pass <code>-a</code> as
+a single argument and discard the rest.
+</p>
+
+<p>
+Also, from <a href="https://jhermann.github.io/blog/linux/know-how/2020/02/28/env_with_arguments.html">this article</a>, in the bash document:
+</p>
+<blockquote>
+<p>
+If the program is a file beginning with <code>#!</code>, the remainder of the first
+line specifies an interpreter for the program.  &#x2026;  The arguments to
+the interpreter consist of <b>a single optional argument</b> following the
+interpreter name on the first line of the program, followed by the name
+of the program, followed by the command arguments, if any.
+</p>
+</blockquote>
+<p>
+Note here, <b>a single optional argument</b>.
+</p>
+</div>
+
+<div id="outline-container-org0bb03e1" class="outline-3">
+<h3 id="org0bb03e1"><span class="section-number-3">1.1.</span> <a href="#org0bb03e1"><code>env -S</code> to the rescue</a></h3>
+<div class="outline-text-3" id="text-1-1">
+<p>
+According to <a href="https://unix.stackexchange.com/a/477651">this answer</a>, starting with coreutils 8.30, you can use:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/</span><span style="font-weight: bold;">env</span><span style="font-weight: bold; font-style: italic;"> -S command arg1 arg2 ...</span>
+</pre>
+</div>
+<p>
+The <code>-S/--split-string</code> option enables use of multiple arguments in
+shebang.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgff78f54" class="outline-3">
+<h3 id="orgff78f54"><span class="section-number-3">1.2.</span> <a href="#orgff78f54">An example</a></h3>
+<div class="outline-text-3" id="text-1-2">
+<p>
+First, write a simple Python script for displaying arguments:
+</p>
+<div class="org-src-container">
+<pre class="src src-python"><span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/env python</span>
+
+<span style="font-weight: bold;">import</span> sys
+<span style="font-weight: bold;">for</span> i, arg <span style="font-weight: bold;">in</span> <span style="font-weight: bold;">enumerate</span>(sys.argv):
+    <span style="font-weight: bold;">print</span>(f<span style="font-style: italic;">"</span>{i}<span style="font-style: italic;">: </span>{arg}<span style="font-style: italic;">"</span>)
+</pre>
+</div>
+<p>
+Store it under <code>/tmp/showargs</code> and make it executable.
+Test the script:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ /tmp/showargs single <span style="font-style: italic;">'one long arg'</span> another single
+0: /tmp/showargs
+1: single
+2: one long arg
+3: another
+4: single
+</pre>
+</div>
+
+<p>
+If the shebang calls <code>showargs</code> directly, the arguments are merged into
+one:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ cat go
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/tmp/showargs single 'one long arg' another single</span>
+$ ./go
+0: /tmp/showargs
+1: single <span style="font-style: italic;">'one long arg'</span> another single
+2: ./go
+</pre>
+</div>
+<p>
+However, using <code>env -S</code> solves this problem:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">$ cat go
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">!/usr/bin/env -S /tmp/showargs single 'one long arg' another single</span>
+$ ./go
+0: /tmp/showargs
+1: single
+2: one long arg
+3: another
+4: single
+5: ./go
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<hr><table class="postamble">
+  <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
+  <tr><td class="org-right">Created</td><td class="org-left">2023-04-16 11:15</td></tr>
+  <tr><td class="org-right">Modified</td><td class="org-left">2023-04-16 12:17</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2023-04-16 12:18</td></tr>
+  <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 28.2 (<a href="https://orgmode.org">Org</a> mode 9.5.5)</td></tr>
+  <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://raw.githubusercontent.com/thebesttv/thebesttv.github.io/main/content/linux/shebang.org">shebang.org</a></td></tr>
+</table>
+</div>
+</body>
+</html>

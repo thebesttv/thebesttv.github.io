@@ -1,0 +1,81 @@
+#+title: Shebang
+#+date: <2023-04-16 Sun 11:15>
+#+author: thebesttv
+
+- The bible of shebang interpretations:
+  [[https://www.in-ulm.de/~mascheck/various/shebang/][The =#!= magic, details about the shebang/hash-bang mechanism on various Unix flavours]]
+
+* Splitting arguments
+
+According to [[https://linuskarlsson.se/blog/shebang-shenanigans/#summary][Shebang Shenanigans]] and [[https://www.in-ulm.de/~mascheck/various/shebang/#splitting][section splitting arguments]],
+when it comes to multiple arguments after shebang, different systems
+interpret then differently.  For example:
+#+begin_src sh
+  #!/usr/local/bin/args -a -b --something
+#+end_src
+Linux treats =-a -b --something= as a single argument.  MacOS treats
+them as 3 separate arguments.  Some other systems may even pass =-a= as
+a single argument and discard the rest.
+
+Also, from [[https://jhermann.github.io/blog/linux/know-how/2020/02/28/env_with_arguments.html][this article]], in the bash document:
+#+begin_quote
+If the program is a file beginning with =#!=, the remainder of the first
+line specifies an interpreter for the program.  ...  The arguments to
+the interpreter consist of *a single optional argument* following the
+interpreter name on the first line of the program, followed by the name
+of the program, followed by the command arguments, if any.
+#+end_quote
+Note here, *a single optional argument*.
+
+** =env -S= to the rescue
+
+According to [[https://unix.stackexchange.com/a/477651][this answer]], starting with coreutils 8.30, you can use:
+#+begin_src sh
+  #!/usr/bin/env -S command arg1 arg2 ...
+#+end_src
+The =-S/--split-string= option enables use of multiple arguments in
+shebang.
+
+** An example
+
+First, write a simple Python script for displaying arguments:
+#+begin_src python
+  #!/usr/bin/env python
+
+  import sys
+  for i, arg in enumerate(sys.argv):
+      print(f"{i}: {arg}")
+#+end_src
+Store it under =/tmp/showargs= and make it executable.
+Test the script:
+#+begin_src bash
+  $ /tmp/showargs single 'one long arg' another single
+  0: /tmp/showargs
+  1: single
+  2: one long arg
+  3: another
+  4: single
+#+end_src
+
+If the shebang calls =showargs= directly, the arguments are merged into
+one:
+#+begin_src bash
+  $ cat go
+  #!/tmp/showargs single 'one long arg' another single
+  $ ./go
+  0: /tmp/showargs
+  1: single 'one long arg' another single
+  2: ./go
+#+end_src
+However, using =env -S= solves this problem:
+#+begin_src bash
+  $ cat go
+  #!/usr/bin/env -S /tmp/showargs single 'one long arg' another single
+  $ ./go
+  0: /tmp/showargs
+  1: single
+  2: one long arg
+  3: another
+  4: single
+  5: ./go
+#+end_src
