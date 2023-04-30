@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 2023-04-30 11:56 -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Playing with ONVIF surveillance cameras</title>
+<meta name="author" content="thebesttv" />
+<meta name="generator" content="Org Mode" />
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-21YM95T3BQ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-21YM95T3BQ');
+</script>
+<!-- favicon -->
+<link rel="icon" type="image/x-icon" href="../../favicon.ico">
+<!-- CSS -->
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/latex.css/style.css">
+<link rel="stylesheet" type="text/css" href="../../css/org-default.css">
+<link rel="stylesheet" type="text/css" href="../../css/style.css">
+<!-- pagefind -->
+<link rel="stylesheet" type="text/css" href="../../_pagefind/pagefind-ui.css">
+<script src="../../_pagefind/pagefind-ui.js" type="text/javascript"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+      new PagefindUI({element: "#search", showImages: false, resetStyles: false});
+  });
+</script>
+</head>
+<body>
+<div id="preamble" class="status">
+<nav class="org-center">
+<a href="../../index.html">Home</a>
+<div id="search"></div>
+<hr>
+</nav>
+</div>
+<div id="content" class="content">
+<header>
+<h1 class="title">Playing with ONVIF surveillance cameras</h1>
+</header><nav id="table-of-contents" role="doc-toc">
+<h2>&#30446;&#24405;</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#org8d3e5f0">1. Acquire RTSP streaming URL</a>
+<ul>
+<li><a href="#org6889f24">1.1. Simple approach</a></li>
+<li><a href="#org3dcd361">1.2. Other possible approaches</a></li>
+</ul>
+</li>
+<li><a href="#orgc0ad6bf">2. Play RTSP stream</a></li>
+</ul>
+</div>
+</nav>
+<hr style="width: 80%;">
+
+<div id="outline-container-org8d3e5f0" class="outline-2">
+<h2 id="org8d3e5f0"><span class="section-number-2">1.</span> <a href="#org8d3e5f0">Acquire RTSP streaming URL</a></h2>
+<div class="outline-text-2" id="text-1">
+<p>
+For my camera, the Tenda CP7, the ONVIF admin account is:
+</p>
+<ul class="org-ul">
+<li>name: <code>admin</code></li>
+<li>password: <code>admin123456</code></li>
+</ul>
+</div>
+
+<div id="outline-container-org6889f24" class="outline-3">
+<h3 id="org6889f24"><span class="section-number-3">1.1.</span> <a href="#org6889f24">Simple approach</a></h3>
+<div class="outline-text-3" id="text-1-1">
+<p>
+Download the Windows-only <a href="https://sourceforge.net/projects/onvifdm/">ONVIF Device Manager</a> and login using the
+camera's admin account.  On the <i>live video</i> section, you can see the
+RTSP URL in the form of:
+</p>
+<div class="org-src-container">
+<pre class="src src-text">rtsp://IP:PORT_NUMBER/xxx
+</pre>
+</div>
+
+<p>
+Prepend account information to the link:
+</p>
+<div class="org-src-container">
+<pre class="src src-text">rtsp://NAME:PASSWORD@IP:PORT_NUMBER/xxx
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org3dcd361" class="outline-3">
+<h3 id="org3dcd361"><span class="section-number-3">1.2.</span> <a href="#org3dcd361">Other possible approaches</a></h3>
+<div class="outline-text-3" id="text-1-2">
+<p>
+There is a <a href="https://github.com/caspermeijn/onvifviewer">onvifviewer</a>, able to both view the camera stream and control
+its motion.  It does not show URL, however.  But digging into the code
+may help.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgc0ad6bf" class="outline-2">
+<h2 id="orgc0ad6bf"><span class="section-number-2">2.</span> <a href="#orgc0ad6bf">Play RTSP stream</a></h2>
+<div class="outline-text-2" id="text-2">
+<p>
+Use either <code>vlc</code> or <code>mpv</code> to play the RTSP stream:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">vlc rtsp://xxx
+mpv rtsp://xxx
+</pre>
+</div>
+<p>
+But there is a delay of ~3s.
+In order to reduce the delay to around 1s:<sup><a id="fnr.1" class="footref" href="#fn.1" role="doc-backlink">1</a></sup>
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">mpv --profile=low-latency --untimed rtsp://xxx
+</pre>
+</div>
+
+<p>
+If VLC fails to connect to RTSP stream, install <code>live-media</code>:<sup><a id="fnr.2" class="footref" href="#fn.2" role="doc-backlink">2</a></sup>
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">sudo pacman -S live-media
+</pre>
+</div>
+</div>
+</div>
+<div id="footnotes">
+<h2 class="footnotes">&#33050;&#27880;: </h2>
+<div id="text-footnotes">
+
+<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1" role="doc-backlink">1</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
+<a href="https://stackoverflow.com/a/67461844">https://stackoverflow.com/a/67461844</a>
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.2" class="footnum" href="#fnr.2" role="doc-backlink">2</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
+<a href="https://wiki.archlinux.org/title/VLC_media_player#Failed_to_connect_to_RTSP_stream">https://wiki.archlinux.org/title/VLC_media_player#Failed_to_connect_to_RTSP_stream</a>
+</p></div></div>
+
+
+</div>
+</div></div>
+<div id="postamble" class="status">
+<hr><table class="postamble">
+  <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
+  <tr><td class="org-right">Created</td><td class="org-left">2023-01-21 10:36</td></tr>
+  <tr><td class="org-right">Modified</td><td class="org-left">2023-04-30 11:55</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2023-04-30 11:56</td></tr>
+  <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 28.2 (<a href="https://orgmode.org">Org</a> mode 9.5.5)</td></tr>
+  <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://raw.githubusercontent.com/thebesttv/thebesttv.github.io/main/content/smart-home/onvif-camera.org">onvif-camera.org</a></td></tr>
+</table>
+</div>
+</body>
+</html>

@@ -1,0 +1,53 @@
+#+title: Playing with ONVIF surveillance cameras
+#+date: <2023-01-21 Sat 10:36>
+#+author: thebesttv
+
+* Acquire RTSP streaming URL
+
+For my camera, the Tenda CP7, the ONVIF admin account is:
+- name: =admin=
+- password: =admin123456=
+
+** Simple approach
+
+Download the Windows-only [[https://sourceforge.net/projects/onvifdm/][ONVIF Device Manager]] and login using the
+camera's admin account.  On the /live video/ section, you can see the
+RTSP URL in the form of:
+#+begin_src text
+  rtsp://IP:PORT_NUMBER/xxx
+#+end_src
+
+Prepend account information to the link:
+#+begin_src text
+  rtsp://NAME:PASSWORD@IP:PORT_NUMBER/xxx
+#+end_src
+
+** Other possible approaches
+
+There is a [[https://github.com/caspermeijn/onvifviewer][onvifviewer]], able to both view the camera stream and control
+its motion.  It does not show URL, however.  But digging into the code
+may help.
+
+* Play RTSP stream
+
+Use either =vlc= or =mpv= to play the RTSP stream:
+#+begin_src bash
+  vlc rtsp://xxx
+  mpv rtsp://xxx
+#+end_src
+But there is a delay of ~3s.
+In order to reduce the delay to around 1s:[fn:1]
+#+begin_src bash
+  mpv --profile=low-latency --untimed rtsp://xxx
+#+end_src
+
+If VLC fails to connect to RTSP stream, install =live-media=:[fn:2]
+#+begin_src bash
+  sudo pacman -S live-media
+#+end_src
+
+* Footnotes
+
+[fn:2] https://wiki.archlinux.org/title/VLC_media_player#Failed_to_connect_to_RTSP_stream
+
+[fn:1] https://stackoverflow.com/a/67461844
