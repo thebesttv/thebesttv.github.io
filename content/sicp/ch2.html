@@ -1,0 +1,2268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 2023-05-18 11:33 -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Chapter 2 &#x2014; Building Abstractions with Data</title>
+<meta name="author" content="thebesttv" />
+<meta name="generator" content="Org Mode" />
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-21YM95T3BQ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-21YM95T3BQ');
+</script>
+<!-- favicon -->
+<link rel="icon" type="image/x-icon" href="../../favicon.ico">
+<!-- CSS -->
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/latex.css/style.css">
+<link rel="stylesheet" type="text/css" href="../../css/org-default.css">
+<link rel="stylesheet" type="text/css" href="../../css/style.css">
+<!-- pagefind -->
+<link rel="stylesheet" type="text/css" href="../../_pagefind/pagefind-ui.css">
+<script src="../../_pagefind/pagefind-ui.js" type="text/javascript"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+      new PagefindUI({element: "#search", showImages: false, resetStyles: false});
+  });
+</script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        displayAlign: "center",
+        displayIndent: "0em",
+
+        "HTML-CSS": { scale: 100,
+                        linebreaks: { automatic: "false" },
+                        webFont: "TeX"
+                       },
+        SVG: {scale: 100,
+              linebreaks: { automatic: "false" },
+              font: "TeX"},
+        NativeMML: {scale: 100},
+        TeX: { equationNumbers: {autoNumber: "AMS"},
+               MultLineWidth: "85%",
+               TagSide: "right",
+               TagIndent: ".8em"
+             }
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML"></script>
+</head>
+<body>
+<div id="preamble" class="status">
+<nav class="org-center">
+<a href="../../index.html">Home</a>
+<div id="search"></div>
+<hr>
+</nav>
+</div>
+<div id="content" class="content">
+<header>
+<h1 class="title">Chapter 2 &#x2014; Building Abstractions with Data</h1>
+</header><nav id="table-of-contents" role="doc-toc">
+<h2>&#30446;&#24405;</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#org5620c6b">1. What is meant by data?</a></li>
+<li><a href="#org49ecd9d">2. Tree structure</a></li>
+<li><a href="#org71e5e9b">3. Sequences as conventional interfaces</a></li>
+<li><a href="#org8f0e591">4. Folding left &amp; right</a></li>
+<li><a href="#orge7500aa">5. Functional geometry</a></li>
+<li><a href="#orgca6b39c">6. Symbolic differentiation</a></li>
+<li><a href="#org8db40c1">7. <span class="todo TODO">TODO</span> Pattern matching and rule-based substitution</a>
+<ul>
+<li><a href="#org4911473">7.1. Implementation</a>
+<ul>
+<li><a href="#org82c7e11">7.1.1. Matcher</a></li>
+<li><a href="#org92731ed">7.1.2. Instantiater</a></li>
+<li><a href="#orgb4af04c">7.1.3. Simplifier</a></li>
+<li><a href="#orgaebfdfb">7.1.4. Pattern &amp; Skeleton</a></li>
+<li><a href="#orge1cde04">7.1.5. Dictionary</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#org376374a">8. Flatmap</a></li>
+<li><a href="#orgb511d59">9. List as tree as set</a></li>
+<li><a href="#orge99622a">10. Huffman encoding tree</a></li>
+<li><a href="#org3e60cb5">11. Generic operations</a>
+<ul>
+<li><a href="#orga09b6f7">11.1. Implementation</a></li>
+<li><a href="#org46b526e">11.2. Dispatch on data types</a></li>
+<li><a href="#org542e5f3">11.3. Dispatch on operation names</a></li>
+<li><a href="#org39a015a">11.4. Dispatch on both</a></li>
+<li><a href="#orga180e68">11.5. Ex 2.76 &#x2014; a conclusion</a></li>
+</ul>
+</li>
+<li><a href="#org75db324">12. Symbolic differentiation revisited</a></li>
+<li><a href="#org48e4493">13. Exercises</a>
+<ul>
+<li><a href="#org74150c6">13.1. Ex 2.6 &#x2014; Church numerals</a></li>
+<li><a href="#org36bdc39">13.2. Ex 2.20 &#x2014; dotted-tail notation</a></li>
+<li><a href="#orgc4ed6f3">13.3. Ex 2.27 &#x2014; deep reverse</a></li>
+<li><a href="#org27113ee">13.4. Ex 2.28 &#x2014; fringe</a></li>
+<li><a href="#org2802b11">13.5. Ex 2.32 &#x2014; subset</a></li>
+<li><a href="#org7ce3f0d">13.6. Ex 2.35 &#x2014; counting leaves</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</nav>
+<hr style="width: 80%;">
+
+<div id="outline-container-org5620c6b" class="outline-2">
+<h2 id="org5620c6b"><span class="section-number-2">1.</span> <a href="#org5620c6b">What is meant by data?</a></h2>
+<div class="outline-text-2" id="text-1">
+<p>
+<b>Axiom for pairs</b>: for any objects <code>x</code> and <code>y</code>, if <code>z = (cons x y)</code>,
+then <code>(car z) = x</code> and <code>(cdr z) = y</code>.  Any implementation satisfying
+this axiom can be used:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">cons</span> x y)
+  (<span style="font-weight: bold;">lambda</span> (pick)
+    (<span style="font-weight: bold;">cond</span> [(= pick 0) x]
+          [(= pick 1) y])))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">car</span> z) (z 0))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">cdr</span> z) (z 1))
+</pre>
+</div>
+<p>
+Here a <b>procedure</b> is returned by <code>cons</code> that captures the arguments <code>x</code>
+and <code>y</code>.  The procedure is then applied to 0 in <code>car</code> to return the
+captured <code>x</code>.  The same goes for <code>cdr</code>.  This style of programming is
+called <i>message passing</i>.
+</p>
+
+<details id="org3e67f45">
+<p>
+<summary>Message passing explained, by ChatGPT</summary>
+In SICP, message passing is used as a paradigm for building programs
+using objects and classes.  Objects are defined as independent entities
+that encapsulate data and behavior, and they communicate with each other
+by sending messages.
+</p>
+
+<p>
+Message passing involves sending a message from one object to another,
+requesting some action or information.  The receiving object then
+responds to the message based on its internal state and the message's
+content.  This interaction between objects allows for modularity and
+encapsulation, as objects can be designed to hide their internal details
+and only expose the necessary interfaces.
+</p>
+</details>
+
+<p>
+<b>The ability to manipulate procedures as objects automatically
+provides the ability to represent compound data.</b>
+</p>
+
+<p>
+Another implementation, taken from Ex 2.4:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">cons</span> x y)
+  (<span style="font-weight: bold;">&#955;</span> (m) (m x y)))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">car</span> z)
+  (z (<span style="font-weight: bold;">&#955;</span> (p q) p)))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">cdr</span> z)
+  (z (<span style="font-weight: bold;">&#955;</span> (p q) q)))
+</pre>
+</div>
+
+<p>
+As in Ex 2.5, you can also represent a pair of integers \(a\), \(b\) with
+\(2^a 3^b\).  This representation, however, cannot take other objects.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">cons</span> a b)
+  (* (expt 2 a) (expt 3 b)))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">factor</span> x a)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">iter</span> x n)
+    (<span style="font-weight: bold;">if</span> (zero? (remainder x a))
+        (iter (/ x a) (1+ n))
+        n))
+  (iter x 0))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">car</span> z) (factor z 2))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">cdr</span> z) (factor z 3))
+
+(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">x</span> (cons 10 20))
+(car x)                                 <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">10</span>
+(cdr x)                                 <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">20</span>
+</pre>
+</div>
+
+<p>
+Rewrite <code>factor</code> using named <code>let</code>:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">factor</span> x a)
+  (<span style="font-weight: bold;">let</span> <span style="font-weight: bold;">iter</span> ([x x] [n 0])
+    (<span style="font-weight: bold;">let</span> ([q (/ x a)])
+      (<span style="font-weight: bold;">if</span> (integer? q)
+          (iter q (+ n 1))
+          n))))
+
+(factor x 2)                            <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">10</span>
+(factor x 3)                            <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">20</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org49ecd9d" class="outline-2">
+<h2 id="org49ecd9d"><span class="section-number-2">2.</span> <a href="#org49ecd9d">Tree structure</a></h2>
+<div class="outline-text-2" id="text-2">
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">atom?</span> x) (not (pair? x)))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">count-leaves</span> x)
+  (<span style="font-weight: bold;">cond</span> [(null? x) 0]                   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">empty tree</span>
+        [(atom? x) 1]                   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">leaf</span>
+        [else (+ (count-leaves (car x))
+                 (count-leaves (cdr x)))]))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">reverse</span> x)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">iter</span> x res)
+    (<span style="font-weight: bold;">if</span> (null? x)
+        res
+        (iter (cdr x)
+              (cons (car x) res))))
+  (iter x '()))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">reverse</span> l)                     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">using named let</span>
+  (<span style="font-weight: bold;">let</span> <span style="font-weight: bold;">iter</span> ([l l] [res '()])
+    (<span style="font-weight: bold;">if</span> (null? l)
+        res
+        (iter (cdr l)
+              (cons (car l) res)))))
+
+(reverse '(1 2 3 4))                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(4 3 2 1)</span>
+(reverse '((1 2) (3 4) (5 6)))          <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">((5 6) (3 4) (1 2))</span>
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">deep-reverse</span> x)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">iter</span> x result)
+    (<span style="font-weight: bold;">if</span> (null? x)
+        result
+        (<span style="font-weight: bold;">let</span> ([first (car x)]
+              [rest  (cdr x)])
+          (iter rest
+                (cons (<span style="font-weight: bold;">if</span> (pair? first)
+                          (deep-reverse first) <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">or (iter first '())</span>
+                          first)
+                      result)))))
+  (iter x '()))
+
+(deep-reverse '((1 2) (3 4) (5 6)))     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">((6 5) (4 3) (2 1))</span>
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">deep-reverse</span> x)
+  (reverse
+   (<span style="font-weight: bold;">map</span> (<span style="font-weight: bold;">lambda</span> (x)
+          (<span style="font-weight: bold;">if</span> (pair? x)
+              (deep-reverse x)
+              x))
+        x)))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">deep-reverse</span> x)
+  (<span style="font-weight: bold;">if</span> (pair? x)
+      (reverse (<span style="font-weight: bold;">map</span> deep-reverse x))
+      x))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">fringe</span> x)                      <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">convert tree to list</span>
+  (<span style="font-weight: bold;">cond</span> [(null? x) '()]
+        [(pair? (car x)) (append (fringe (car x))
+                                 (fringe (cdr x)))]
+        [else (cons (car x) (fringe (cdr x)))]))
+
+(fringe '((1 2) (3 (4 (5))) 6))         <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(1 2 3 4 5 6)</span>
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">scale-tree</span> tree factor)
+  (<span style="font-weight: bold;">cond</span> [(null? tree) '()]
+        [(atom? tree) (* tree factor)]
+        [else (cons (scale-tree (car tree) factor)
+                    (scale-tree (cdr tree) factor))]))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">scale-tree</span> tree factor)
+  (<span style="font-weight: bold;">map</span> (<span style="font-weight: bold;">lambda</span> (sub-tree)
+         (<span style="font-weight: bold;">cond</span> [(null? sub-tree) '()]
+               [(pair? sub-tree) (scale-tree sub-tree factor)]
+               [else (* sub-tree factor)]))
+       tree))
+
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">square-tree</span> tree)
+  (<span style="font-weight: bold;">cond</span> [(null? tree) '()]
+        [(pair? tree) (cons (square-tree (car tree))
+                            (square-tree (cdr tree)))]
+        [else (square tree)]))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">square-tree</span> tree)
+  (<span style="font-weight: bold;">map</span> (<span style="font-weight: bold;">lambda</span> (sub-tree)
+         (<span style="font-weight: bold;">cond</span> [(null? sub-tree) '()]
+               [(pair? sub-tree) (square-tree sub-tree)]
+               [else (square sub-tree)]))
+       tree))
+
+(square-tree '(1 (2 (3 4) 5) (6 7)))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">tree-map</span> fun tree)
+  (<span style="font-weight: bold;">cond</span> [(null? tree) '()]
+        [(pair? tree) (cons (tree-map fun (car tree))
+                            (tree-map fun (cdr tree)))]
+        [else (fun tree)]))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">tree-map</span> fun tree)
+  (<span style="font-weight: bold;">map</span> (<span style="font-weight: bold;">lambda</span> (sub-tree)
+         (<span style="font-weight: bold;">cond</span> [(null? sub-tree) '()]
+               [(pair? sub-tree) (tree-map fun sub-tree)]
+               [else (fun sub-tree)]))
+       tree))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org71e5e9b" class="outline-2">
+<h2 id="org71e5e9b"><span class="section-number-2">3.</span> <a href="#org71e5e9b">Sequences as conventional interfaces</a></h2>
+<div class="outline-text-2" id="text-3">
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">filter</span> predicate sequence)
+  (<span style="font-weight: bold;">if</span> (null? sequence)
+      '()
+      (<span style="font-weight: bold;">let</span> ([first (car sequence)]
+            [rest  (cdr sequence)])
+        (<span style="font-weight: bold;">if</span> (predicate first)
+            (cons first
+                  (filter predicate rest))
+            (filter predicate rest)))))
+
+(filter odd? '(1 2 3 4 5 6))            <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(1 3 5)</span>
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">accumulate</span> op initial sequence)
+  (<span style="font-weight: bold;">if</span> (null? sequence)
+      initial
+      (op (car sequence)
+          (accumulate op initial (cdr sequence)))))
+
+(accumulate * 1 '(1 2 3 4 5))           <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">120</span>
+(accumulate cons '() '(1 2 3 4 5))      <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(1 2 3 4 5)</span>
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">map</span> f sequence)
+  (accumulate (<span style="font-weight: bold;">lambda</span> (first rest)
+                (cons (f first)
+                      rest))
+              '()
+              sequence))
+
+(<span style="font-weight: bold;">map</span> 1+ '(1 2 3))                       <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(2 3 4)</span>
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">append</span> s1 s2)
+  (accumulate cons s2 s1))
+
+(append '(1 2 3) '(4 5 6))              <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(1 2 3 4 5 6)</span>
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">length</span> s)
+  (accumulate (<span style="font-weight: bold;">lambda</span> (_ c)
+                (1+ c))
+              0 s))
+
+(length '(1 2 3))                       <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">3</span>
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">enumerate-interval</span> low high)
+  (<span style="font-weight: bold;">if</span> (&gt; low high)
+      '()
+      (cons low
+            (enumerate-interval (+ low 1) high))))
+
+(enumerate-interval 2 7)                <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(2 3 4 5 6 7)</span>
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">enumerate-tree</span> tree)
+  (<span style="font-weight: bold;">cond</span> [(null? tree) '()]
+        [(atom? tree) (list tree)]
+        [else (append (enumerate-tree (car tree))
+                      (enumerate-tree (cdr tree)))]))
+
+(enumerate-tree '(1 (2 (3 4)) 5))       <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(1 2 3 4 5)</span>
+
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sum-odd-squares</span> tree)
+  (accumulate + 0
+              (<span style="font-weight: bold;">map</span> square
+                   (filter odd?
+                           (enumerate-tree tree)))))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">even-fibs</span> n)
+  (accumulate cons '()
+              (filter even?
+                      (<span style="font-weight: bold;">map</span> fib
+                           (enumerate-interval 0 n)))))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">salary-of-highest-paid-programmer</span> records)
+  (accumulate max 0
+              (<span style="font-weight: bold;">map</span> salary
+                   (filter programmer? records))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org8f0e591" class="outline-2">
+<h2 id="org8f0e591"><span class="section-number-2">4.</span> <a href="#org8f0e591">Folding left &amp; right</a></h2>
+<div class="outline-text-2" id="text-4">
+<p>
+Both <code>fold-left</code> and <code>fold-right</code> takes
+</p>
+<ul class="org-ul">
+<li><code>op</code>: a procedure with two arguments</li>
+<li><code>initial</code>: the initial value</li>
+<li><code>sequence</code>: the sequence to be accumulated/folded.</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">fold-left</span> op initial sequence)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">iter</span> result rest)
+    (<span style="font-weight: bold;">if</span> (null? rest)
+        result
+        (iter (op result (car rest))
+              (cdr rest))))
+  (iter initial sequence))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">fold-right</span> op initial sequence)
+  (<span style="font-weight: bold;">if</span> (null? sequence)
+      initial
+      (op (car sequence)
+          (fold-right op initial (cdr sequence)))))
+</pre>
+</div>
+
+<p>
+But they apply <code>op</code> in different directions.
+<code>fold-left</code> folds from left to right, calls <code>(op running-sum current-value)</code>.
+<code>fold-right</code> folds from right to left, calls <code>(op current-value running-sum)</code>.
+</p>
+
+<p>
+For operators that satisfy transitivity, the result is the same, but
+for others such as division and <code>cons</code>, the results are different.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(fold-left / 1 '(1 2 3))                <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(((1 / 1) / 2) / 3) -&gt; 1/6</span>
+(fold-right / 1 '(1 2 3))               <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(1 / (2 / (3 / 1))) -&gt; 3/2</span>
+</pre>
+</div>
+
+<p>
+You can implement <code>reverse</code> using either, but with different <code>op</code>:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">reverse</span> sequence)
+  (fold-left (<span style="font-weight: bold;">lambda</span> (sum cur)
+               (cons cur sum))
+             '()
+             sequence))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">reverse</span> sequence)
+  (fold-right (<span style="font-weight: bold;">lambda</span> (cur sum)
+                (append sum (list cur)))
+              '()
+              sequence))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orge7500aa" class="outline-2">
+<h2 id="orge7500aa"><span class="section-number-2">5.</span> <a href="#orge7500aa">Functional geometry</a></h2>
+<div class="outline-text-2" id="text-5">
+<p>
+See <a href="https://github.com/thebesttv/functional-geometry">this</a> repo.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgca6b39c" class="outline-2">
+<h2 id="orgca6b39c"><span class="section-number-2">6.</span> <a href="#orgca6b39c">Symbolic differentiation</a></h2>
+<div class="outline-text-2" id="text-6">
+<blockquote>
+<p>
+I've chosen my representation to be the same as the representation in my language.
+</p>
+</blockquote>
+
+<p>
+Note the use of quotes (<code>'</code>).  We're talking about the symbol <code>+</code> and
+<code>*</code>, instead of the procedures they represent.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">atom?</span> exp)
+  (not (pair? exp)))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">constant?</span> exp var)
+  <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">whether the expression (exp) is a constant</span>
+  <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">with respect to the variable (var)</span>
+  (<span style="font-weight: bold;">and</span> [atom? exp]
+       [not (eq? exp var)]))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">same-var?</span> exp var)
+  (<span style="font-weight: bold;">and</span> [atom? exp]
+       [eq? exp var]))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sum?</span> exp)
+  (<span style="font-weight: bold;">and</span> [pair? exp]
+       [eq? (car exp) '+]))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-sum</span> a1 a2)
+  (<span style="font-weight: bold;">cond</span> [(<span style="font-weight: bold;">and</span> (number? a1) (number? a2)) (+ a1 a2)]
+        [(<span style="font-weight: bold;">and</span> (number? a1) (zero? a1)) a2]
+        [(<span style="font-weight: bold;">and</span> (number? a2) (zero? a2)) a1]
+        [else (list '+ a1 a2)]))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">a1</span> exp) (cadr exp))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">a2</span> exp) (caddr exp))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">product?</span> exp)
+  (<span style="font-weight: bold;">and</span> [pair? exp]
+       [eq? (car exp) '*]))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-product</span> m1 m2)
+  (<span style="font-weight: bold;">cond</span> [(<span style="font-weight: bold;">and</span> (number? m1) (number? m2)) (* m1 m2)]
+        [(<span style="font-weight: bold;">and</span> (number? m1) (= m1 1)) m2]
+        [(<span style="font-weight: bold;">and</span> (number? m2) (= m2 1)) m1]
+        [(<span style="font-weight: bold;">or</span> (<span style="font-weight: bold;">and</span> (number? m1) (zero? m1))
+             (<span style="font-weight: bold;">and</span> (number? m2) (zero? m2))) 0]
+        [else (list '* m1 m2)]))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">m1</span> exp) (cadr exp))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">m2</span> exp) (caddr exp))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">deriv</span> exp var)
+  (<span style="font-weight: bold;">cond</span> [(constant? exp var) 0]
+        [(same-var? exp var) 1]
+        [(sum? exp)
+         (make-sum (deriv (a1 exp) var)
+                   (deriv (a2 exp) var))]
+        [(product? exp)
+         (make-sum (make-product (m1 exp) (deriv (m2 exp) var))
+                   (make-product (m2 exp) (deriv (m1 exp) var)))]))
+
+
+(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">foo</span> '(+ (* a (* x x))           <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">ax^2 + bx + c</span>
+                (+ (* b x)
+                   c)))
+
+(deriv foo 'x)
+<span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">original:</span>
+<span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">=&gt; (+ (+ (* a (+ (* x 1) (* x 1)))</span>
+<span style="font-weight: bold; font-style: italic;">;;          </span><span style="font-weight: bold; font-style: italic;">(* (* x x) 0))</span>
+<span style="font-weight: bold; font-style: italic;">;;       </span><span style="font-weight: bold; font-style: italic;">(+ (+ (* b 1) (* x 0))</span>
+<span style="font-weight: bold; font-style: italic;">;;          </span><span style="font-weight: bold; font-style: italic;">0))</span>
+<span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">updated make-sum &amp; make-product</span>
+<span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">=&gt; (+ (* a (+ x x)) b)</span>
+</pre>
+</div>
+
+<p>
+This representation, however, does not allow arbitrary numbers of
+terms for <code>+</code> and <code>*</code>.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(deriv '(+ x x x x) 'x)                 <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">2</span>
+(deriv '(* x x x) 'x)                   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(+ x x)</span>
+</pre>
+</div>
+
+<p>
+To incorporate multiple terms while not changing <code>deriv</code>, we just need
+to change the representation.  <code>a2</code> will now check the number of
+arguments of the expression.  If only two, then return the second one
+as usual.  <code>a2</code> will make another sum expression if there are more
+than two arguments.  The same is true for <code>m2</code>.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">a2</span> exp)
+  (<span style="font-weight: bold;">if</span> (null? (cdddr exp))
+      (caddr exp)
+      (cons '+ (cddr exp))))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">m2</span> exp)
+  (<span style="font-weight: bold;">if</span> (null? (cdddr exp))
+      (caddr exp)
+      (cons '* (cddr exp))))
+
+(deriv '(+ x x x x) 'x)                 <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4</span>
+(deriv '(* x x x) 'x)                   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(+ (* x (+ x x)) (* x x))</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org8db40c1" class="outline-2">
+<h2 id="org8db40c1"><span class="section-number-2">7.</span> <a href="#org8db40c1"><span class="todo TODO">TODO</span> Pattern matching and rule-based substitution</a></h2>
+<div class="outline-text-2" id="text-7">
+<p>
+From <a href="https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-001-structure-and-interpretation-of-computer-programs-spring-2005/video-lectures/4a-pattern-matching-and-rule-based-substitution">MIT 6.001 SICP Video Lectures 4A</a>.
+</p>
+
+<p>
+Think about the differentiation process in terms of pattern matching &amp;
+substitution. A differentiation rule such as
+\[ \frac{\mathrm{d} (u \times v)}{\mathrm{d} x} = u \frac{\mathrm{d} v}{\mathrm{d} x} + v \frac{\mathrm{d} u}{\mathrm{d} x}\]
+has a left hand side (LHS) called <i>pattern</i> and a right hand side
+(RHS) called <i>skeleton</i>.
+</p>
+
+<p>
+If a particular source expression matches that pattern, for example
+\(\frac{\mathrm{d} (x \times y)}{\mathrm{d} x}\), then by applying the
+rule to the expression, we <i>instantiate</i> the skeleton to the resulting
+target expression: \(x \frac{\mathrm{d} y}{\mathrm{d} x} + y
+\frac{\mathrm{d} x}{\mathrm{d} x}\).
+</p>
+
+<p>
+In order to implement this pattern matching language in Lisp, we
+define some patterns:
+</p>
+<ul class="org-ul">
+<li><code>foo</code> matches exactly the symbol <code>foo</code></li>
+<li><code>(f a b)</code> matches a list of three patterns: <code>f</code>, <code>a</code>, <code>b</code></li>
+<li><code>(? x)</code> matches anything, and calls it <code>x</code></li>
+<li><code>(?c x)</code> matches only constants, and calls it <code>x</code></li>
+<li><code>(?v x)</code> matches a variable, and calls it <code>x</code>.</li>
+</ul>
+<p>
+and a few skeletons:
+</p>
+<ul class="org-ul">
+<li><code>foo</code> instantiates to <code>foo</code> itself</li>
+<li><code>(f a b)</code> instantiates to a list of three elements, each the
+instantiation of <code>f</code>, <code>a</code>, <code>b</code></li>
+<li><code>(: x)</code> instantiates to whatever <code>x</code> matches.</li>
+</ul>
+
+<p>
+<code>(? x)</code>, <code>(?c x)</code> and <code>(?v x)</code> are <i>pattern variables</i>.
+</p>
+
+<p>
+Each rule has the form of a list with two elements&#x2014;a pattern and a
+skeleton.  The derivative of <code>exp</code> with respect to <code>var</code> is in the
+form of <code>(dd exp var)</code>.  The derivation rules can thus be defined as:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">deriv-rules</span>
+  '([(dd (?c c) (? v)) 0]
+    [(dd (?v v) (? v)) 1]
+    [(dd (?v u) (? v)) 0]
+
+    [(dd (+ (? x1) (? x2)) (? v))
+     (+ (dd (: x1) (: v))
+        (dd (: x2) (: v)))]
+
+    [(dd (* (? x1) (? x2)) (? v))
+     (+ [* (: x1) (dd (: x2) (: v))]
+        [* (dd (: x1) (: v)) (: x2)])]))
+</pre>
+</div>
+
+
+<figure id="org3ed233c">
+<img src="./ch2/rule.png" alt="rule.png" width="100%" style="margin-left: auto; margin-right: auto;">
+
+<figcaption><span class="figure-number">&#22270;1&nbsp; </span>Notes on pattern matching rules.</figcaption>
+</figure>
+</div>
+
+<div id="outline-container-org4911473" class="outline-3">
+<h3 id="org4911473"><span class="section-number-3">7.1.</span> <a href="#org4911473">Implementation</a></h3>
+<div class="outline-text-3" id="text-7-1">
+<p>
+The whole idea is to have a simplifier that knows a set of rules, so
+that given an expression, it will produce a most simplified version
+based on the rules.
+</p>
+
+
+<figure id="orge9396aa">
+<img src="./ch2/simplifier.png" alt="simplifier.png" width="100%" style="margin-left: auto; margin-right: auto;">
+
+<figcaption><span class="figure-number">&#22270;2&nbsp; </span>Structure of the simplifier.</figcaption>
+</figure>
+
+<p>
+As in Fig. <a href="#orge9396aa">2</a>, the simplifier takes an expression and a set of
+rules.  It is made up of a <i>matcher</i> and an <i>instantiator</i>.  For every
+sub-expression, the matcher traverses all the patterns, and for each
+pattern, it creates a dictionary of the mapping of pattern variables
+and the expressions they match.  The simplifier then pass each
+dictionary to the instantiator, so the latter can instantiate the
+skeleton according to the dictionary, thus producing a simplified
+expression.
+</p>
+
+<p>
+Think of the expression as a tree whose each node is a sub-expression.
+The whole process is then a depth first search of all the nodes.  It
+applies each rule to the sub-expression until it cannot be simplified
+any further, then it goes on to the next sub-expression.  The whole
+process stops when the root expression does not change.
+</p>
+</div>
+
+<div id="outline-container-org82c7e11" class="outline-4">
+<h4 id="org82c7e11"><span class="section-number-4">7.1.1.</span> <a href="#org82c7e11">Matcher</a></h4>
+<div class="outline-text-4" id="text-7-1-1">
+
+<figure id="orgc4dcfa2">
+<img src="./ch2/matcher.png" alt="matcher.png" width="100%" style="margin-left: auto; margin-right: auto;">
+
+<figcaption><span class="figure-number">&#22270;3&nbsp; </span>Structure of the matcher.</figcaption>
+</figure>
+
+<p>
+The matcher takes an expression, a pttern and a dictionary, then
+returns another dictionary.  It needs to traverse the pattern tree and
+the expression at the same time to ensure the two matches.  Along the
+way it constructs the dictionary.
+</p>
+
+
+<figure id="orgc45211f">
+<img src="./ch2/examine.png" alt="examine.png" width="100%" style="margin-left: auto; margin-right: auto;">
+
+</figure>
+
+<p>
+If the expression tree does not match the pattern, then there's a
+conflict, the dict becomes <code>'failed</code>:
+</p>
+
+<figure id="org31e9a43">
+<img src="./ch2/conflict.png" alt="conflict.png" width="60%" style="margin-left: auto; margin-right: auto;">
+
+</figure>
+
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">match</span> pat exp dict)
+  (<span style="font-weight: bold;">cond</span> [(eq? dict 'failed) 'failed]
+        [(atom? pat)
+         (<span style="font-weight: bold;">if</span> (<span style="font-weight: bold;">and</span> (atom? exp) (eq? pat exp))
+             dict   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">pat &amp; exp are the same atom, mach success, dict</span>
+                                        <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">does not change. e.g. foo -&gt; foo, * -&gt; *, + -&gt; +</span>
+             'failed)]
+        [(arbitrary-constant? pat)      <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(?c v)</span>
+         (<span style="font-weight: bold;">if</span> (constant? exp)
+             (extend-dict pat exp dict) <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">first check for conflicts, then extend</span>
+             'failed)]
+        [(arbitrary-variable? pat)      <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(?v v)</span>
+         (<span style="font-weight: bold;">if</span> (variable? exp)
+             (extend-dict pat exp dict)
+             'failed)]
+        [(arbitrary-expression? pat)    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(? v)</span>
+         (extend-dict pat exp dict)]
+        <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">pattern is not atom, but expression is, then match fails</span>
+        [(atom? exp) 'failed]
+        [else (match (cdr pat)
+                     (cdr exp)
+                     (match (car pat)
+                            (car exp)
+                            dict))]))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org92731ed" class="outline-4">
+<h4 id="org92731ed"><span class="section-number-4">7.1.2.</span> <a href="#org92731ed">Instantiater</a></h4>
+<div class="outline-text-4" id="text-7-1-2">
+
+<figure id="org18106b0">
+<img src="./ch2/instantiater.png" alt="instantiater.png" width="100%" style="margin-left: auto; margin-right: auto;">
+
+<figcaption><span class="figure-number">&#22270;4&nbsp; </span>Structure of the instantiater.</figcaption>
+</figure>
+
+<p>
+The instantiator takes a dictionary and a skeleton, and instantiate
+the skeleton to the resulting expression.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">instantiate</span> skeleton dict)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">loop</span> s)
+    (<span style="font-weight: bold;">cond</span> [(atom? s) s]
+          [(skeleton-evaluation? s)     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(: v)</span>
+           <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">(eval-exp '(: e1 e2 ...)) =&gt; (e1 e2 ...)</span>
+           (evaluate (eval-exp s) dict)]
+          [else (cons (loop (car s))
+                      (loop (cdr s)))]))
+  (loop skeleton))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">evaluate</span> form dict)
+  (<span style="font-weight: bold;">if</span> (atom? form)
+      (lookup form dict)
+      (apply
+       (eval (lookup (car form) dict) <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">operator</span>
+             user-initial-environment)
+       (mapcar (<span style="font-weight: bold;">lambda</span> (v)            <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">operands</span>
+                 (lookup v dict))
+               (cdr form)))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgb4af04c" class="outline-4">
+<h4 id="orgb4af04c"><span class="section-number-4">7.1.3.</span> <a href="#orgb4af04c">Simplifier</a></h4>
+<div class="outline-text-4" id="text-7-1-3">
+<p>
+A <code>simplifier</code> takes as argument a set of rules, and returns a
+procedure that simplifies expressions.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">simplifier</span> the-rules)
+  <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">returns a procedure that simplifies expressions</span>
+  <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">;; [1] uses two procedures to simplify</span>
+  <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">(define (simplify-exp exp)</span>
+  <span style="font-weight: bold; font-style: italic;">;;   </span><span style="font-weight: bold; font-style: italic;">(try-rules (if (compound? exp)</span>
+  <span style="font-weight: bold; font-style: italic;">;;                  </span><span style="font-weight: bold; font-style: italic;">(simplify-parts exp)</span>
+  <span style="font-weight: bold; font-style: italic;">;;                  </span><span style="font-weight: bold; font-style: italic;">exp)))</span>
+  <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">(define (simplify-parts exp)</span>
+  <span style="font-weight: bold; font-style: italic;">;;   </span><span style="font-weight: bold; font-style: italic;">(if (null? exp)</span>
+  <span style="font-weight: bold; font-style: italic;">;;       </span><span style="font-weight: bold; font-style: italic;">'()</span>
+  <span style="font-weight: bold; font-style: italic;">;;       </span><span style="font-weight: bold; font-style: italic;">(cons (simplify-exp (car exp))</span>
+  <span style="font-weight: bold; font-style: italic;">;;             </span><span style="font-weight: bold; font-style: italic;">(simplify-exp (cdr exp)))))</span>
+  <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">[2] using only one procedure</span>
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">simplify-exp</span> exp)
+    (try-rules (<span style="font-weight: bold;">if</span> (compound? exp)
+                   (<span style="font-weight: bold;">map</span> simplify-exp exp)
+                   exp)))
+
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">try-rules</span> exp)
+    (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">scan</span> rules)
+      (<span style="font-weight: bold;">if</span> (null? rules)
+          exp
+          (<span style="font-weight: bold;">let</span> ([dict
+                 (match (pattern (car rules))
+                        exp
+                        (empty-dictionary))])
+            (<span style="font-weight: bold;">if</span> (eq? dict 'failed)
+                (scan (cdr rules))
+                (simplify-exp
+                 (instantiate
+                  (skeleton (car rules))
+                  dict))))))
+    (scan the-rules))
+  simplify-exp)
+</pre>
+</div>
+
+<p>
+Use simplifier to create a differenation function:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">dsimp</span>
+  (simplifier deriv-rules))
+
+(dsimp '(dd (+ x y) x))                 <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">=&gt; (+ 1 0)</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgaebfdfb" class="outline-4">
+<h4 id="orgaebfdfb"><span class="section-number-4">7.1.4.</span> <a href="#orgaebfdfb">Pattern &amp; Skeleton</a></h4>
+<div class="outline-text-4" id="text-7-1-4">
+<div class="org-src-container">
+<pre class="src src-scheme"><span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">the variable name of a pattern</span>
+<span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">(variable-name '(?c exp)) =&gt; exp</span>
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">variable-name</span> pattern)
+  (cadr pattern))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orge1cde04" class="outline-4">
+<h4 id="orge1cde04"><span class="section-number-4">7.1.5.</span> <a href="#orge1cde04">Dictionary</a></h4>
+<div class="outline-text-4" id="text-7-1-5">
+<p>
+A dictionary is implemented as an alist of mappings.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-scheme"><span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">construct an empty dictionary (alist)</span>
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">empty-dictionary</span>) '())
+
+<span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">extent the dictionary by adding to it the knowledge that pattern</span>
+<span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">matches data.</span>
+<span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">It first looks for the pattern in dict, if not found, then simply</span>
+<span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">add to the dict.  If found, then check for conflict.</span>
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">extend-dictionary</span> pattern dat dict)
+  (<span style="font-weight: bold;">let*</span> ([name (variable-name pattern)]
+         [v (assq name dict)])
+    (<span style="font-weight: bold;">cond</span> [(null? v)                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">pattern not found</span>
+           (cons (list name dat) dict)]
+          <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">pattern found, check for conflict</span>
+          [(eq? (cadr v) dat) dict]     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">no conflict</span>
+          [else 'failed])))             <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">different than before</span>
+
+<span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">look up meaning of variables in the dict</span>
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">lookup</span> var dict)
+  (<span style="font-weight: bold;">let</span> ([v (assq var dict)])
+    (<span style="font-weight: bold;">if</span> (null? v) var (cadr v))))
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org376374a" class="outline-2">
+<h2 id="org376374a"><span class="section-number-2">8.</span> <a href="#org376374a">Flatmap</a></h2>
+<div class="outline-text-2" id="text-8">
+<p>
+To produce a list of ordered pairs \((i, j)\) s.t. \(1 \le i \le j \le
+n\), first we nest two <code>map</code>s:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">let</span> ([n 3])
+  (<span style="font-weight: bold;">map</span> (<span style="font-weight: bold;">lambda</span> (i)
+         (<span style="font-weight: bold;">map</span> (<span style="font-weight: bold;">lambda</span> (j) (list i j))
+              (enumerate-interval i n)))
+       (enumerate-interval 1 n)))
+<span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">(((1 1) (1 2) (1 3))</span>
+<span style="font-weight: bold; font-style: italic;">;;  </span><span style="font-weight: bold; font-style: italic;">((2 2) (2 3))</span>
+<span style="font-weight: bold; font-style: italic;">;;  </span><span style="font-weight: bold; font-style: italic;">((3 3)))</span>
+</pre>
+</div>
+
+<p>
+The result is a list of lists.  Use <code>accumulate</code> on the outer list to
+flatten it:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">let</span> ([n 3])
+  (accumulate append '()
+              (<span style="font-weight: bold;">map</span> (<span style="font-weight: bold;">lambda</span> (i)
+                     (<span style="font-weight: bold;">map</span> (<span style="font-weight: bold;">lambda</span> (j) (list i j))
+                          (enumerate-interval i n)))
+                   (enumerate-interval 1 n))))
+<span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">((1 1) (1 2) (1 3) (2 2) (2 3) (3 3))</span>
+</pre>
+</div>
+
+<p>
+The combination of mapping and accumulating with append is so common
+in this sort of program that we will isolate it as a separate
+procedure:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">flatmap</span> proc seq)
+  (accumulate append '()
+              (<span style="font-weight: bold;">map</span> proc seq)))
+</pre>
+</div>
+
+<p>
+Then we can define ordered pairs and even ordered triplets:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">ordered-pairs</span> n)
+  (flatmap (<span style="font-weight: bold;">lambda</span> (i)
+             (<span style="font-weight: bold;">map</span> (<span style="font-weight: bold;">lambda</span> (j) (list i j))
+                  (enumerate-interval 1 n)))
+           (enumerate-interval 1 n)))
+
+(ordered-pairs 3)
+<span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">((1 1) (1 2) (1 3) (2 1) (2 2) (2 3) (3 1) (3 2) (3 3))</span>
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">ordered-triplets</span> n)
+  (flatmap (<span style="font-weight: bold;">lambda</span> (x)
+             (<span style="font-weight: bold;">map</span> (<span style="font-weight: bold;">lambda</span> (l) (cons x l))
+                  (ordered-pairs n)))
+           (enumerate-interval 1 n)))
+
+(ordered-triplets 2)
+<span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">((1 1 1) (1 1 2) (1 2 1) (1 2 2) (2 1 1) (2 1 2) (2 2 1) (2 2 2))</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgb511d59" class="outline-2">
+<h2 id="orgb511d59"><span class="section-number-2">9.</span> <a href="#orgb511d59">List as tree as set</a></h2>
+<div class="outline-text-2" id="text-9">
+<p>
+Implement an ordered set of numbers using binary search tree.  A tree
+is a list of 3 elements&#x2014;an <code>entry</code> in the set, its left branch, and
+right branch.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">entry</span> tree) (car tree))          <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">first</span>
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">left-branch</span> tree) (cadr tree))   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">second</span>
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">right-branch</span> tree) (caddr tree)) <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">third</span>
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-tree</span> entry left right)
+  (list entry left right))
+</pre>
+</div>
+
+<p>
+Finding an element of a balanced tree takes \(O(\log n)\) time.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">element-of-set?</span> x set)
+  (<span style="font-weight: bold;">cond</span> [(null? set) #f]
+        [(= x (entry set)) #t]
+        [(&gt; x (entry set)) (element-of-set? x (left-branch set))]
+        [else (element-of-set? x (right-branch set))]))
+</pre>
+</div>
+
+<p>
+<code>adjoin-set</code> inserts entry <code>x</code> to tree <code>set</code>:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">adjoin-set</span> x set)
+  (<span style="font-weight: bold;">cond</span> [(null? set) (make-tree x '() '())]
+        [(= x (entry set)) set]         <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">already in the set</span>
+        [(&gt; x (entry set))              <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">insert to left branch</span>
+         (make-tree (entry set)
+                    (adjoin-set x (left-branch set))
+                    (right-branch set))]
+        [else                           <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">insert to right branch</span>
+         (make-tree (entry set)
+                    (left-branch set)
+                    (adjoin-set x (right-branch set)))]))
+</pre>
+</div>
+
+<p>
+Flattening a tree into list using inorder traversal:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme"><span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">[1] append makes this slower than [2]</span>
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">tree-&gt;list-1</span> tree)
+  (<span style="font-weight: bold;">if</span> (null? tree)
+      '()
+      (append (tree-&gt;list-1 (left-branch tree))
+              (cons (entry tree)
+                    (tree-&gt;list-1 (right-branch tree))))))
+<span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">[2]</span>
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">tree-&gt;list-2</span> tree)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">copy-to-list</span> tree result-list)
+    (<span style="font-weight: bold;">if</span> (null? tree)
+        result-list
+        (copy-to-list (left-branch tree)
+                      (cons (entry tree)
+                            (copy-to-list (right-branch tree)
+                                          result-list)))))
+  (copy-to-list tree '()))
+
+(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">tree</span> (make-tree 7
+                        (make-tree 3
+                                   (make-tree 1 '() '())
+                                   (make-tree 5 '() '()))
+                        (make-tree 9
+                                   '()
+                                   (make-tree 11 '() '()))))
+
+(tree-&gt;list-1 tree)                     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(1 3 5 7 9 11)</span>
+(tree-&gt;list-2 tree)                     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(1 3 5 7 9 11)</span>
+</pre>
+</div>
+
+<p>
+Converting an ordered list to a balanced tree: (Ex 2.64)
+</p>
+<blockquote>
+<p>
+The following procedure <code>list-&gt;tree</code> converts an ordered list to a
+balanced binary tree.  The helper procedure <code>partial-tree</code> takes as
+arguments an integer \(n\) and list of at least \(n\) elements and
+constructs a balanced tree containing <b>the first \(n\) elements</b> of the
+list.  The result returned by <code>partial-tree</code> is a <b>pair</b> (formed with
+<code>cons</code>) whose <code>car</code> is the constructed tree and whose <code>cdr</code> is the
+list of elements <b>not included in the tree</b>.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">list-&gt;tree</span> l)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">partial-tree</span> elts n)
+    (<span style="font-weight: bold;">if</span> (= n 0)
+        (cons '() elts)                 <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">an empty tree &amp; (rest of) the list</span>
+        (<span style="font-weight: bold;">let*</span> ([left-size (quotient (- n 1) 2)]
+               [right-size (- n left-size 1)]
+               [left-result (partial-tree elts left-size)]
+               [left-tree (car left-result)]
+               [non-left-elts (cdr left-result)]
+               [this-entry (car non-left-elts)]
+               [right-elts (cdr non-left-elts)]
+               [right-result (partial-tree right-elts right-size)]
+               [right-tree (car right-result)]
+               [remaining-elts (cdr right-result)])
+          (cons (make-tree this-entry
+                           left-tree
+                           right-tree)
+                remaining-elts))))
+  (car (partial-tree l (length l))))
+
+(tree-&gt;list-1 (list-&gt;tree '(1 2 3 4)))  <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(1 2 3 4)</span>
+</pre>
+</div>
+</blockquote>
+</div>
+</div>
+
+<div id="outline-container-orge99622a" class="outline-2">
+<h2 id="orge99622a"><span class="section-number-2">10.</span> <a href="#orge99622a">Huffman encoding tree</a></h2>
+<div class="outline-text-2" id="text-10">
+<p>
+In a huffman tree, a <i>node</i> is either a general tree, or a leaf.  In
+the following code, <code>node</code> refers to either a general tree or a leaf,
+<code>leaf</code> refers specifically to a leaf, and <code>tree</code> a general tree.
+</p>
+
+<p>
+A <i>leaf</i> is represented by a list consisting of the symbol <code>leaf</code>, the
+symbol at the leaf, and its weight.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-leaf</span> symbol weight)
+  (list 'leaf symbol weight))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">leaf?</span> node) (eq? (car node) 'leaf))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">symbol-leaf</span> leaf) (cadr leaf))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">weight-leaf</span> leaf) (caddr leaf))
+</pre>
+</div>
+
+<p>
+A <i>general tree</i> is a list of a left branch, a right branch, a set of
+symbols, and a weight.  The procedures <code>symbols</code> and <code>weight</code> must do
+something slightly different depending on whether they are called with
+a leaf or a general tree.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-code-tree</span> left right)
+  (list left
+        right
+        (append (symbols left) (symbols right))
+        (+ (weight left) (weight right))))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">left-branch</span> tree) (car tree))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">right-branch</span> tree) (cadr tree))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">symbols</span> node)
+  (<span style="font-weight: bold;">if</span> (leaf? node)
+      (list (symbol-leaf node))
+      (caddr node)))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">weight</span> node)
+  (<span style="font-weight: bold;">if</span> (leaf? node)
+      (weight-leaf node)
+      (cadddr node)))
+</pre>
+</div>
+
+<p>
+The decode process is not hard.  It takes <code>bits</code> (a list of 0's and
+1's) and the Huffman tree.  At each run, if
+</p>
+<ol class="org-ol">
+<li><code>node</code> is a leaf, it means the bit just processed ends a symbol,
+and the remaining <code>bits</code> can either be empty [2], or represent yet
+more symbols [3,4].  So we <code>cons</code> that symbol to the result, and
+restart at the root of the tree.</li>
+<li><code>node</code> is not a leaf and <code>bits</code> is empty, then the decode process
+ends.</li>
+<li>the bit is 0, then go to the left branch.</li>
+<li>the bit is 1, then go to the right branch.</li>
+<li>the bit is neither 0 or 1, there's a bad bit in <code>bits</code>.</li>
+</ol>
+
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">decode</span> bits tree)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">run</span> bits node)
+    (<span style="font-weight: bold;">cond</span> [(leaf? node) (cons (symbol-leaf node) (run bits tree))] <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[1]</span>
+          [(null? bits) '()]                                       <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[2]</span>
+          [(= (car bits) 0) (run (cdr bits) (left-branch node))]   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[3]</span>
+          [(= (car bits) 1) (run (cdr bits) (right-branch node))]  <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[4]</span>
+          [else (error <span style="font-style: italic;">"bad bit in DECODE"</span> (car bits))]))          <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[5]</span>
+  (run bits tree))
+</pre>
+</div>
+
+<p>
+Example of decode:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">sample-tree</span>
+  (make-code-tree (make-leaf 'A 4)
+                  (make-code-tree (make-leaf 'B 2)
+                                  (make-code-tree (make-leaf 'D 1)
+                                                  (make-leaf 'C 1)))))
+
+(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">sample-bits</span> '(0 1 1 0 0 1 0 1 0 1 1 1 0))
+(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">sample-message</span> '(A D A B B C A))
+
+(equal? (decode sample-bits sample-tree) sample-message) <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#t</span>
+</pre>
+</div>
+
+<p>
+The encode process:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">encode</span> msg tree)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">encode-symbol</span> symbol node)
+    (<span style="font-weight: bold;">if</span> (leaf? node)
+        '()
+        (<span style="font-weight: bold;">let</span> ([left (left-branch node)]
+              [right (right-branch node)])
+          (<span style="font-weight: bold;">cond</span> [(memq symbol (symbols left))
+                 (cons 0 (encode-symbol symbol left))]
+                [(memq symbol (symbols right))
+                 (cons 1 (encode-symbol symbol right))]
+                [else (error <span style="font-style: italic;">"Symbol not in tree:"</span> symbol)]))))
+  (<span style="font-weight: bold;">if</span> (null? msg)
+      '()
+      (append (encode-symbol (car msg) tree)
+              (encode (cdr msg) tree))))
+
+(equal? (encode sample-message sample-tree) sample-bits) <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#t</span>
+</pre>
+</div>
+
+<p>
+In building the Huffman tree, the symbol-frequency pairs are given
+where all the symbols are unique.  The <code>pairs</code> are first converted by
+<code>make-leaf-set</code> to an ordered set (list) of leaves, and then merged to
+the final tree (which we'll talk later).  <code>adjoin-set</code> adds <code>node</code>
+(note this is a <i>node</i>, not just a <i>leaf</i>) to an ordered list <code>set</code>.
+It assumes <code>node</code> is never in <code>set</code>.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme"><span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">This is defined later.</span>
+<span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">(define (generate-huffman-tree pairs)</span>
+<span style="font-weight: bold; font-style: italic;">;;   </span><span style="font-weight: bold; font-style: italic;">(successive-merge (make-leaf-set pairs)))</span>
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">adjoin-set</span> node set)
+  (<span style="font-weight: bold;">cond</span> [(null? set) (list node)]
+        [(&lt; (weight node) (weight (car set))) (cons node set)]
+        [else (cons (car set)
+                    (adjoin-set node (cdr set)))]))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-leaf-set</span> pairs)
+  (<span style="font-weight: bold;">if</span> (null? pairs)
+      '()
+      (<span style="font-weight: bold;">let</span> ([pair (car pairs)]
+            [rest (cdr pairs)])
+        (adjoin-set (make-leaf (car pair) (cadr pair))
+                    (make-leaf-set rest)))))
+
+(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">sample-pairs</span> '((A 4) (B 2) (C 1) (D 1)))
+(make-leaf-set sample-pairs)
+<span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">((leaf D 1) (leaf C 1) (leaf B 2) (leaf A 4))</span>
+</pre>
+</div>
+
+<p>
+<code>successive-merge</code> uses <code>make-code-tree</code> to successively merge the
+smallest-weight elements of the set until there's only one element
+left.  The ordered set originally contains only leaves, but the leaves
+are merged to become general tree nodes.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">generate-huffman-tree</span> pairs)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">successive-merge</span> set)
+    (<span style="font-weight: bold;">if</span> (null? (cdr set))
+        (car set)                 <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">only one element left, it's the tree</span>
+        (<span style="font-weight: bold;">let</span> ([first (car set)]
+              [second (cadr set)]
+              [rest (cddr set)])
+          (successive-merge
+           (adjoin-set (make-code-tree first second) <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">merge first &amp; second</span>
+                       rest)))))                     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">and join with rest</span>
+  (successive-merge (make-leaf-set pairs)))
+
+(generate-huffman-tree sample-pairs)
+<span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">((leaf A 4)</span>
+<span style="font-weight: bold; font-style: italic;">;;  </span><span style="font-weight: bold; font-style: italic;">((leaf B 2)</span>
+<span style="font-weight: bold; font-style: italic;">;;   </span><span style="font-weight: bold; font-style: italic;">((leaf D 1) (leaf C 1) (D C) 2)</span>
+<span style="font-weight: bold; font-style: italic;">;;   </span><span style="font-weight: bold; font-style: italic;">(B D C)</span>
+<span style="font-weight: bold; font-style: italic;">;;   </span><span style="font-weight: bold; font-style: italic;">4)</span>
+<span style="font-weight: bold; font-style: italic;">;;  </span><span style="font-weight: bold; font-style: italic;">(A B D C)</span>
+<span style="font-weight: bold; font-style: italic;">;;  </span><span style="font-weight: bold; font-style: italic;">8)</span>
+
+(<span style="font-weight: bold;">let</span> ([tree (generate-huffman-tree sample-pairs)])
+  (<span style="font-weight: bold;">and</span> (equal? (encode sample-message tree) sample-bits)
+       (equal? (decode sample-bits tree) sample-message))) <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#t</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org3e60cb5" class="outline-2">
+<h2 id="org3e60cb5"><span class="section-number-2">11.</span> <a href="#org3e60cb5">Generic operations</a></h2>
+<div class="outline-text-2" id="text-11">
+
+<figure id="orgff3632d">
+<img src="./ch2/Fig2.20.svg" alt="Fig2.20.svg" class="org-svg" width="60%" style="margin-left: auto; margin-right: auto;">
+
+</figure>
+
+<p>
+A complex number \(z = x + i y = r \, e^{i A}\) can be represented in
+either rectangular form as \((x, y)\) or in polar form as \((r, A)\).
+Both form can be implemented with a <code>cons</code> pair.
+</p>
+<ul class="org-ul">
+<li>We get \(x\) and \(y\) with <code>real-part</code> and <code>imag-part</code>.</li>
+<li>We get \(r\) and \(A\) with <code>magnitude</code> and <code>angle</code>.</li>
+<li>We construct a complex number using \((x, y)\) or \((r, A)\) with
+<code>make-from-real-imag</code> and <code>make-from-mag-ang</code>.</li>
+</ul>
+
+<p>
+Axiom for the six functions:
+</p>
+<div class="org-src-container">
+<pre class="src src-text">(make-from-real-imag (real-part z) (imag-part z)) is equal to z
+(make-from-mag-ang (magnitude z) (angle z))       is equal to z
+</pre>
+</div>
+
+<p>
+Assuming we have implemented the six functions, we can use them to do
+complex arithmetic.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">add-complex</span> z1 z2)
+  (make-from-real-imag (+ (real-part z1) (real-part z2))
+                       (+ (imag-part z1) (imag-part z2))))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sub-complex</span> z1 z2)
+  (make-from-real-imag (- (real-part z1) (real-part z2))
+                       (- (imag-part z1) (imag-part z2))))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">mul-complex</span> z1 z2)
+  (make-from-mag-ang (* (magnitude z1) (magnitude z2))
+                     (+ (angle z1) (angle z2))))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">div-complex</span> z1 z2)
+  (make-from-mag-ang (/ (magnitude z1) (magnitude z2))
+                     (- (angle z1) (angle z2))))
+</pre>
+</div>
+
+<p>
+The resulting complex-number system has the structure shown below.
+</p>
+
+
+<figure id="orga5c954e">
+<img src="./ch2/Fig2.21a.svg" alt="Fig2.21a.svg" class="org-svg" width="80%" style="margin-left: auto; margin-right: auto;">
+
+</figure>
+</div>
+
+<div id="outline-container-orga09b6f7" class="outline-3">
+<h3 id="orga09b6f7"><span class="section-number-3">11.1.</span> <a href="#orga09b6f7">Implementation</a></h3>
+<div class="outline-text-3" id="text-11-1">
+<p>
+We convert each pair into a <i>tagged datum</i> by attaching a type tag
+(<code>'rectangular</code> or <code>'polar</code>) in front of the pair so as not to confuse
+one form with another.  A tagged datum is a <code>cons</code> pair of the type
+tag and its content.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">attach-tag</span> type-tag content)
+  (cons type-tag content))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">type-tag</span> datum)
+  (<span style="font-weight: bold;">if</span> (pair? datum)
+      (car datum)
+      (error <span style="font-style: italic;">"Bad tagged datum: TYPE-TAG"</span> datum)))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">content</span> datum)
+  (<span style="font-weight: bold;">if</span> (pair? datum)
+      (cdr datum)
+      (error <span style="font-style: italic;">"Bad tagged datum: CONTENT"</span> datum)))
+</pre>
+</div>
+
+<p>
+By checking the type tag, we can distinguish from the two
+representations:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">rectangular?</span> z)
+  (eq? (type-tag z) 'rectangular))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">polar?</span> z)
+  (eq? (type-tag z) 'polar))
+</pre>
+</div>
+
+<p>
+We add the suffix <code>-rectangular</code> or <code>-polar</code> to the above 6 functions
+to distinguish on which form the procedure is operating on (or is
+constructing).
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">square</span> x) (* x x))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">real-part-rectangular</span> z) (car z))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">imag-part-rectangular</span> z) (cdr z))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">magnitude-rectangular</span> z)
+  (sqrt (+ (square (real-part-rectangular z))
+           (square (imag-part-rectangular z)))))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">angle-rectangular</span> z)
+  (atan (imag-part-rectangular z)
+        (real-part-rectangular z)))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-from-real-imag-rectangular</span> x y)
+  (attach-tag 'rectangular (cons x y)))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-from-mag-ang-rectangular</span> r a)
+  (attach-tag 'rectangular
+              (cons (* r (cos a)) (* r (sin a)))))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">real-part-polar</span> z)
+  (* (magnitude-polar z) (cos (angle-polar z))))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">imag-part-polar</span> z)
+  (* (magnitude-polar z) (sin (angle-polar z))))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">magnitude-polar</span> z) (car z))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">angle-polar</span> z) (cdr z))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-from-real-imag-polar</span> x y)
+  (attach-tag 'polar
+              (cons (sqrt (+ (square x) (square y)))
+                    (atan y x))))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-from-mag-ang-polar</span> r a)
+  (attach-tag 'polar (cons r a)))
+</pre>
+</div>
+
+<p>
+The above functions (excepting constructors) can be organized into an
+operation-type table, where the rows represent operations and the
+columns represent different types (representations).
+</p>
+
+
+<figure id="orgb2577c2">
+<img src="./ch2/Fig2.22.svg" alt="Fig2.22.svg" class="org-svg" width="80%" style="margin-left: auto; margin-right: auto;">
+
+</figure>
+
+<p>
+To combine different types and operations, we have three choices:
+</p>
+<ul class="org-ul">
+<li>dispatch on data types: have the function decide what to do
+depending on the data type given.  This is called explicit dispatch.</li>
+<li>dispatch on operation names: have the object decide what to do
+depending on the name of the operation given.  This style of
+programming is called <i>message passing</i>.</li>
+<li>dispatch on both: have <b>only one</b> general procedure that decides
+what to do depending on both the type of data and name of operation.
+This is called <i>data-directed programming</i>.</li>
+</ul>
+
+<blockquote>
+<p>
+The key idea of data-directed programming is to handle generic
+operations in programs by dealing explicitly with operation-and-type
+tables.  The style of programming we used in Section 2.4.2 (dispatch
+on data types) organized the required dispatching on type by having
+each operation take care of its own dispatching.  In effect, this
+decomposes the operation-and-type table into rows, with each generic
+operation procedure representing a row of the table.
+</p>
+
+<p>
+An alternative implementation strategy is to decompose the table into
+columns and, instead of using "intelligent operations" that dispatch
+on data types, to work with "intelligent data objects" that dispatch
+on operation names.  We can do this by arranging things so that a data
+object, such as a rectangular number, is represented as a procedure
+that takes as input the required operation name and performs the
+operation indicated.
+</p>
+</blockquote>
+</div>
+</div>
+
+<div id="outline-container-org46b526e" class="outline-3">
+<h3 id="org46b526e"><span class="section-number-3">11.2.</span> <a href="#org46b526e">Dispatch on data types</a></h3>
+<div class="outline-text-3" id="text-11-2">
+<p>
+Let each general procedure operate on the complex number <code>z</code> depending
+on the type of <code>z</code>:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">real-part</span> z)
+  (<span style="font-weight: bold;">cond</span> [(rectangular? z) (real-part-rectangular (contents z))]
+        [(polar? z) (real-part-polar (contents z))]
+        [else (error <span style="font-style: italic;">"Unknown type: REAL-PART"</span> z)]))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">imag-part</span> z)
+  (<span style="font-weight: bold;">cond</span> [(rectangular? z) (imag-part-rectangular (contents z))]
+        [(polar? z) (imag-part-polar (contents z))]
+        [else (error <span style="font-style: italic;">"Unknown type: IMAG-PART"</span> z)]))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">magnitude</span> z)
+  (<span style="font-weight: bold;">cond</span> [(rectangular? z) (magnitude-rectangular (contents z))]
+        [(polar? z) (magnitude-polar (contents z))]
+        [else (error <span style="font-style: italic;">"Unknown type: MAGNITUDE"</span> z)]))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">angle</span> z)
+  (<span style="font-weight: bold;">cond</span> [(rectangular? z) (angle-rectangular (contents z))]
+        [(polar? z) (angle-polar (contents z))]
+        [else (error <span style="font-style: italic;">"Unknown type: ANGLE"</span> z)]))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-from-real-imag</span> x y)
+  (make-from-real-imag-rectangular x y))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-from-mag-ang</span> r a)
+  (make-from-mag-ang-polar r a))
+</pre>
+</div>
+
+<p>
+This approach, however, is not <i>additive</i>&#x2014;code has to change each
+time a new type is added.
+</p>
+<blockquote>
+<p>
+The person implementing the generic selector procedures must modify
+those procedures each time a new representation is installed, and the
+people interfacing the individual representations must modify their
+code to avoid name conflicts.
+</p>
+</blockquote>
+</div>
+</div>
+
+<div id="outline-container-org542e5f3" class="outline-3">
+<h3 id="org542e5f3"><span class="section-number-3">11.3.</span> <a href="#org542e5f3">Dispatch on operation names</a></h3>
+<div class="outline-text-3" id="text-11-3">
+<p>
+Message passing represents an object with a procedure that takes as
+input the required operation name and perform the operation indicated.
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-from-real-imag</span> x y)
+  (<span style="font-weight: bold;">lambda</span> (op)
+    (<span style="font-weight: bold;">cond</span> [(eq? op 'real-part) x]
+          [(eq? op 'imag-part) y]
+          [(eq? op 'magnitude) (sqrt (+ (* x x) (* y y)))]
+          [(eq? op 'angle) (atan y x)]
+          [else (error <span style="font-style: italic;">"Unknown op: MAKE-FROM-REAL-IMAG"</span> op)])))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-from-mag-ang</span> r a)
+  (<span style="font-weight: bold;">lambda</span> (op)
+    (<span style="font-weight: bold;">cond</span> [(eq? op 'real-part) (* r (cos a))]
+          [(eq? op 'imag-part) (* r (sin a))]
+          [(eq? op 'magnitude) r]
+          [(eq? op 'angle) a]
+          [else (error <span style="font-style: italic;">"Unknown op: MAKE-FROM-MAG-ANG"</span> op)])))
+</pre>
+</div>
+
+<p>
+This technique is also used in the <code>make-stack</code> and <code>make-queue</code>
+procedures in <a href="http:/blog/content/scheme/tspl4/ch2.org">Chapter 2</a> of TSPL4.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org39a015a" class="outline-3">
+<h3 id="org39a015a"><span class="section-number-3">11.4.</span> <a href="#org39a015a">Dispatch on both</a></h3>
+<div class="outline-text-3" id="text-11-4">
+<p>
+In dispatching on data type, the interfaces were 6 functions that each
+perform an explicit dispatch on type (for example, <code>real-part</code> calls
+<code>real-part-rectangular</code> or <code>real-part-polar</code> according to the type of
+<code>z</code>).  Now, we will implement the interface as <b>a single procedure</b>
+that looks up the combination of the operation name &amp; argument type in
+the table to find the correct procedure to apply.
+</p>
+
+<p>
+Assuming we have two procedures, <code>put</code> and <code>get</code>, for manipulating the
+operation-and-type table:
+</p>
+<ul class="org-ul">
+<li><code>(put &lt;op&gt; &lt;type&gt; &lt;item&gt;)</code> installs the <code>&lt;item&gt;</code> in the table,
+indexed by <code>&lt;op&gt;</code> and <code>&lt;type&gt;</code>.</li>
+<li><code>(get &lt;op&gt; &lt;type&gt;)</code> looks up the <code>&lt;op&gt;</code>, <code>&lt;type&gt;</code> entry in the table
+and returns the item found there.  If no item is found, <code>get</code>
+returns false.</li>
+</ul>
+
+<p>
+<code>put</code> and <code>get</code> can be implemented with hash table:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">table</span> (make-hash-table))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">put</span> op type item)
+  (hash-set! table (list op type) item))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">get</span> op type)
+  (hash-ref table (list op type)))
+</pre>
+</div>
+
+<p>
+The two representations can now be installed with:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">install-rectangular-package</span>)
+  <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">internal procedures</span>
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">real-part</span> z) (car z))
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">imag-part</span> z) (cdr z))
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-from-real-imag</span> x y) (cons x y))
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">magnitude</span> z)
+    (sqrt (+ (square (real-part z))
+             (square (imag-part z)))))
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">angle</span> z)
+    (atan (imag-part z) (real-part z)))
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-from-mag-ang</span> r a)
+    (cons (* r (cos a)) (* r (sin a))))
+
+  <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">interface to the rest of the system</span>
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">tag</span> x) (attach-tag 'rectangular x))
+  (put 'real-part '(rectangular) real-part) <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[1]</span>
+  (put 'imag-part '(rectangular) imag-part)
+  (put 'magnitude '(rectangular) magnitude)
+  (put 'angle '(rectangular) angle)
+  (put 'make-from-real-imag 'rectangular    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[2]</span>
+       (<span style="font-weight: bold;">lambda</span> (x y) (tag (make-from-real-imag x y))))
+  (put 'make-from-mag-ang 'rectangular
+       (<span style="font-weight: bold;">lambda</span> (r a) (tag (make-from-mag-ang r a))))
+  'done)
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">install-polar-package</span>)
+  <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">internal procedures</span>
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">magnitude</span> z) (car z))
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">angle</span> z) (cdr z))
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-from-mag-ang</span> r a) (cons r a))
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">real-part</span> z) (* (magnitude z) (cos (angle z))))
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">imag-part</span> z) (* (magnitude z) (sin (angle z))))
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-from-real-imag</span> x y)
+    (cons (sqrt (+ (square x) (square y)))
+          (atan y x)))
+
+  <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">interface to the rest of the system</span>
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">tag</span> x) (attach-tag 'polar x))
+  (put 'real-part '(polar) real-part)
+  (put 'imag-part '(polar) imag-part)
+  (put 'magnitude '(polar) magnitude)
+  (put 'angle '(polar) angle)
+  (put 'make-from-real-imag 'polar
+       (<span style="font-weight: bold;">lambda</span> (x y) (tag (make-from-real-imag x y))))
+  (put 'make-from-mag-ang 'polar
+       (<span style="font-weight: bold;">lambda</span> (r a) (tag (make-from-mag-ang r a))))
+  'done)
+</pre>
+</div>
+
+<p>
+Note that for constructors [2], since the result is only of one type,
+the tag is a symbol.  However, for other procedures such as
+<code>real-part</code> [1], they can have arguments of different types, so a list
+of symbol is used as tag.
+</p>
+
+<p>
+The complex-arithmetic selectors access the table by means of a
+general "operation" procedure called <code>apply-generic</code>, which applies a
+generic operation to some arguments.  <code>apply-generic</code> looks in the
+table under the name of the operation and the types of the arguments
+and applies the resulting procedure if one is present:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">apply-generic</span> op . args)
+  (<span style="font-weight: bold;">let</span> ((type-tags (<span style="font-weight: bold;">map</span> type-tag args))) <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">type tag of each argument</span>
+    (<span style="font-weight: bold;">let</span> ((proc (get op type-tags)))     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">get procedure in table</span>
+      (<span style="font-weight: bold;">if</span> proc
+          (apply proc (<span style="font-weight: bold;">map</span> contents args))
+          (error <span style="font-style: italic;">"No method for these types: APPLY-GENERIC"</span>
+                 (list op type-tags))))))
+</pre>
+</div>
+
+<p>
+Using <code>apply-generic</code>, we can define generic selectors and the
+constructors as follows:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">real-part</span> z) (apply-generic 'real-part z))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">imag-part</span> z) (apply-generic 'imag-part z))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">magnitude</span> z) (apply-generic 'magnitude z))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">angle</span> z) (apply-generic 'angle z))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-from-real-imag</span> x y)
+  ((get 'make-from-real-imag 'rectangular) x y))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-from-mag-ang</span> r a)
+  ((get 'make-from-mag-ang 'polar) r a))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orga180e68" class="outline-3">
+<h3 id="orga180e68"><span class="section-number-3">11.5.</span> <a href="#orga180e68">Ex 2.76 &#x2014; a conclusion</a></h3>
+<div class="outline-text-3" id="text-11-5">
+<blockquote>
+<p>
+As a large system with generic operations evolves, new types of data
+objects or new operations may be needed.  For each of the three
+strategies&#x2014;generic operations with explicit dispatch, data-directed
+style, and message-passing-style&#x2014;describe the changes that must be
+made to a system in order to add new types or new operations.  Which
+organization would be most appropriate for a system in which new types
+must often be added? Which would be most appropriate for a system in
+which new operations must often be added?
+</p>
+</blockquote>
+
+<ul class="org-ul">
+<li>Explicit dispatch allows to add new <b>operations</b> without changing
+already written code.</li>
+<li>Message-passing allows to add new <b>types</b> without changing already
+written code.</li>
+<li>Data-directed approach allows to add new types and new operations
+just by adding new entries in the operation-and-type table.</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org75db324" class="outline-2">
+<h2 id="org75db324"><span class="section-number-2">12.</span> <a href="#org75db324">Symbolic differentiation revisited</a></h2>
+<div class="outline-text-2" id="text-12">
+<p>
+From Ex 2.73.
+</p>
+
+<p>
+Recall the <code>deriv</code> procedure in symbolic differentiation:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">deriv</span> exp var)
+  (<span style="font-weight: bold;">cond</span> [(constant? exp var) 0]
+        [(same-var? exp var) 1]
+        [(sum? exp)
+         (make-sum (deriv (a1 exp) var)
+                   (deriv (a2 exp) var))]
+        [(product? exp)
+         (make-sum (make-product (m1 exp) (deriv (m2 exp) var))
+                   (make-product (m2 exp) (deriv (m1 exp) var)))]))
+</pre>
+</div>
+
+<p>
+We can regard this program as performing a dispatch on the type of the
+expression to be differentiated.  In this situation the "type tag" of
+the datum is the algebraic operator symbol (such as <code>+</code>) and the
+operation being performed is <code>deriv</code>.  We can transform this program
+into data-directed style by rewriting the basic derivative procedure
+as
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">deriv</span> exp var)
+  (<span style="font-weight: bold;">cond</span> [(constant? exp var) 0]
+        [(save-var? exp var) 1]
+        [else ((get 'deriv (operator exp))
+               (operands exp) var)]))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">operator</span> exp) (car exp))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">operands</span> exp) (cdr exp))
+</pre>
+</div>
+
+<p>
+Now the complete code:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">atom?</span> exp)
+  (not (pair? exp)))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">constant?</span> exp var)
+  <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">whether the expression (exp) is a constant</span>
+  <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">with respect to the variable (var)</span>
+  (<span style="font-weight: bold;">and</span> [atom? exp]
+       [not (eq? exp var)]))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">same-var?</span> exp var)
+  (<span style="font-weight: bold;">and</span> [atom? exp]
+       [eq? exp var]))
+
+(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">put</span> '())
+(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">get</span> '())
+(<span style="font-weight: bold;">let</span> ([table (make-hash-table)])        <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">hide `table' from other functions</span>
+  (set! put
+        (<span style="font-weight: bold;">lambda</span> (op type item)
+          (hash-set! table (list op type) item)))
+  (set! get
+        (<span style="font-weight: bold;">lambda</span> (op type)
+          (hash-ref table (list op type)))))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">install-symbolic-deriv-package</span>)
+  <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">same as in deriv.scm</span>
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-sum</span> a1 a2)
+    (<span style="font-weight: bold;">cond</span> [(<span style="font-weight: bold;">and</span> (number? a1) (number? a2)) (+ a1 a2)]
+          [(<span style="font-weight: bold;">and</span> (number? a1) (zero? a1)) a2]
+          [(<span style="font-weight: bold;">and</span> (number? a2) (zero? a2)) a1]
+          [else (list '+ a1 a2)]))
+
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">a1</span> exp) (cadr exp))
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">a2</span> exp) (caddr exp))
+
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">make-product</span> m1 m2)
+    (<span style="font-weight: bold;">cond</span> [(<span style="font-weight: bold;">and</span> (number? m1) (number? m2)) (* m1 m2)]
+          [(<span style="font-weight: bold;">and</span> (number? m1) (= m1 1)) m2]
+          [(<span style="font-weight: bold;">and</span> (number? m2) (= m2 1)) m1]
+          [(<span style="font-weight: bold;">or</span> (<span style="font-weight: bold;">and</span> (number? m1) (zero? m1))
+               (<span style="font-weight: bold;">and</span> (number? m2) (zero? m2))) 0]
+          [else (list '* m1 m2)]))
+
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">m1</span> exp) (cadr exp))
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">m2</span> exp) (caddr exp))
+
+  <span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">deriv-sum &amp; deriv-product</span>
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">deriv-sum</span> exp var)
+    (make-sum (deriv (a1 exp) var)
+              (deriv (a2 exp) var)))
+
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">deriv-product</span> exp var)
+    (make-sum (make-product (m1 exp) (deriv (m2 exp) var))
+              (make-product (m2 exp) (deriv (m1 exp) var))))
+
+  (put 'deriv '+ deriv-sum)
+  (put 'deriv '* deriv-product)
+
+  'done)
+
+(install-symbolic-deriv-package)
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">operator</span> exp) (car exp))
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">operands</span> exp) (cdr exp))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">deriv</span> exp var)
+  (<span style="font-weight: bold;">cond</span> [(constant? exp var) 0]
+        [(same-var? exp var) 1]
+        [else ((get 'deriv (operator exp))
+               exp var)]))
+
+(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">foo</span> '(+ (* a (* x x))           <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">ax^2 + bx + c</span>
+                (+ (* b x)
+                   c)))
+
+(deriv foo 'x)                          <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(+ (* a (+ x x)) b)</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org48e4493" class="outline-2">
+<h2 id="org48e4493"><span class="section-number-2">13.</span> <a href="#org48e4493">Exercises</a></h2>
+<div class="outline-text-2" id="text-13">
+</div>
+<div id="outline-container-org74150c6" class="outline-3">
+<h3 id="org74150c6"><span class="section-number-3">13.1.</span> <a href="#org74150c6">Ex 2.6 &#x2014; Church numerals</a></h3>
+<div class="outline-text-3" id="text-13-1">
+<blockquote>
+<p>
+In case representing pairs as procedures wasn't mind-boggling enough,
+consider that, in a language that can manipulate procedures, we can
+get by without numbers (at least insofar as non-negative integers are
+concerned) by implementing 0 and the operation of adding 1 as
+</p>
+
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">zero</span> (<span style="font-weight: bold;">lambda</span> (f) (<span style="font-weight: bold;">lambda</span> (x) x)))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">add-1</span> n) (<span style="font-weight: bold;">lambda</span> (f) (<span style="font-weight: bold;">lambda</span> (x) (f ((n f) x)))))
+</pre>
+</div>
+
+<p>
+This representation is known as <i>Church numerals</i>, after its inventor,
+Alonzo Church, the logician who invented the calculus.
+</p>
+
+<p>
+Define <code>one</code> and <code>two</code> directly (not in terms of <code>zero</code> and
+<code>add-1</code>). (Hint: Use substitution to evaluate <code>(add-1 zero)</code>). Give a
+direct definition of the addition procedure <code>+</code> (not in terms of
+repeated application of <code>add-1</code>).
+</p>
+</blockquote>
+
+<p>
+Recall the two functions <code>compose</code> and <code>repeated</code> from Ex 1.42 and 1.43:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">((compose square inc) 6)                <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(square (inc 6)) = 49</span>
+((repeated square 2) 5)                 <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(square (square 5)) = 625</span>
+</pre>
+</div>
+<p>
+A Church number <code>cn</code> (that corresponds to a normal integer <code>n</code>) is a
+function that takes a one-argument function <code>f</code>, and applies it <code>n</code>
+times.  That is, <code>(cn f)</code> is equivalent to <code>(repeated f n)</code>.
+</p>
+
+<p>
+First we have <code>zero</code> and <code>add-1</code>:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">zero</span>
+  (<span style="font-weight: bold;">&#955;</span> (f)
+    (<span style="font-weight: bold;">&#955;</span> (x)
+      x)))                              <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">does not apply f</span>
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">add-1</span> n)
+  (<span style="font-weight: bold;">&#955;</span> (f)
+    (<span style="font-weight: bold;">&#955;</span> (x)
+      (f ((n f) x)))))
+
+((zero square) 5)                       <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">5</span>
+(((add-1 zero) square) 5)               <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">25</span>
+(((add-1 (add-1 zero)) square) 5)       <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">625</span>
+
+((repeated square 0) 5)                 <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">5</span>
+((repeated square 1) 5)                 <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">25</span>
+((repeated square 2) 5)                 <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">625</span>
+</pre>
+</div>
+
+<p>
+<code>one</code> and <code>two</code> become quite easy now that we know what Church numbers
+do:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">one</span>
+  (<span style="font-weight: bold;">&#955;</span> (f)
+    (<span style="font-weight: bold;">&#955;</span> (x)
+      (f x))))                          <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">apply 1 time</span>
+
+(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">two</span>
+  (<span style="font-weight: bold;">&#955;</span> (f)
+    (<span style="font-weight: bold;">&#955;</span> (x)
+      (f (f x)))))                      <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">apply 2 times</span>
+
+((one square) 5)                        <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">25</span>
+((two square) 5)                        <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">625</span>
+</pre>
+</div>
+
+<p>
+In order to get 3, we can add <code>one</code> and <code>two</code>, and obtain as result
+something like <code>(f (f (f x)))</code>.  <code>((one f) x)</code> is <code>(f x)</code>, <code>(two f)</code>
+is <code>(λ (x) (f (f x)))</code>.  Make <code>((one f) x)</code> the argument of <code>(two f)</code>,
+we get:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">((two f) ((one f) x))                   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">=&gt; (f (f (f x)))</span>
+</pre>
+</div>
+
+<p>
+So addition is:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">add</span> a b)
+  (<span style="font-weight: bold;">&#955;</span> (f)
+    (<span style="font-weight: bold;">&#955;</span> (x)
+      ((a f) ((b f) x)))))
+
+((two square) ((one square) 5))         <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">390625</span>
+(((add one two) square) 5)              <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">390625</span>
+</pre>
+</div>
+
+<p>
+One can use these as normal integers:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">church-&gt;int</span> ch)
+  ((ch 1+) 0))
+
+(church-&gt;int zero)                      <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">0</span>
+(church-&gt;int two)                       <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">2</span>
+(church-&gt;int (add one two))             <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">3</span>
+
+(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">three</span> (add one two))
+(church-&gt;int (add two three))           <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">5</span>
+</pre>
+</div>
+
+<p>
+Here's a more concise implementation of <code>add</code>:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">add</span> a b)
+  ((a add-1) b))
+</pre>
+</div>
+<p>
+Here <code>(a add-1)</code> essentially transforms <code>add-1</code> to <code>add-a</code>, a function
+that adds <code>a</code> to a Church number.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org36bdc39" class="outline-3">
+<h3 id="org36bdc39"><span class="section-number-3">13.2.</span> <a href="#org36bdc39">Ex 2.20 &#x2014; dotted-tail notation</a></h3>
+<div class="outline-text-3" id="text-13-2">
+<blockquote>
+<p>
+The procedures <code>+</code>, <code>*</code>, and <code>list</code> take arbitrary numbers of
+arguments.  One way to define such procedures is to use define with
+<i>dotted-tail notation</i>.  In a procedure definition, a parameter list
+that has a dot before the last parameter name indicates that, when the
+procedure is called, the initial parameters (if any) will have as
+values the initial arguments, as usual, but the final parameter's
+value will be a <i>list</i> of any remaining arguments.  For instance,
+given the definition
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">f</span> x y . z) <span style="font-weight: bold; text-decoration: underline;">&lt;body&gt;</span>)
+</pre>
+</div>
+<p>
+the procedure <code>f</code> can be called with two or more arguments.
+If we evaluate
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(f 1 2 3 4 5 6)
+</pre>
+</div>
+<p>
+then in the body of <code>f</code>, <code>x</code> will be 1, <code>y</code> will be 2, and <code>z</code> will be
+the list <code>(3 4 5 6)</code>.  Given the definition
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">g</span> . w) <span style="font-weight: bold; text-decoration: underline;">&lt;body&gt;</span>)
+</pre>
+</div>
+<p>
+the procedure <code>g</code> can be called with zero or more arguments.
+If we evaluate
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(g 1 2 3 4 5 6)
+</pre>
+</div>
+<p>
+then in the body of <code>g</code>, w will be the list <code>(1 2 3 4 5 6)</code>.
+</p>
+
+<p>
+Use this notation to write a procedure <code>same-parity</code> that takes one or
+more integers and returns a list of all the arguments that have the
+same even-odd parity as the first argument.  For example,
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(same-parity 1 2 3 4 5 6 7)
+(1 3 5 7)
+
+(same-parity 2 3 4 5 6 7)
+(2 4 6)
+</pre>
+</div>
+</blockquote>
+
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">same-parity</span> first . rest)
+  (<span style="font-weight: bold;">let</span> ([pred (<span style="font-weight: bold;">if</span> (odd? first)
+                  odd?
+                  even?)])
+    (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">iter</span> l)
+      (<span style="font-weight: bold;">if</span> (null? l)
+          '()
+          (<span style="font-weight: bold;">let</span> ([first (car l)]
+                [rest  (cdr l)])
+            (<span style="font-weight: bold;">if</span> (pred first)
+                (cons first (iter rest))
+                (iter rest)))))
+    (cons first
+          (iter rest))))
+
+<span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">old solution</span>
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">same-parity</span> first . rest)
+  (<span style="font-weight: bold;">let</span> ((yes? (<span style="font-weight: bold;">if</span> (odd? first)
+                  odd?
+                  even?)))
+    (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">iter</span> l res)
+      (<span style="font-weight: bold;">cond</span> ((null? l) res)
+            ((yes? (car l)) (iter (cdr l) (cons (car l) res)))
+            (<span style="font-weight: bold;">else</span> (iter (cdr l) res))))
+    (cons first
+          (reverse (iter rest '())))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgc4ed6f3" class="outline-3">
+<h3 id="orgc4ed6f3"><span class="section-number-3">13.3.</span> <a href="#orgc4ed6f3">Ex 2.27 &#x2014; deep reverse</a></h3>
+<div class="outline-text-3" id="text-13-3">
+<blockquote>
+<p>
+Modify your <code>reverse</code> procedure of Exercise 2.18 to produce a
+<code>deep-reverse</code> procedure that takes a list as argument and returns as
+its value the list with its elements reversed and with all sub-lists
+deep-reversed as well.  For example,
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">x</span> (list (list 1 2) (list 3 4))) <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">((1 2) (3 4))</span>
+(reverse x)                             <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">((3 4) (1 2))</span>
+(deep-reverse x)                        <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">((4 3) (2 1))</span>
+</pre>
+</div>
+</blockquote>
+
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">deep-reverse</span> tree)
+  (<span style="font-weight: bold;">if</span> (atom? tree)
+      tree
+      (reverse (<span style="font-weight: bold;">map</span> deep-reverse tree))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org27113ee" class="outline-3">
+<h3 id="org27113ee"><span class="section-number-3">13.4.</span> <a href="#org27113ee">Ex 2.28 &#x2014; fringe</a></h3>
+<div class="outline-text-3" id="text-13-4">
+<blockquote>
+<p>
+Write a procedure <code>fringe</code> that takes as argument a tree (represented as
+a list) and returns a list whose elements are all the leaves of the
+tree arranged in left-to-right order.  For example,
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">x</span> (list (list 1 2) (list 3 4)))
+(fringe x)                              <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(1 2 3 4)</span>
+(fringe (list x x))                     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(1 2 3 4 1 2 3 4)</span>
+</pre>
+</div>
+</blockquote>
+
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">fringe</span> tree)
+  (<span style="font-weight: bold;">cond</span> [(null? tree) '()]
+        [(atom? tree) (list tree)]
+        [else (append (fringe (car tree))
+                      (fringe (cdr tree)))]))
+
+(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">fringe</span> tree)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">iter</span> tree res)
+    (<span style="font-weight: bold;">cond</span> [(null? tree) res]
+          [(atom? tree) (cons tree res)]
+          [else (iter (car tree)
+                      (iter (cdr tree) res))]))
+  (iter tree '()))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org2802b11" class="outline-3">
+<h3 id="org2802b11"><span class="section-number-3">13.5.</span> <a href="#org2802b11">Ex 2.32 &#x2014; subset</a></h3>
+<div class="outline-text-3" id="text-13-5">
+<blockquote>
+<p>
+We can represent a set as a list of distinct elements, and we can
+represent the set of all subsets of the set as a list of lists. For
+example, if the set is <code>(1 2 3)</code>, then the set of all subsets is <code>(()
+(3) (2) (2 3) (1) (1 3) (1 2) (1 2 3))</code>. Complete the following
+definition of a procedure that generates the set of subsets of a set
+and give a clear explanation of why it works:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">subsets</span> s)
+  (<span style="font-weight: bold;">if</span> (null? s)
+      (list nil)
+      (<span style="font-weight: bold;">let</span> ((rest (subsets (cdr s))))
+        (append rest (<span style="font-weight: bold;">map</span> <span style="font-weight: bold; text-decoration: underline;">&lt;??&gt;</span> rest)))))
+</pre>
+</div>
+</blockquote>
+
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">subsets</span> s)
+  (<span style="font-weight: bold;">if</span> (null? s)
+      (list '())
+      (<span style="font-weight: bold;">let</span> ([rest (subsets (cdr s))])
+        (append rest
+                (<span style="font-weight: bold;">map</span> (<span style="font-weight: bold;">lambda</span> (x)
+                       (cons (car s) x))
+                     rest)))))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org7ce3f0d" class="outline-3">
+<h3 id="org7ce3f0d"><span class="section-number-3">13.6.</span> <a href="#org7ce3f0d">Ex 2.35 &#x2014; counting leaves</a></h3>
+<div class="outline-text-3" id="text-13-6">
+<blockquote>
+<p>
+Redefine count-leaves from Section 2.2.2 as an accumulation.
+</p>
+</blockquote>
+
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">count-leaves</span> tree)
+  (accumulate + 0
+              (<span style="font-weight: bold;">map</span> (<span style="font-weight: bold;">lambda</span> (tree)
+                     (<span style="font-weight: bold;">if</span> (atom? tree)
+                         1
+                         (count-leaves tree)))
+                   tree)))
+</pre>
+</div>
+<p>
+This seems fine, but it will count the empty list as a leaf:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(count-leaves '(1 2 (3 (4 5) 6) 7))     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">7</span>
+(count-leaves '(1 2 (3 (4 5) 6) 7 ()))  <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">8</span>
+</pre>
+</div>
+
+<p>
+Take into consideration the empty list <code>'()</code>:
+</p>
+<div class="org-src-container">
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">count-leaves</span> tree)
+  (accumulate + 0
+              (<span style="font-weight: bold;">map</span> (<span style="font-weight: bold;">lambda</span> (tree)
+                     (<span style="font-weight: bold;">cond</span> [(null? tree) 0]
+                           [(atom? tree) 1]
+                           [else (count-leaves tree)]))
+                   tree)))
+
+(count-leaves '(1 2 (3 (4 5) 6) 7))     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">7</span>
+(count-leaves '(1 2 (3 (4 5) 6) 7 ()))  <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">7</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<hr><table class="postamble">
+  <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
+  <tr><td class="org-right">Created</td><td class="org-left">2021-07-04 09:17</td></tr>
+  <tr><td class="org-right">Modified</td><td class="org-left">2023-05-18 11:31</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2023-05-18 11:33</td></tr>
+  <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 28.2 (<a href="https://orgmode.org">Org</a> mode 9.5.5)</td></tr>
+  <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://raw.githubusercontent.com/thebesttv/thebesttv.github.io/main/content/sicp/ch2.org">ch2.org</a></td></tr>
+</table>
+</div>
+</body>
+</html>
