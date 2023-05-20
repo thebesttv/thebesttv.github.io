@@ -1,0 +1,41 @@
+#+title: 基于51单片机的心形LED流水帐
+#+date: <2023-05-20 Sat 21:54>
+#+author: thebesttv
+
+520 没有 npy，就自己弄板子玩，悲。
+
+好久没有玩玩硬件相关的了，就想着从简单的开始入门画板子。
+照着立创官方的[[https://oshwhub.com/course-examples/gong-cheng-wen-jian-ji-yu-51-dan-pian-ji-de-xin-xing-liu-shui-deng-she-ji][基于51单片机的心形流水灯设计]]画的板子，
+然后用 PlatformIO 上的 51 单片机样例改的代码。
+
+* 画板子
+
+使用 STC89C52RC 作为 MCU，Type-C 口供电（仅供电），30 个 LED，用排针引出串口烧录。
+一些小总结：
+- 直接使用 5V 驱动。
+- 晶振频率 11.0592 MHz。
+- 30 个 IO 口（P0.0--7、P1.0--7、P2.0--7、P3.2--7）对应 30 个 LED，使用低电平点亮。
+- P0.0--P0.7 作为 IO 口时需要外接 10K 的上拉电阻。
+- 元件都是直插的，方便焊接。
+- 外围电路很简单，基本只有晶振和复位。
+
+* 代码
+
+使用 PlatformIO 作为 IDE，开发板选择 Generic-8051，开一个空项目。
+然后再去 PIO Home 导入样例，选 anymcu-blink。
+=platformio.ini= 修改为：
+#+begin_src text
+  [env:STC89C52RC]
+  platform = intel_mcs51
+  board = STC89C52RC
+#+end_src
+
+具体代码在私有仓库里，单纯做个记录，就不放出来丢人了hh
+
+* 烧录
+
+PIO 在烧录时使用 [[https://github.com/grigorig/stcgal][stcgal]]，随便找一个 USB 转串口的线即可。
+
+注意​*烧录前先断开串口的 VCC*​，只接 RX、TX、GND。
+等开始烧录，显示 “Cycling power: done” 时再接上 VCC。
+或者，也可以一直插着 VCC，然后在烧录时重新插拔一次。
