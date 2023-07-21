@@ -1,0 +1,89 @@
+#+title: 键盘DIY
+#+date: <2023-07-21 Fri 23:04>
+#+author: thebesttv
+
+有两个想法
+- 超低成本键盘，按键不多，适合送人之类的hh
+- 分体键盘，成本尽量低，矮轴，希望有 OLED 屏
+
+* 键帽
+
+大多数是十字键帽，但凯华Choc不兼容。
+
+目前没找到十字的超低键帽，打算试试3D打印。
+
+* 矮轴
+
+主要有两种矮轴：
+- [[http://www.kailh.com/product/Ms/Choc/][凯华Choc]]：键帽不是十字的，接近三块一粒
+- [[https://www.gateron.co/products/gateron-low-profile-mechanical-switch-set][佳达隆矮轴]]：十字键帽，相对便宜点，两块几一粒
+两者的PCB均不兼容，也和MX不兼容。
+
+* 轴体固定方式
+
+** PCB
+
+** 定位板
+
+热插拔需要，可以用一块1mm的PCB代替（1.2的或许也行？）。
+
+** 3D打印
+
+直接打印一块定位板固定轴体，这样可以实现弯的键盘。
+
+* MCU
+
+** CH552
+
+主要分为 CH552G（SOP-16）和 CH552T（）。
+相比于基于 RISC-V 的 CH582，更容易焊接，也更便宜。
+可以用 Arduino 编程，[[#toby-chui][Toby Chui]] 的键盘里有样例代码。
+
+- [[https://blog.csdn.net/havc_W/article/details/122467144][沁恒CH552G实现最小系统]]
+- [[https://www.wch.cn/products/CH552.html][沁恒 CH552 介绍]]
+- [[https://www.wch.cn/products/productsCenter/mcuInterface?categoryId=72][CH552 所在的 E8051 USB 系列]]
+- [[https://github.com/DeqingSun/ch55xduino/tree/ch55xduino][ch55xduino]]
+
+* 按键扫描方式
+
+** 矩阵扫描
+
+大多数键盘采用的方法，缺点是每个按键都需要二极管，从而防止鬼键，此外不太
+清楚这种的怎么 debounce。
+
+** 并入串出
+
+从稚晖君的翰文上发现的。74HC165 是并入串出芯片，每个可以输入8位，也就是8个键。
+把多个 74HC165 串联，可以让 MCU 只用 1 个 IO 口（和几个控制芯片的端口）
+实现任意多键的扫描。
+
+稍微有点麻烦的是，每个按键需要一个10K的上拉电阻。
+可以使用 0603 的排阻代替4个电阻。
+
+* 一些成品
+
+** 分体键盘
+
+- [[https://github.com/diimdeep/awesome-split-keyboards][Awesome Split Keyboards]]
+- [[https://www.ergodox.io/][ErgoDox]]
+- [[https://github.com/pashutk/chocofi][Chocofi]]
+
+** Toby Chui 的两块基于 CH552 的键盘
+:PROPERTIES:
+:CUSTOM_ID: toby-chui
+:END:
+
+小的是 4 键，大的 5x4 键，PCB 大小可以控制在 10x10。
+大的虽然采用的是矩阵扫描，但好像没有用二极管防止鬼键。
+- [[https://twitter.com/toby_chui/status/1675050392038825984][twitter]]
+- [[https://www.instructables.com/DIY-3-Single-Chip-Macro-Keypad-From-Scratch-Arduin/][4xMacropad]]: DIY $3 Single Chip Macro Keypad From Scratch (Arduino IDE
+  Programmable!) 基于 CH552G 的低成本 4键 键盘
+
+* Misc
+
+- [[https://precondition.github.io/home-row-mods][A guide to home row mods]] 大概是说在 home row 放上 ctrl 和 alt 等控制键。
+- [[https://wiki.ai03.com/books/pcb-design/page/pcb-guide-part-1---preparations][ai03's Keyboard PCB Design Guide]]
+- [[https://github.com/ruiqimao/keyboard-pcb-guide][Keyboard PCB Guide]]
+- [[https://www.masterzen.fr/2020/05/03/designing-a-keyboard-part-1/][Designing a keyboard from scratch - Part 1]]
+- [[https://youtu.be/Mks7QDxFreY][The Charybdis Wireless Keyboard]] 使用很薄的PCB，来达到弯折的效果
+- [[https://oshwhub.com/nimrodlord/ada40][50%矮轴热插拔小键盘 ada51]] 定位板使用通用标准轴体开孔，但是是1mm厚
