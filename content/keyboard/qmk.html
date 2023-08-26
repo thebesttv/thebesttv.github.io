@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 2023-08-26 20:13 -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>QMK笔记</title>
+<meta name="author" content="thebesttv" />
+<meta name="generator" content="Org Mode" />
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-21YM95T3BQ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-21YM95T3BQ');
+</script>
+<!-- favicon -->
+<link rel="icon" type="image/x-icon" href="../../favicon.ico">
+<!-- CSS -->
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/latex.css/style.css">
+<link rel="stylesheet" type="text/css" href="../../css/org-default.css">
+<link rel="stylesheet" type="text/css" href="../../css/style.css">
+<!-- pagefind -->
+<link rel="stylesheet" type="text/css" href="../../_pagefind/pagefind-ui.css">
+<script src="../../_pagefind/pagefind-ui.js" type="text/javascript"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', (event) => {
+      new PagefindUI({element: "#search", showImages: false, resetStyles: false});
+  });
+</script>
+</head>
+<body>
+<div id="preamble" class="status">
+<nav class="org-center">
+<a href="../../index.html">Home</a>
+<div id="search"></div>
+<hr>
+</nav>
+</div>
+<div id="content" class="content">
+<header>
+<h1 class="title">QMK笔记</h1>
+</header><nav id="table-of-contents" role="doc-toc">
+<h2>&#30446;&#24405;</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#orgc48ea77">1. 使用 QMK 从零开始设计一个键盘的流程</a></li>
+<li><a href="#org91e1c8a">2. 合宙Air32F103</a>
+<ul>
+<li><a href="#org16a964e">2.1. 烧录QMK</a>
+<ul>
+<li><a href="#orgd051100">2.1.1. 使用 STM32duino BL</a></li>
+<li><a href="#orge50f131">2.1.2. 使用 UF2 BL</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgcddd420">3. 使用 74HC65 扫描按键</a></li>
+<li><a href="#org44076bf">4. 分体键盘</a></li>
+<li><a href="#org837c923">5. VIA</a>
+<ul>
+<li><a href="#orgf08757c">5.1. 固件配置</a></li>
+<li><a href="#orgab5f144">5.2. 配置文件</a></li>
+<li><a href="#org8155edb">5.3. VIA网页端使用</a></li>
+<li><a href="#orged575bf">5.4. Linux 下可能遇到的问题</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</nav>
+<hr style="width: 80%;">
+<ul class="org-ul">
+<li><a href="https://keebnews.com/qmk-tutorial/">QMK Tutorial: A Complete Guide (For Keyboard Nerds)</a></li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-bash">qmk new-keyboard
+qmk new-keymap -kb thebesttv/split27 -km via
+qmk compile -kb thebesttv/split27 -km via
+qmk console --bootloaders
+</pre>
+</div>
+
+<div id="outline-container-orgc48ea77" class="outline-2">
+<h2 id="orgc48ea77"><span class="section-number-2">1.</span> <a href="#orgc48ea77">使用 QMK 从零开始设计一个键盘的流程</a></h2>
+<div class="outline-text-2" id="text-1">
+<ol class="org-ol">
+<li>设计 layout：使用 <a href="http://www.keyboard-layout-editor.com/">KLE</a> 设计。可以在键位上直接写上矩阵座标，方便之后VIA的配置。</li>
+<li>生成PCB和定位板边框：使用 <a href="http://builder.swillkb.com/">Plate &amp; Case Builder</a>，直接把 KLE 的 raw
+data 复制过去。
+Switch Type 一般选 <code>t:1</code>，Stabilizer Type 一般 <code>s:2</code>。</li>
+<li>在 QMK 中添加新的键盘。
+其中 <code>info.json</code> 的 layout 的生成有两种方法：
+<ol class="org-ol">
+<li>使用 <a href="https://qmk.fm/converter/">Convert KLE raw to QMK info.json</a> 直接把 KLE 的 raw data 转换为 QMK 的 layout。</li>
+<li>不推荐：如果使用了 <a href="https://kbfirmware.com/">Keyboard Firmware Builder</a> 的话，生成的 JSON 文件非常大，
+需要用 <a href="https://noroadsleft.github.io/kbf_qmk_converter/">KBFirmware JSON to QMK Parser</a> 再次转换。</li>
+</ol></li>
+<li>设计 keymap</li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-org91e1c8a" class="outline-2">
+<h2 id="org91e1c8a"><span class="section-number-2">2.</span> <a href="#org91e1c8a">合宙Air32F103</a></h2>
+<div class="outline-text-2" id="text-2">
+<p>
+UPD: 现在有了9.9的树莓派Pico，这个就没啥必要了。
+</p>
+
+<p>
+使用合宙的 Air32F103 代替 STM32F103，目前选用 Air32F103CBT6，开发板9.9一个。
+基于 Air32F103 的几块 QMK 键盘：
+</p>
+<ul class="org-ul">
+<li><a href="https://oshwhub.com/ythfjjh/zq50">50%矮轴热插拔键盘</a></li>
+<li><a href="https://oshwhub.com/small_da/3jian-xiao-jian-pan-kuai-su-shan">3键小键盘-快速上手版ZY-03S</a></li>
+<li><a href="https://oshwhub.com/small_da/3jian-xiao-jian-pan-xuan-niu">3键小键盘-旋钮显示屏版ZY-03</a></li>
+</ul>
+<p>
+用的都是 <a href="https://github.com/zhaqian12/qmk_firmware/tree/zhaqian">zhaqian</a> 的固件和uf2bootloader。
+</p>
+</div>
+
+<div id="outline-container-org16a964e" class="outline-3">
+<h3 id="org16a964e"><span class="section-number-3">2.1.</span> <a href="#org16a964e">烧录QMK</a></h3>
+<div class="outline-text-3" id="text-2-1">
+<ul class="org-ul">
+<li><a href="https://www.bilibili.com/read/cv23216690/">使用国产芯片构建QMK固件（一）</a></li>
+</ul>
+</div>
+
+<div id="outline-container-orgd051100" class="outline-4">
+<h4 id="orgd051100"><span class="section-number-4">2.1.1.</span> <a href="#orgd051100">使用 STM32duino BL</a></h4>
+<div class="outline-text-4" id="text-2-1-1">
+<ul class="org-ul">
+<li><a href="https://docs.qmk.fm/#/flashing?id=stm32duino">Flashing Instructions and Bootloader Information</a>
+提供了刷写方法。</li>
+</ul>
+
+<p>
+erase flash 再刷入链接中的 BL，然后使用命令
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">dfu-util -a 2 -d 1EAF:0003 -D &lt;filename&gt;
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orge50f131" class="outline-4">
+<h4 id="orge50f131"><span class="section-number-4">2.1.2.</span> <a href="#orge50f131">使用 UF2 BL</a></h4>
+<div class="outline-text-4" id="text-2-1-2">
+<ul class="org-ul">
+<li><a href="https://learn.adafruit.com/adafruit-hallowing/uf2-bootloader-details">UF2 Bootloader Details</a></li>
+</ul>
+
+<p>
+先用串口 erase flash，然后用刷入 u2 bootloader。
+刷入后，会显示一个虚拟u盘，把 cmopile 成功的 .u2 文件拖进去即可。
+</p>
+
+<p>
+下一次想再次刷入固件的时候，双击 RST 即可。
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgcddd420" class="outline-2">
+<h2 id="orgcddd420"><span class="section-number-2">3.</span> <a href="#orgcddd420">使用 74HC65 扫描按键</a></h2>
+<div class="outline-text-2" id="text-3">
+<p>
+需要修改 <code>matrix.c</code>，具体见 <a href="https://docs.qmk.fm/#/custom_matrix?id=custom-matrix">Custom Matrix</a>。
+</p>
+
+<p>
+Air32F103 目前SPI好像还没有适配，所以直接 bitbang 了。
+</p>
+</div>
+</div>
+
+<div id="outline-container-org44076bf" class="outline-2">
+<h2 id="org44076bf"><span class="section-number-2">4.</span> <a href="#org44076bf">分体键盘</a></h2>
+<div class="outline-text-2" id="text-4">
+<ul class="org-ul">
+<li><a href="https://github.com/qmk/qmk_firmware/blob/master/docs/feature_split_keyboard.md">Split Keyboard</a> 通讯方式可以选择串口或者I2C。</li>
+<li><a href="https://github.com/qmk/qmk_firmware/blob/master/docs/serial_driver.md">'serial' Driver</a> 选择串口的话，可以在这里的三个驱动中选择一个。
+目前使用 USART Full-duplex。</li>
+</ul>
+
+<p>
+如果使用 <a href="https://github.com/qmk/qmk_firmware/blob/master/docs/serial_driver.md#bitbang">Bitbang</a> (soft serial)，虽然只要一根线，
+但在两块键盘相连接时无法连接VIA，需要切断中间的连线才能使用VIA。
+而 <a href="https://github.com/qmk/qmk_firmware/blob/master/docs/serial_driver.md#usart-half-duplex">USART Half-duplex</a> 的方法又要一个上拉电阻，不方便测试。
+</p>
+
+<p>
+使用需要两根线的 <a href="https://github.com/qmk/qmk_firmware/blob/master/docs/serial_driver.md#usart-half-duplex">USART Full-duplex</a> 方案，虽然两边需要调换线序，
+不过连接VIA没有问题。
+</p>
+</div>
+</div>
+
+<div id="outline-container-org837c923" class="outline-2">
+<h2 id="org837c923"><span class="section-number-2">5.</span> <a href="#org837c923">VIA</a></h2>
+<div class="outline-text-2" id="text-5">
+</div>
+<div id="outline-container-orgf08757c" class="outline-3">
+<h3 id="orgf08757c"><span class="section-number-3">5.1.</span> <a href="#orgf08757c">固件配置</a></h3>
+<div class="outline-text-3" id="text-5-1">
+<p>
+添加一个 <code>via</code> keymap。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgab5f144" class="outline-3">
+<h3 id="orgab5f144"><span class="section-number-3">5.2.</span> <a href="#orgab5f144">配置文件</a></h3>
+<div class="outline-text-3" id="text-5-2">
+<p>
+VIA的键盘配置文件在 <a href="https://github.com/the-via/keyboards">the-via/keyboards</a> 中。
+在写自己的配置文件时，可以参考别人的，如 <a href="https://github.com/the-via/keyboards/blob/master/v3/ergodox_ez/ergodox_ez.json">ergodox<sub>ez</sub>/ergodox<sub>ez.json</sub></a>。
+注意：VIA现在升级到v3了，新的配置在 <a href="https://github.com/the-via/keyboards/tree/master/v3">v3</a> 文件夹中，<a href="https://github.com/the-via/keyboards/tree/master/src">src</a> 中都是老的。
+</p>
+
+<p>
+文件位置：如，QMK中键盘在 <code>keyboards/thebesttv/split27</code> 中，
+则VIA中对应配置文件位于 <code>v3/thebesttv/split27.json</code> 中。
+</p>
+
+<p>
+<code>.json</code> 文件的格式如下：
+</p>
+<div class="org-src-container">
+<pre class="src src-js">{
+    <span style="font-style: italic;">"name"</span>: <span style="font-style: italic;">"Split27"</span>,                 <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">&#38190;&#30424;&#21517;&#31216;</span>
+    <span style="font-style: italic;">"vendorId"</span>: <span style="font-style: italic;">"0x1A5A"</span>,              <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">vid</span>
+    <span style="font-style: italic;">"productId"</span>: <span style="font-style: italic;">"0x1234"</span>,             <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">pid</span>
+    <span style="font-style: italic;">"matrix"</span>: {<span style="font-style: italic;">"rows"</span>: 10, <span style="font-style: italic;">"cols"</span>: 6}, <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">matrix&#22823;&#23567;</span>
+    <span style="font-style: italic;">"layouts"</span>: {
+        <span style="font-style: italic;">"keymap"</span>:  ...  <span style="font-weight: bold; font-style: italic;">// </span><span style="font-weight: bold; font-style: italic;">KLE&#30340;JSON&#25991;&#20214;&#20869;&#23481;&#22797;&#21046;&#21040;&#36825;&#37324;</span>
+    }
+}
+</pre>
+</div>
+<p>
+其中 <code>keymap</code> 的结果需要这样获取：
+在 <a href="http://www.keyboard-layout-editor.com/">KLE</a> 中把键盘对应的 layout 画出来，每个按键的 top-left legnd
+上标出它在 matrix 中对应座标，其余部分留白。
+每个按键都标注完后，去下方的 Raw data 一栏，选择 Download json，
+然后把文件内容复制过来即可。文件内容应是大概是这个样子的（不考虑缩进）：
+</p>
+<div class="org-src-container">
+<pre class="src src-js">[
+    [<span style="font-style: italic;">"0,0"</span>,<span style="font-style: italic;">"0,1"</span>,<span style="font-style: italic;">"0,2"</span>,<span style="font-style: italic;">"0,3"</span>,<span style="font-style: italic;">"0,4"</span>,<span style="font-style: italic;">"0,5"</span>,{x:1},<span style="font-style: italic;">"5,0"</span>,<span style="font-style: italic;">"5,1"</span>,<span style="font-style: italic;">"5,2"</span>,<span style="font-style: italic;">"5,3"</span>,<span style="font-style: italic;">"5,4"</span>,<span style="font-style: italic;">"5,5"</span>],
+    [<span style="font-style: italic;">"1,0"</span>,<span style="font-style: italic;">"1,1"</span>,<span style="font-style: italic;">"1,2"</span>,<span style="font-style: italic;">"1,3"</span>,<span style="font-style: italic;">"1,4"</span>,<span style="font-style: italic;">"1,5"</span>,{x:1},<span style="font-style: italic;">"6,0"</span>,<span style="font-style: italic;">"6,1"</span>,<span style="font-style: italic;">"6,2"</span>,<span style="font-style: italic;">"6,3"</span>,<span style="font-style: italic;">"6,4"</span>,<span style="font-style: italic;">"6,5"</span>],
+    [<span style="font-style: italic;">"2,0"</span>,<span style="font-style: italic;">"2,1"</span>,<span style="font-style: italic;">"2,2"</span>,<span style="font-style: italic;">"2,3"</span>,<span style="font-style: italic;">"2,4"</span>,<span style="font-style: italic;">"2,5"</span>,{x:1},<span style="font-style: italic;">"7,0"</span>,<span style="font-style: italic;">"7,1"</span>,<span style="font-style: italic;">"7,2"</span>,<span style="font-style: italic;">"7,3"</span>,<span style="font-style: italic;">"7,4"</span>,<span style="font-style: italic;">"7,5"</span>],
+    [<span style="font-style: italic;">"3,0"</span>,<span style="font-style: italic;">"3,1"</span>,<span style="font-style: italic;">"3,2"</span>,<span style="font-style: italic;">"3,3"</span>,<span style="font-style: italic;">"3,4"</span>,<span style="font-style: italic;">"3,5"</span>,{x:1},<span style="font-style: italic;">"8,0"</span>,<span style="font-style: italic;">"8,1"</span>,<span style="font-style: italic;">"8,2"</span>,<span style="font-style: italic;">"8,3"</span>,<span style="font-style: italic;">"8,4"</span>,<span style="font-style: italic;">"8,5"</span>],
+    [{x:3},<span style="font-style: italic;">"4,3"</span>,<span style="font-style: italic;">"4,4"</span>,<span style="font-style: italic;">"4,5"</span>,{x:1},<span style="font-style: italic;">"9,0"</span>,<span style="font-style: italic;">"9,1"</span>,<span style="font-style: italic;">"9,2"</span>]
+]
+</pre>
+</div>
+
+<p>
+配置文件完成后，可以打开 <a href="https://usevia.app/">VIA App</a>，在 Settings 中，选择 Show Design Tab，
+然后去 Design Tab，把配置文件上传，这样就可以正常连接键盘了。
+</p>
+</div>
+</div>
+
+<div id="outline-container-org8155edb" class="outline-3">
+<h3 id="org8155edb"><span class="section-number-3">5.3.</span> <a href="#org8155edb">VIA网页端使用</a></h3>
+<div class="outline-text-3" id="text-5-3">
+<p>
+如果需要添加一些复杂的 keycode，如 <code>MT(MOD_LCTL,KC_F)</code>，
+选择 Special 下的 Any，然后手动输入 keycode。
+</p>
+</div>
+</div>
+
+<div id="outline-container-orged575bf" class="outline-3">
+<h3 id="orged575bf"><span class="section-number-3">5.4.</span> <a href="#orged575bf">Linux 下可能遇到的问题</a></h3>
+<div class="outline-text-3" id="text-5-4">
+<p>
+Linux 下，试图 Authorize Device 时，如果 HID 列表中显示了自己的键盘，
+但点击 Connect 后没有反应；再次尝试 Authorize Device，
+发现列表中显示已配对，但点击还是没反应，这可能是权限问题。
+</p>
+
+<p>
+判断方法：浏览器访问 <code>chrome://device-log/</code>，查找类似 <code>HID "failed to open
+/dev/hidraw2"</code> 的消息，有的话就因该是权限问题了。可以参考<a href="https://github.com/the-via/app/issues/91#issuecomment-1505095474">这里</a>。
+</p>
+
+<p>
+解决方法：<a href="https://wiki.archlinux.org/title/Keyboard_input#Configuration_of_VIA_compatible_keyboards">修改 udev 规则</a>。
+</p>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<hr><table class="postamble">
+  <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
+  <tr><td class="org-right">Created</td><td class="org-left">2023-08-03 12:45</td></tr>
+  <tr><td class="org-right">Modified</td><td class="org-left">2023-08-26 20:12</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2023-08-26 20:13</td></tr>
+  <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 29.1 (<a href="https://orgmode.org">Org</a> mode 9.6.6)</td></tr>
+  <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://raw.githubusercontent.com/thebesttv/thebesttv.github.io/main/content/keyboard/qmk.org">qmk.org</a></td></tr>
+</table>
+</div>
+</body>
+</html>

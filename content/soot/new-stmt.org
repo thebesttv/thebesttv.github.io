@@ -1,0 +1,75 @@
+#+title: Implementing New Stmts in Soot
+#+date: <2023-08-15 Tue 10:01>
+#+author: thebesttv
+
+See the doc of =soot.AbstractUnit= for some of the most important
+functions:
+#+begin_src java
+  /**
+   ,* Returns a deep clone of this object.
+   ,*/
+  @Override
+  public abstract Object clone();
+
+  /**
+   ,* Returns a list of Boxes containing Values used in this Unit. The list
+   ,* of boxes is dynamically updated as the structure changes. Note that
+   ,* they are returned in usual evaluation order. (this is important for
+   ,* aggregation)
+   ,*/
+  @Override
+  public List<ValueBox> getUseBoxes() {
+    return Collections.emptyList();
+  }
+
+  /**
+   ,* Returns a list of Boxes containing Values defined in this Unit. The
+   ,* list of boxes is dynamically updated as the structure changes.
+   ,*/
+  @Override
+  public List<ValueBox> getDefBoxes() {
+    return Collections.emptyList();
+  }
+
+  /**
+   ,* Used to implement the Switchable construct.
+   ,*/
+  @Override
+  public void apply(Switch sw) {
+  }
+#+end_src
+
+* Stmt With No Operand
+
+If the new stmt has no operand in it, like =NopStmt=, simply extend
+=AbstractStmt=.  See =JNopStmt= for example.
+
+When implementing a new stmt (e.g. =TbtStmt=), you need to override the
+=apply()= function.  This also requires adding =caseTbtStmt()= to
+StmtSwitches.  However, chaning the =StmtSwitch= interface would break
+lots of code.  Instead, an easier solution would be to just implement
+=apply()= in =TbtStmt= like this:
+#+begin_src java
+  public void apply(Switch sw) {
+      if (sw instanceof AbstractStmtSwitch)
+          ((AbstractStmtSwitch<?>) sw).caseTbtStmt(this);
+  }
+#+end_src
+and add =caseTbtStmt()= to =AbstractStmtSwitch=:
+#+begin_src java
+  public void caseTbtStmt(TbtStmt stmt) {
+    defaultCase(stmt);
+  }
+#+end_src
+This way, only one source file within Soot needs to be changed.
+
+* Stmt With One Operand
+
+Some body transformations (e.g. =LocalPacker=) will change the =Local=​s
+in a =Body=.  If a stmt uses (or defines) an operand, it must return it
+in =getUseBoxes()= or =getDefBoxes()=.  Otherwise, that operand will not
+be updated during the transformation.
+
+Some examples of stmts with one operand: =JThrowStmt=,
+=JEnterMonitorStmt=, and =JExitMonitorStmt=.  They all extend
+=AbstractOpStmt=.
