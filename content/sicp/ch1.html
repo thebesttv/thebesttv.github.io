@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<!-- 2023-11-08 02:35 -->
+<!-- 2023-11-09 02:35 -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Chapter 1 &#x2014; Building Abstractions with Procedures</title>
@@ -78,35 +78,35 @@
 <h2>&#30446;&#24405;</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org09d1344">1. conjure v.</a></li>
-<li><a href="#orgf35b3de">2. Applicative order vs. normal order</a></li>
-<li><a href="#orgc053c86">3. Functions vs special forms</a>
+<li><a href="#orga4c9adc">1. conjure v.</a></li>
+<li><a href="#orga5bffb1">2. Applicative order vs. normal order</a></li>
+<li><a href="#org9766ec4">3. Functions vs special forms</a>
 <ul>
-<li><a href="#orgfb5888f">3.1. <code>define</code></a></li>
-<li><a href="#orgadd34bf">3.2. <code>if</code> &amp; <code>cond</code></a></li>
-<li><a href="#orge3c79fb">3.3. <code>and</code> &amp; <code>or</code></a></li>
+<li><a href="#org7b3d1e3">3.1. <code>define</code></a></li>
+<li><a href="#orgb675fff">3.2. <code>if</code> &amp; <code>cond</code></a></li>
+<li><a href="#org76218b8">3.3. <code>and</code> &amp; <code>or</code></a></li>
 </ul>
 </li>
-<li><a href="#orgb7142da">4. Find the smallest divisor</a></li>
-<li><a href="#org6f486fc">5. Accumulate, sum, prod</a></li>
-<li><a href="#org66c3b0f">6. Local variables</a></li>
-<li><a href="#orgfee388b">7. Fixed-point &amp; Newton's method</a>
+<li><a href="#org87beafc">4. Find the smallest divisor</a></li>
+<li><a href="#org58e625c">5. Accumulate, sum, prod</a></li>
+<li><a href="#org6af569f">6. Local variables</a></li>
+<li><a href="#org346e490">7. Fixed-point &amp; Newton's method</a>
 <ul>
-<li><a href="#orga3deac5">7.1. Fixed-point</a></li>
-<li><a href="#org63e21c2">7.2. Newton's method</a></li>
-<li><a href="#orgfd20b3f">7.3. <code>fixed-point-of-transform</code></a></li>
+<li><a href="#org31ab128">7.1. Fixed-point</a></li>
+<li><a href="#orgd1465c0">7.2. Newton's method</a></li>
+<li><a href="#org905a8b2">7.3. <code>fixed-point-of-transform</code></a></li>
 </ul>
 </li>
-<li><a href="#org05f36d0">8. Compose</a></li>
-<li><a href="#org4a60808">9. <code>lambda</code> for recursion</a></li>
-<li><a href="#org8bac7ff">10. Exercises</a>
+<li><a href="#orgb4452aa">8. Compose</a></li>
+<li><a href="#org83a9675">9. <code>lambda</code> for recursion</a></li>
+<li><a href="#orgc2a8cc4">10. Exercises</a>
 <ul>
-<li><a href="#org03acec6">10.1. Ex 1.3 &#x2014; the smallest of the three</a></li>
-<li><a href="#org29a4099">10.2. Ex 1.5 &#x2014; applicative-order &amp; normal-order</a></li>
-<li><a href="#org536213e">10.3. Ex 1.16 &#x2014; iterative fast exponentiation</a></li>
-<li><a href="#org3b92e9d">10.4. Ex 1.44 &#x2014; order of application</a></li>
-<li><a href="#orgeb23f6c">10.5. Ex 1.45 &#x2014; n-th root</a></li>
-<li><a href="#org779f5ac">10.6. Ex 1.46 &#x2014; iterative improvement</a></li>
+<li><a href="#org2fe1bd3">10.1. Ex 1.3 &#x2014; the smallest of the three</a></li>
+<li><a href="#orge5df112">10.2. Ex 1.5 &#x2014; applicative-order &amp; normal-order</a></li>
+<li><a href="#org6662bbd">10.3. Ex 1.16 &#x2014; iterative fast exponentiation</a></li>
+<li><a href="#org1cd0f4f">10.4. Ex 1.44 &#x2014; order of application</a></li>
+<li><a href="#org2418886">10.5. Ex 1.45 &#x2014; n-th root</a></li>
+<li><a href="#org3b1d785">10.6. Ex 1.46 &#x2014; iterative improvement</a></li>
 </ul>
 </li>
 </ul>
@@ -114,8 +114,8 @@
 </nav>
 <hr style="width: 80%;">
 
-<div id="outline-container-org09d1344" class="outline-2">
-<h2 id="org09d1344"><span class="section-number-2">1.</span> <a href="#org09d1344">conjure v.</a></h2>
+<div id="outline-container-orga4c9adc" class="outline-2">
+<h2 id="orga4c9adc"><span class="section-number-2">1.</span> <a href="#orga4c9adc">conjure v.</a></h2>
 <div class="outline-text-2" id="text-1">
 <p>
 conjure v. / 'kʌndʒə(r) /
@@ -166,8 +166,8 @@ the restaurant.
 </div>
 </div>
 
-<div id="outline-container-orgf35b3de" class="outline-2">
-<h2 id="orgf35b3de"><span class="section-number-2">2.</span> <a href="#orgf35b3de">Applicative order vs. normal order</a></h2>
+<div id="outline-container-orga5bffb1" class="outline-2">
+<h2 id="orga5bffb1"><span class="section-number-2">2.</span> <a href="#orga5bffb1">Applicative order vs. normal order</a></h2>
 <div class="outline-text-2" id="text-2">
 <p>
 In <i>applicative order</i>, the interpreter first evaluates the operator &amp;
@@ -251,16 +251,16 @@ formal definition of normal-order evaluation.
 </div>
 </div>
 
-<div id="outline-container-orgc053c86" class="outline-2">
-<h2 id="orgc053c86"><span class="section-number-2">3.</span> <a href="#orgc053c86">Functions vs special forms</a></h2>
+<div id="outline-container-org9766ec4" class="outline-2">
+<h2 id="org9766ec4"><span class="section-number-2">3.</span> <a href="#org9766ec4">Functions vs special forms</a></h2>
 <div class="outline-text-2" id="text-3">
 </div>
-<div id="outline-container-orgfb5888f" class="outline-3">
-<h3 id="orgfb5888f"><span class="section-number-3">3.1.</span> <a href="#orgfb5888f"><code>define</code></a></h3>
+<div id="outline-container-org7b3d1e3" class="outline-3">
+<h3 id="org7b3d1e3"><span class="section-number-3">3.1.</span> <a href="#org7b3d1e3"><code>define</code></a></h3>
 </div>
 
-<div id="outline-container-orgadd34bf" class="outline-3">
-<h3 id="orgadd34bf"><span class="section-number-3">3.2.</span> <a href="#orgadd34bf"><code>if</code> &amp; <code>cond</code></a></h3>
+<div id="outline-container-orgb675fff" class="outline-3">
+<h3 id="orgb675fff"><span class="section-number-3">3.2.</span> <a href="#orgb675fff"><code>if</code> &amp; <code>cond</code></a></h3>
 <div class="outline-text-3" id="text-3-2">
 <p>
 In Scheme, <code>#f</code> is interpreted as false, and <code>#t</code> (or any other value
@@ -290,8 +290,8 @@ other than <code>#f</code>) is true.
 </div>
 </div>
 
-<div id="outline-container-orge3c79fb" class="outline-3">
-<h3 id="orge3c79fb"><span class="section-number-3">3.3.</span> <a href="#orge3c79fb"><code>and</code> &amp; <code>or</code></a></h3>
+<div id="outline-container-org76218b8" class="outline-3">
+<h3 id="org76218b8"><span class="section-number-3">3.3.</span> <a href="#org76218b8"><code>and</code> &amp; <code>or</code></a></h3>
 <div class="outline-text-3" id="text-3-3">
 <p>
 <code>and</code> and <code>or</code> are special forms, as not all operands are necessarily
@@ -331,8 +331,8 @@ Note that <code>(/ 3 0)</code> is not evaluated.
 </div>
 </div>
 
-<div id="outline-container-orgb7142da" class="outline-2">
-<h2 id="orgb7142da"><span class="section-number-2">4.</span> <a href="#orgb7142da">Find the smallest divisor</a></h2>
+<div id="outline-container-org87beafc" class="outline-2">
+<h2 id="org87beafc"><span class="section-number-2">4.</span> <a href="#org87beafc">Find the smallest divisor</a></h2>
 <div class="outline-text-2" id="text-4">
 <div class="org-src-container">
 <pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">smallest-divisor</span> n)         <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">find the smallest divisior of n</span>
@@ -348,8 +348,8 @@ Note that <code>(/ 3 0)</code> is not evaluated.
 </div>
 </div>
 
-<div id="outline-container-org6f486fc" class="outline-2">
-<h2 id="org6f486fc"><span class="section-number-2">5.</span> <a href="#org6f486fc">Accumulate, sum, prod</a></h2>
+<div id="outline-container-org58e625c" class="outline-2">
+<h2 id="org58e625c"><span class="section-number-2">5.</span> <a href="#org58e625c">Accumulate, sum, prod</a></h2>
 <div class="outline-text-2" id="text-5">
 <p>
 <code>accumulate</code> takes an initial value (<code>null-value</code>) and a way to
@@ -412,8 +412,8 @@ Both <code>sum</code> and <code>prod</code> can be defined in terms of <code>acc
 </div>
 </div>
 
-<div id="outline-container-org66c3b0f" class="outline-2">
-<h2 id="org66c3b0f"><span class="section-number-2">6.</span> <a href="#org66c3b0f">Local variables</a></h2>
+<div id="outline-container-org6af569f" class="outline-2">
+<h2 id="org6af569f"><span class="section-number-2">6.</span> <a href="#org6af569f">Local variables</a></h2>
 <div class="outline-text-2" id="text-6">
 <p>
 Functions take parameters, which can be used as local
@@ -509,12 +509,12 @@ variable <code>x</code> in [1] (outer scope), not [2].
 </div>
 </div>
 
-<div id="outline-container-orgfee388b" class="outline-2">
-<h2 id="orgfee388b"><span class="section-number-2">7.</span> <a href="#orgfee388b">Fixed-point &amp; Newton's method</a></h2>
+<div id="outline-container-org346e490" class="outline-2">
+<h2 id="org346e490"><span class="section-number-2">7.</span> <a href="#org346e490">Fixed-point &amp; Newton's method</a></h2>
 <div class="outline-text-2" id="text-7">
 </div>
-<div id="outline-container-orga3deac5" class="outline-3">
-<h3 id="orga3deac5"><span class="section-number-3">7.1.</span> <a href="#orga3deac5">Fixed-point</a></h3>
+<div id="outline-container-org31ab128" class="outline-3">
+<h3 id="org31ab128"><span class="section-number-3">7.1.</span> <a href="#org31ab128">Fixed-point</a></h3>
 <div class="outline-text-3" id="text-7-1">
 <p>
 A number \(x\) is called a <i>fixed point</i> of a function \(f\) if \(f(x) = x\).
@@ -578,8 +578,8 @@ Notice that cube root is the fixed point of the function \(f(y) = x / y^2\):
 </div>
 </div>
 
-<div id="outline-container-org63e21c2" class="outline-3">
-<h3 id="org63e21c2"><span class="section-number-3">7.2.</span> <a href="#org63e21c2">Newton's method</a></h3>
+<div id="outline-container-orgd1465c0" class="outline-3">
+<h3 id="orgd1465c0"><span class="section-number-3">7.2.</span> <a href="#orgd1465c0">Newton's method</a></h3>
 <div class="outline-text-3" id="text-7-2">
 <p>
 If \(g(x)\) is a differentiable function, then a solution of \(g(x)=0\) is
@@ -649,8 +649,8 @@ only once:
 </div>
 </div>
 
-<div id="outline-container-orgfd20b3f" class="outline-3">
-<h3 id="orgfd20b3f"><span class="section-number-3">7.3.</span> <a href="#orgfd20b3f"><code>fixed-point-of-transform</code></a></h3>
+<div id="outline-container-org905a8b2" class="outline-3">
+<h3 id="org905a8b2"><span class="section-number-3">7.3.</span> <a href="#org905a8b2"><code>fixed-point-of-transform</code></a></h3>
 <div class="outline-text-3" id="text-7-3">
 <p>
 We calculated <code>sqrt</code> using both the fixed point search and Newton's method:
@@ -708,8 +708,8 @@ Then the two methods become:
 </div>
 </div>
 
-<div id="outline-container-org05f36d0" class="outline-2">
-<h2 id="org05f36d0"><span class="section-number-2">8.</span> <a href="#org05f36d0">Compose</a></h2>
+<div id="outline-container-orgb4452aa" class="outline-2">
+<h2 id="orgb4452aa"><span class="section-number-2">8.</span> <a href="#orgb4452aa">Compose</a></h2>
 <div class="outline-text-2" id="text-8">
 <p>
 Let \(f\) and \(g\) be two one-argument functions.  The composition \(f\)
@@ -763,8 +763,8 @@ Alternatively, there's an iterative implementation:
 </div>
 </div>
 
-<div id="outline-container-org4a60808" class="outline-2">
-<h2 id="org4a60808"><span class="section-number-2">9.</span> <a href="#org4a60808"><code>lambda</code> for recursion</a></h2>
+<div id="outline-container-org83a9675" class="outline-2">
+<h2 id="org83a9675"><span class="section-number-2">9.</span> <a href="#org83a9675"><code>lambda</code> for recursion</a></h2>
 <div class="outline-text-2" id="text-9">
 <p>
 How to write a recursive function using only <code>lambda</code>?  The main
@@ -850,12 +850,12 @@ itself, thereby obtaining as return value the factorial function.
 </div>
 </div>
 
-<div id="outline-container-org8bac7ff" class="outline-2">
-<h2 id="org8bac7ff"><span class="section-number-2">10.</span> <a href="#org8bac7ff">Exercises</a></h2>
+<div id="outline-container-orgc2a8cc4" class="outline-2">
+<h2 id="orgc2a8cc4"><span class="section-number-2">10.</span> <a href="#orgc2a8cc4">Exercises</a></h2>
 <div class="outline-text-2" id="text-10">
 </div>
-<div id="outline-container-org03acec6" class="outline-3">
-<h3 id="org03acec6"><span class="section-number-3">10.1.</span> <a href="#org03acec6">Ex 1.3 &#x2014; the smallest of the three</a></h3>
+<div id="outline-container-org2fe1bd3" class="outline-3">
+<h3 id="org2fe1bd3"><span class="section-number-3">10.1.</span> <a href="#org2fe1bd3">Ex 1.3 &#x2014; the smallest of the three</a></h3>
 <div class="outline-text-3" id="text-10-1">
 <blockquote>
 <p>
@@ -901,8 +901,8 @@ the smaller one (<code>(min a b)</code>), it needs to be compared with <code>c</
 </div>
 </div>
 
-<div id="outline-container-org29a4099" class="outline-3">
-<h3 id="org29a4099"><span class="section-number-3">10.2.</span> <a href="#org29a4099">Ex 1.5 &#x2014; applicative-order &amp; normal-order</a></h3>
+<div id="outline-container-orge5df112" class="outline-3">
+<h3 id="orge5df112"><span class="section-number-3">10.2.</span> <a href="#orge5df112">Ex 1.5 &#x2014; applicative-order &amp; normal-order</a></h3>
 <div class="outline-text-3" id="text-10-2">
 <blockquote>
 <p>
@@ -960,8 +960,8 @@ evaluates to <code>0</code>.
 </div>
 </div>
 
-<div id="outline-container-org536213e" class="outline-3">
-<h3 id="org536213e"><span class="section-number-3">10.3.</span> <a href="#org536213e">Ex 1.16 &#x2014; iterative fast exponentiation</a></h3>
+<div id="outline-container-org6662bbd" class="outline-3">
+<h3 id="org6662bbd"><span class="section-number-3">10.3.</span> <a href="#org6662bbd">Ex 1.16 &#x2014; iterative fast exponentiation</a></h3>
 <div class="outline-text-3" id="text-10-3">
 <blockquote>
 <p>
@@ -1012,8 +1012,8 @@ Iterative code:
 </div>
 </div>
 
-<div id="outline-container-org3b92e9d" class="outline-3">
-<h3 id="org3b92e9d"><span class="section-number-3">10.4.</span> <a href="#org3b92e9d">Ex 1.44 &#x2014; order of application</a></h3>
+<div id="outline-container-org1cd0f4f" class="outline-3">
+<h3 id="org1cd0f4f"><span class="section-number-3">10.4.</span> <a href="#org1cd0f4f">Ex 1.44 &#x2014; order of application</a></h3>
 <div class="outline-text-3" id="text-10-4">
 <blockquote>
 <p>
@@ -1085,8 +1085,8 @@ The <code>wrong</code> implementation actually expands to:
 </div>
 </div>
 
-<div id="outline-container-orgeb23f6c" class="outline-3">
-<h3 id="orgeb23f6c"><span class="section-number-3">10.5.</span> <a href="#orgeb23f6c">Ex 1.45 &#x2014; n-th root</a></h3>
+<div id="outline-container-org2418886" class="outline-3">
+<h3 id="org2418886"><span class="section-number-3">10.5.</span> <a href="#org2418886">Ex 1.45 &#x2014; n-th root</a></h3>
 <div class="outline-text-3" id="text-10-5">
 <p>
 Comput \(\sqrt[n]{x}\) by calculating the fixed point of the function \(x
@@ -1104,8 +1104,8 @@ Comput \(\sqrt[n]{x}\) by calculating the fixed point of the function \(x
 </div>
 </div>
 
-<div id="outline-container-org779f5ac" class="outline-3">
-<h3 id="org779f5ac"><span class="section-number-3">10.6.</span> <a href="#org779f5ac">Ex 1.46 &#x2014; iterative improvement</a></h3>
+<div id="outline-container-org3b1d785" class="outline-3">
+<h3 id="org3b1d785"><span class="section-number-3">10.6.</span> <a href="#org3b1d785">Ex 1.46 &#x2014; iterative improvement</a></h3>
 <div class="outline-text-3" id="text-10-6">
 <blockquote>
 <p>
@@ -1158,7 +1158,7 @@ is good enough.  Rewrite the <code>sqrt</code> procedure of Section 1.1.7 and th
   <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
   <tr><td class="org-right">Created</td><td class="org-left">2021-07-04 09:15</td></tr>
   <tr><td class="org-right">Modified</td><td class="org-left">2023-03-21 19:23</td></tr>
-  <tr><td class="org-right">Generated</td><td class="org-left">2023-11-08 02:35</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2023-11-09 02:35</td></tr>
   <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 29.1 (<a href="https://orgmode.org">Org</a> mode 9.6.6)</td></tr>
   <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://raw.githubusercontent.com/thebesttv/thebesttv.github.io/main/content/sicp/ch1.org">ch1.org</a></td></tr>
 </table>
