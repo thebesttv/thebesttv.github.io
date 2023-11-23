@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<!-- 2023-11-23 02:35 -->
+<!-- 2023-11-24 02:35 -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>All about Soot (draft)</title>
@@ -78,64 +78,64 @@
 <h2>&#30446;&#24405;</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#orga18ee0e">1. Preliminaries</a></li>
-<li><a href="#org7b4871a">2. Basic concepts</a>
+<li><a href="#org7ca12f6">1. Preliminaries</a></li>
+<li><a href="#org878dc24">2. Basic concepts</a>
 <ul>
 <li><a href="#analyzed-classes">2.1. Three types of classes</a></li>
-<li><a href="#org48a71fd">2.2. Packs &amp; phases</a>
+<li><a href="#org50bed13">2.2. Packs &amp; phases</a>
 <ul>
-<li><a href="#org40913d8">2.2.1. Whole Program Analysis Packs</a></li>
-<li><a href="#org25f81da">2.2.2. Cli Options</a></li>
+<li><a href="#org3fe278d">2.2.1. Whole Program Analysis Packs</a></li>
+<li><a href="#orgf7521dc">2.2.2. Cli Options</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#org97a42c1">3. Building Soot</a>
+<li><a href="#orgcc00e37">3. Building Soot</a>
 <ul>
-<li><a href="#org7565fd3">3.1. Javadoc</a></li>
+<li><a href="#org98824ef">3.1. Javadoc</a></li>
 </ul>
 </li>
-<li><a href="#orgf99f40d">4. Soot in cli</a></li>
-<li><a href="#org657132e">5. Different IRs</a>
+<li><a href="#org20b9ed3">4. Soot in cli</a></li>
+<li><a href="#orga280b22">5. Different IRs</a>
 <ul>
-<li><a href="#orgc85aacf">5.1. Baf</a></li>
-<li><a href="#org28839d8">5.2. Jimple</a></li>
-<li><a href="#orgd8da694">5.3. Shimple</a></li>
-<li><a href="#org60fa553">5.4. Grimp</a></li>
-<li><a href="#org6660f6e">5.5. Dava</a></li>
+<li><a href="#org6ba1cee">5.1. Baf</a></li>
+<li><a href="#orgd006050">5.2. Jimple</a></li>
+<li><a href="#org585ce5c">5.3. Shimple</a></li>
+<li><a href="#org0f3d534">5.4. Grimp</a></li>
+<li><a href="#orgb071b7f">5.5. Dava</a></li>
 </ul>
 </li>
 <li><a href="#main-impl-classes">6. Main implementation classes</a>
 <ul>
-<li><a href="#org4b8104d">6.1. Scene</a></li>
-<li><a href="#org07f860c">6.2. SootMethod</a>
+<li><a href="#org8fab2f1">6.1. Scene</a></li>
+<li><a href="#org6da48d2">6.2. SootMethod</a>
 <ul>
-<li><a href="#org5bcecbc">6.2.1. Printing a Method</a></li>
+<li><a href="#org0bade24">6.2.1. Printing a Method</a></li>
 </ul>
 </li>
-<li><a href="#org9c3bba8">6.3. SootField</a></li>
-<li><a href="#org7abfe4a">6.4. Graph</a></li>
+<li><a href="#orge88e84b">6.3. SootField</a></li>
+<li><a href="#org038ff64">6.4. Graph</a></li>
 </ul>
 </li>
 <li><a href="#jimple">7. Jimple</a>
 <ul>
-<li><a href="#org3ca096d">7.1. FieldRef</a></li>
-<li><a href="#org814329d">7.2. Labels</a></li>
+<li><a href="#org3eb45e6">7.1. FieldRef</a></li>
+<li><a href="#orgca47a5e">7.2. Labels</a></li>
 </ul>
 </li>
-<li><a href="#org73a564a">8. Body</a></li>
-<li><a href="#org8e13213">9. Value</a>
+<li><a href="#orgf05711c">8. Body</a></li>
+<li><a href="#org1be33e9">9. Value</a>
 <ul>
-<li><a href="#orgec36595">9.1. ValueBox</a></li>
+<li><a href="#org5c3ebd4">9.1. ValueBox</a></li>
 </ul>
 </li>
-<li><a href="#org4ef49e5">10. Type</a></li>
-<li><a href="#org78186fc">11. Analyses</a>
+<li><a href="#orga061d8f">10. Type</a></li>
+<li><a href="#org1e036aa">11. Analyses</a>
 <ul>
-<li><a href="#org47ba755">11.1. Off-The-Shelf Analyses</a></li>
-<li><a href="#org9601d0b">11.2. Custom Analyses</a>
+<li><a href="#org8550be2">11.1. Off-The-Shelf Analyses</a></li>
+<li><a href="#org03163fd">11.2. Custom Analyses</a>
 <ul>
-<li><a href="#orgfc7441a">11.2.1. Very Busy Expressions Analysis</a></li>
+<li><a href="#org8933a0f">11.2.1. Very Busy Expressions Analysis</a></li>
 </ul>
 </li>
 </ul>
@@ -167,14 +167,14 @@
 </ul></li>
 <li>Theses
 <ul class="org-ul">
-<li><a id="org6671ac6">Sable thesis</a>: An <a href="https://courses.cs.washington.edu/courses/cse501/01wi/project/sable-thesis.pdf">107-page-long thesis</a> by Raja Vallee-Rai,
+<li><a id="orge4e1303">Sable thesis</a>: An <a href="https://courses.cs.washington.edu/courses/cse501/01wi/project/sable-thesis.pdf">107-page-long thesis</a> by Raja Vallee-Rai,
 which gives much information about Soot, especially the Jimple
 grammar.</li>
 </ul></li>
 </ul>
 
-<div id="outline-container-orga18ee0e" class="outline-2">
-<h2 id="orga18ee0e"><span class="section-number-2">1.</span> <a href="#orga18ee0e">Preliminaries</a></h2>
+<div id="outline-container-org7ca12f6" class="outline-2">
+<h2 id="org7ca12f6"><span class="section-number-2">1.</span> <a href="#org7ca12f6">Preliminaries</a></h2>
 <div class="outline-text-2" id="text-1">
 <p>
 JVM 4 种函数调用
@@ -191,8 +191,8 @@ on JVM (Java is static typing)</li>
 </div>
 </div>
 
-<div id="outline-container-org7b4871a" class="outline-2">
-<h2 id="org7b4871a"><span class="section-number-2">2.</span> <a href="#org7b4871a">Basic concepts</a></h2>
+<div id="outline-container-org878dc24" class="outline-2">
+<h2 id="org878dc24"><span class="section-number-2">2.</span> <a href="#org878dc24">Basic concepts</a></h2>
 <div class="outline-text-2" id="text-2">
 <p>
 Soot has its own class path, which by default is empty.  When specifying
@@ -238,8 +238,8 @@ packages.  If you wish to include those too you have to use the special
 </div>
 </div>
 
-<div id="outline-container-org48a71fd" class="outline-3">
-<h3 id="org48a71fd"><span class="section-number-3">2.2.</span> <a href="#org48a71fd">Packs &amp; phases</a></h3>
+<div id="outline-container-org50bed13" class="outline-3">
+<h3 id="org50bed13"><span class="section-number-3">2.2.</span> <a href="#org50bed13">Packs &amp; phases</a></h3>
 <div class="outline-text-3" id="text-2-2">
 <blockquote>
 <p>
@@ -259,8 +259,8 @@ it allows us to inject custom analysis.</li>
 </ul>
 </div>
 
-<div id="outline-container-org40913d8" class="outline-4">
-<h4 id="org40913d8"><span class="section-number-4">2.2.1.</span> <a href="#org40913d8">Whole Program Analysis Packs</a></h4>
+<div id="outline-container-org3fe278d" class="outline-4">
+<h4 id="org3fe278d"><span class="section-number-4">2.2.1.</span> <a href="#org3fe278d">Whole Program Analysis Packs</a></h4>
 <div class="outline-text-4" id="text-2-2-1">
 <p>
 Before running the aforementioned packs, some packs are run
@@ -280,8 +280,8 @@ of Soot through <code>Scene.v()</code>.
 </div>
 </div>
 
-<div id="outline-container-org25f81da" class="outline-4">
-<h4 id="org25f81da"><span class="section-number-4">2.2.2.</span> <a href="#org25f81da">Cli Options</a></h4>
+<div id="outline-container-orgf7521dc" class="outline-4">
+<h4 id="orgf7521dc"><span class="section-number-4">2.2.2.</span> <a href="#orgf7521dc">Cli Options</a></h4>
 <div class="outline-text-4" id="text-2-2-2">
 <p>
 To show help:
@@ -308,8 +308,8 @@ turn off all user-defined intra-procedural transformations (in pack
 </div>
 </div>
 
-<div id="outline-container-org97a42c1" class="outline-2">
-<h2 id="org97a42c1"><span class="section-number-2">3.</span> <a href="#org97a42c1">Building Soot</a></h2>
+<div id="outline-container-orgcc00e37" class="outline-2">
+<h2 id="orgcc00e37"><span class="section-number-2">3.</span> <a href="#orgcc00e37">Building Soot</a></h2>
 <div class="outline-text-2" id="text-3">
 <div class="org-src-container">
 <pre class="src src-bash">mvn clean compile assembly:single
@@ -317,8 +317,8 @@ turn off all user-defined intra-procedural transformations (in pack
 </div>
 </div>
 
-<div id="outline-container-org7565fd3" class="outline-3">
-<h3 id="org7565fd3"><span class="section-number-3">3.1.</span> <a href="#org7565fd3">Javadoc</a></h3>
+<div id="outline-container-org98824ef" class="outline-3">
+<h3 id="org98824ef"><span class="section-number-3">3.1.</span> <a href="#org98824ef">Javadoc</a></h3>
 <div class="outline-text-3" id="text-3-1">
 <div class="org-src-container">
 <pre class="src src-bash">mvn javadoc:javadoc
@@ -328,8 +328,8 @@ turn off all user-defined intra-procedural transformations (in pack
 </div>
 </div>
 
-<div id="outline-container-orgf99f40d" class="outline-2">
-<h2 id="orgf99f40d"><span class="section-number-2">4.</span> <a href="#orgf99f40d">Soot in cli</a></h2>
+<div id="outline-container-org20b9ed3" class="outline-2">
+<h2 id="org20b9ed3"><span class="section-number-2">4.</span> <a href="#org20b9ed3">Soot in cli</a></h2>
 <div class="outline-text-2" id="text-4">
 <div class="org-src-container">
 <pre class="src src-bash">soot -v -process-dir code/ -d out
@@ -344,19 +344,19 @@ Cli options are defined in <code>src/main/xml/options/soot_options.xml</code>.
 </div>
 </div>
 
-<div id="outline-container-org657132e" class="outline-2">
-<h2 id="org657132e"><span class="section-number-2">5.</span> <a href="#org657132e">Different IRs</a></h2>
+<div id="outline-container-orga280b22" class="outline-2">
+<h2 id="orga280b22"><span class="section-number-2">5.</span> <a href="#orga280b22">Different IRs</a></h2>
 <div class="outline-text-2" id="text-5">
 
-<figure id="org6acb462">
+<figure id="org1482b4c">
 <img src="./soot/ir.jpg" alt="ir.jpg" width="80%" style="margin-left: auto; margin-right: auto;">
 
 <figcaption><span class="figure-number">&#22270;1&nbsp; </span>Soot IRs</figcaption>
 </figure>
 </div>
 
-<div id="outline-container-orgc85aacf" class="outline-3">
-<h3 id="orgc85aacf"><span class="section-number-3">5.1.</span> <a href="#orgc85aacf">Baf</a></h3>
+<div id="outline-container-org6ba1cee" class="outline-3">
+<h3 id="org6ba1cee"><span class="section-number-3">5.1.</span> <a href="#org6ba1cee">Baf</a></h3>
 <div class="outline-text-3" id="text-5-1">
 <p>
 Baf is
@@ -376,8 +376,8 @@ Available optimizations are in <code>soot.baf.toolkits.base</code>.
 </div>
 </div>
 
-<div id="outline-container-org28839d8" class="outline-3">
-<h3 id="org28839d8"><span class="section-number-3">5.2.</span> <a href="#org28839d8">Jimple</a></h3>
+<div id="outline-container-orgd006050" class="outline-3">
+<h3 id="orgd006050"><span class="section-number-3">5.2.</span> <a href="#orgd006050">Jimple</a></h3>
 <div class="outline-text-3" id="text-5-2">
 <p>
 Jimple is
@@ -399,8 +399,8 @@ For a complete explanation of Jimple, see <a href="#jimple">section Jimple</a>.
 </div>
 </div>
 
-<div id="outline-container-orgd8da694" class="outline-3">
-<h3 id="orgd8da694"><span class="section-number-3">5.3.</span> <a href="#orgd8da694">Shimple</a></h3>
+<div id="outline-container-org585ce5c" class="outline-3">
+<h3 id="org585ce5c"><span class="section-number-3">5.3.</span> <a href="#org585ce5c">Shimple</a></h3>
 <div class="outline-text-3" id="text-5-3">
 <p>
 Shimple is
@@ -415,8 +415,8 @@ has a single static point of definition.
 </div>
 </div>
 
-<div id="outline-container-org60fa553" class="outline-3">
-<h3 id="org60fa553"><span class="section-number-3">5.4.</span> <a href="#org60fa553">Grimp</a></h3>
+<div id="outline-container-org0f3d534" class="outline-3">
+<h3 id="org0f3d534"><span class="section-number-3">5.4.</span> <a href="#org0f3d534">Grimp</a></h3>
 <div class="outline-text-3" id="text-5-4">
 <p>
 Grimp preserves <code>new</code> operator and complex expressions (no
@@ -425,8 +425,8 @@ linearization).
 </div>
 </div>
 
-<div id="outline-container-org6660f6e" class="outline-3">
-<h3 id="org6660f6e"><span class="section-number-3">5.5.</span> <a href="#org6660f6e">Dava</a></h3>
+<div id="outline-container-orgb071b7f" class="outline-3">
+<h3 id="orgb071b7f"><span class="section-number-3">5.5.</span> <a href="#orgb071b7f">Dava</a></h3>
 </div>
 </div>
 
@@ -436,12 +436,12 @@ linearization).
 <p>
 Thses are <b>implementation classes of Soot</b>, i.e. they are owned by Soot.
 For a classification of classes <b>analyzed by Soot</b>, see <a href="#analyzed-classes">this section</a>.
-Fig. <a href="#org0ead700">2</a> shows fun-call relations of some of the most
+Fig. <a href="#org52bb3ce">2</a> shows fun-call relations of some of the most
 important classes.
 </p>
 
 
-<figure id="org0ead700">
+<figure id="org52bb3ce">
 <img src="./soot/main-class-relation.jpg" alt="main-class-relation.jpg" width="80%" style="margin-left: auto; margin-right: auto;">
 
 <figcaption><span class="figure-number">&#22270;2&nbsp; </span>Main class relationships</figcaption>
@@ -479,8 +479,8 @@ given constructors.
 </ul>
 </div>
 
-<div id="outline-container-org4b8104d" class="outline-3">
-<h3 id="org4b8104d"><span class="section-number-3">6.1.</span> <a href="#org4b8104d">Scene</a></h3>
+<div id="outline-container-org8fab2f1" class="outline-3">
+<h3 id="org8fab2f1"><span class="section-number-3">6.1.</span> <a href="#org8fab2f1">Scene</a></h3>
 <div class="outline-text-3" id="text-6-1">
 <p>
 <code>Scene</code> is a singleton class that keeps all classes which are
@@ -556,8 +556,8 @@ individual classes specified in command-line.  e.g. <code>java soot.Main
 </div>
 </div>
 
-<div id="outline-container-org07f860c" class="outline-3">
-<h3 id="org07f860c"><span class="section-number-3">6.2.</span> <a href="#org07f860c">SootMethod</a></h3>
+<div id="outline-container-org6da48d2" class="outline-3">
+<h3 id="org6da48d2"><span class="section-number-3">6.2.</span> <a href="#org6da48d2">SootMethod</a></h3>
 <div class="outline-text-3" id="text-6-2">
 <p>
 SootMethod
@@ -570,8 +570,8 @@ present.</li>
 </ul>
 </div>
 
-<div id="outline-container-org5bcecbc" class="outline-4">
-<h4 id="org5bcecbc"><span class="section-number-4">6.2.1.</span> <a href="#org5bcecbc">Printing a Method</a></h4>
+<div id="outline-container-org0bade24" class="outline-4">
+<h4 id="org0bade24"><span class="section-number-4">6.2.1.</span> <a href="#org0bade24">Printing a Method</a></h4>
 <div class="outline-text-4" id="text-6-2-1">
 <p>
 In <code>soot.Body::toString()</code>, <code>Printer.v().printTo()</code> is used to print a
@@ -585,17 +585,17 @@ method body:
 </div>
 </div>
 
-<div id="outline-container-org9c3bba8" class="outline-3">
-<h3 id="org9c3bba8"><span class="section-number-3">6.3.</span> <a href="#org9c3bba8">SootField</a></h3>
+<div id="outline-container-orge88e84b" class="outline-3">
+<h3 id="orge88e84b"><span class="section-number-3">6.3.</span> <a href="#orge88e84b">SootField</a></h3>
 </div>
 
-<div id="outline-container-org7abfe4a" class="outline-3">
-<h3 id="org7abfe4a"><span class="section-number-3">6.4.</span> <a href="#org7abfe4a">Graph</a></h3>
+<div id="outline-container-org038ff64" class="outline-3">
+<h3 id="org038ff64"><span class="section-number-3">6.4.</span> <a href="#org038ff64">Graph</a></h3>
 <div class="outline-text-3" id="text-6-4">
 <p>
 Different kinds of graphs (partial)
 </p>
-<pre class="example" id="orgdac4de3">
+<pre class="example" id="org96893f8">
 DirectedBodyGraph (I)
     ExceptionalGraph (I)
         CompleteUnitGraph (C)
@@ -624,7 +624,7 @@ DirectedBodyGraph (I)
 <div class="outline-text-2" id="text-jimple">
 <p>
 A complete description of the Jimple grammar can be seen in Figure 2.9
-and 2.10 of the <a href="#org6671ac6">Sable thesis</a>.
+and 2.10 of the <a href="#orge4e1303">Sable thesis</a>.
 </p>
 
 <p>
@@ -714,7 +714,7 @@ corresponds to <code>a</code> in the Java source.
 </blockquote>
 
 <p>
-The main structure of a Jimple method (from Section 2.3.6 of the <a href="#org6671ac6">Sable
+The main structure of a Jimple method (from Section 2.3.6 of the <a href="#orge4e1303">Sable
 thesis</a>):
 </p>
 <ul class="org-ul">
@@ -728,13 +728,13 @@ under <code>soot.AbstractUnit</code> &rarr; <code>soot.jimple.internal.AbstractS
 </ul>
 </div>
 
-<div id="outline-container-org3ca096d" class="outline-3">
-<h3 id="org3ca096d"><span class="section-number-3">7.1.</span> <a href="#org3ca096d">FieldRef</a></h3>
+<div id="outline-container-org3eb45e6" class="outline-3">
+<h3 id="org3eb45e6"><span class="section-number-3">7.1.</span> <a href="#org3eb45e6">FieldRef</a></h3>
 <div class="outline-text-3" id="text-7-1">
 <p>
 <code>FieldRef</code> 分为 <code>InstanceFieldRef</code> 和 <code>StaticFieldRef</code>
 </p>
-<pre class="example" id="org7e9769f">
+<pre class="example" id="org6e09824">
 FieldRef (I)
 |- InstanceFieldRef (I)
 |  |- JInstanceFieldRef (C, for Jimple)
@@ -746,8 +746,8 @@ FieldRef (I)
 </div>
 </div>
 
-<div id="outline-container-org814329d" class="outline-3">
-<h3 id="org814329d"><span class="section-number-3">7.2.</span> <a href="#org814329d">Labels</a></h3>
+<div id="outline-container-orgca47a5e" class="outline-3">
+<h3 id="orgca47a5e"><span class="section-number-3">7.2.</span> <a href="#orgca47a5e">Labels</a></h3>
 <div class="outline-text-3" id="text-7-2">
 <p>
 Labels are displayed using <code>Printer</code>.
@@ -756,8 +756,8 @@ Labels are displayed using <code>Printer</code>.
 </div>
 </div>
 
-<div id="outline-container-org73a564a" class="outline-2">
-<h2 id="org73a564a"><span class="section-number-2">8.</span> <a href="#org73a564a">Body</a></h2>
+<div id="outline-container-orgf05711c" class="outline-2">
+<h2 id="orgf05711c"><span class="section-number-2">8.</span> <a href="#orgf05711c">Body</a></h2>
 <div class="outline-text-2" id="text-8">
 <p>
 Body has three chains
@@ -778,8 +778,8 @@ Traps chain: trap handlers, in the form of
 </div>
 </div>
 
-<div id="outline-container-org8e13213" class="outline-2">
-<h2 id="org8e13213"><span class="section-number-2">9.</span> <a href="#org8e13213">Value</a></h2>
+<div id="outline-container-org1be33e9" class="outline-2">
+<h2 id="org1be33e9"><span class="section-number-2">9.</span> <a href="#org1be33e9">Value</a></h2>
 <div class="outline-text-2" id="text-9">
 <p>
 Value
@@ -819,8 +819,8 @@ several <code>Value</code>s and returns another <code>Value</code>.
 </ul>
 </div>
 
-<div id="outline-container-orgec36595" class="outline-3">
-<h3 id="orgec36595"><span class="section-number-3">9.1.</span> <a href="#orgec36595">ValueBox</a></h3>
+<div id="outline-container-org5c3ebd4" class="outline-3">
+<h3 id="org5c3ebd4"><span class="section-number-3">9.1.</span> <a href="#org5c3ebd4">ValueBox</a></h3>
 <div class="outline-text-3" id="text-9-1">
 <p>
 A <code>ValueBox</code> is a pointer to some value.  It can be visualized as a box
@@ -896,8 +896,8 @@ x = temp$0
 </div>
 </div>
 
-<div id="outline-container-org4ef49e5" class="outline-2">
-<h2 id="org4ef49e5"><span class="section-number-2">10.</span> <a href="#org4ef49e5">Type</a></h2>
+<div id="outline-container-orga061d8f" class="outline-2">
+<h2 id="orga061d8f"><span class="section-number-2">10.</span> <a href="#orga061d8f">Type</a></h2>
 <div class="outline-text-2" id="text-10">
 <p>
 Class hierarchy of <code>Type</code>:
@@ -919,12 +919,12 @@ Class hierarchy of <code>Type</code>:
 </div>
 </div>
 
-<div id="outline-container-org78186fc" class="outline-2">
-<h2 id="org78186fc"><span class="section-number-2">11.</span> <a href="#org78186fc">Analyses</a></h2>
+<div id="outline-container-org1e036aa" class="outline-2">
+<h2 id="org1e036aa"><span class="section-number-2">11.</span> <a href="#org1e036aa">Analyses</a></h2>
 <div class="outline-text-2" id="text-11">
 </div>
-<div id="outline-container-org47ba755" class="outline-3">
-<h3 id="org47ba755"><span class="section-number-3">11.1.</span> <a href="#org47ba755">Off-The-Shelf Analyses</a></h3>
+<div id="outline-container-org8550be2" class="outline-3">
+<h3 id="org8550be2"><span class="section-number-3">11.1.</span> <a href="#org8550be2">Off-The-Shelf Analyses</a></h3>
 <div class="outline-text-3" id="text-11-1">
 <ul class="org-ul">
 <li>Null Pointer Checker
@@ -944,8 +944,8 @@ Class hierarchy of <code>Type</code>:
 </div>
 </div>
 
-<div id="outline-container-org9601d0b" class="outline-3">
-<h3 id="org9601d0b"><span class="section-number-3">11.2.</span> <a href="#org9601d0b">Custom Analyses</a></h3>
+<div id="outline-container-org03163fd" class="outline-3">
+<h3 id="org03163fd"><span class="section-number-3">11.2.</span> <a href="#org03163fd">Custom Analyses</a></h3>
 <div class="outline-text-3" id="text-11-2">
 <p>
 Inject custom inter-procedural analyses into <code>wjtp</code> pack and
@@ -967,8 +967,8 @@ intra-procedural analyses into <code>jtp</code> pack.
 </div>
 </div>
 
-<div id="outline-container-orgfc7441a" class="outline-4">
-<h4 id="orgfc7441a"><span class="section-number-4">11.2.1.</span> <a href="#orgfc7441a">Very Busy Expressions Analysis</a></h4>
+<div id="outline-container-org8933a0f" class="outline-4">
+<h4 id="org8933a0f"><span class="section-number-4">11.2.1.</span> <a href="#org8933a0f">Very Busy Expressions Analysis</a></h4>
 <div class="outline-text-4" id="text-11-2-1">
 <ul class="org-ul">
 <li><a href="https://www.cis.upenn.edu/~mhnaik/edu/cis700/lessons/dataflow_analysis.pdf">dataflow_analysis.pdf</a> very good explanation</li>
@@ -1011,7 +1011,7 @@ very busy at \(s\).
   <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
   <tr><td class="org-right">Created</td><td class="org-left">2022-11-15 12:51</td></tr>
   <tr><td class="org-right">Modified</td><td class="org-left">2023-01-22 11:40</td></tr>
-  <tr><td class="org-right">Generated</td><td class="org-left">2023-11-23 02:35</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2023-11-24 02:35</td></tr>
   <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 29.1 (<a href="https://orgmode.org">Org</a> mode 9.6.6)</td></tr>
   <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://raw.githubusercontent.com/thebesttv/thebesttv.github.io/main/content/soot/soot.org">soot.org</a></td></tr>
 </table>
