@@ -1,0 +1,46 @@
+#+title: 使用 Python 获取文件正确的编码
+#+date: <2024-04-11 Thu 16:51>
+#+author: thebesttv
+
+Python 的 [[https://docs.python.org/3/library/functions.html#open][=open()=]] 函数
+默认用 [[https://docs.python.org/3/library/locale.html#locale.getencoding][=locale.getencoding()=]] 来确定编码，
+正常默认返回 UTF-8。
+但有的文件可能是 latin1 之类的编码，就会寄掉。
+
+根据[[https://stackoverflow.com/q/436220/11938767][这个问题]]下面的回答，目前确定文件编码的方法：
+- 先用 magic 确定文件是否为二进制
+  - 不直接使用 magic 的结果，因为可能有误报
+    （即返回是 UTF-8，但真正读取的时候还是会报错）
+- 如果不是二进制，再用 bs4 的 UnicodeDammit 来获取正确编码
+
+#+begin_src python
+  import magic
+  from bs4 import UnicodeDammit
+
+  def get_file_encoding_magic(file_path):
+      # https://stackoverflow.com/a/16203777/11938767
+      with open(file_path, 'rb') as f:
+          blob = f.read()
+          m = magic.open(magic.MAGIC_MIME_ENCODING)
+          m.load()
+          encoding = m.buffer(blob)  # "utf-8" "us-ascii" etc
+          return encoding
+
+  def get_file_encoding_bs4(file_path):
+      # https://stackoverflow.com/a/60858982/11938767
+      with open(file_path, 'rb') as file:
+          blob = file.read()
+          suggestion = UnicodeDammit(blob)
+          return suggestion.original_encoding
+
+  def get_file_encoding(file_path):
+      # 先用 magic 判断文件是否为二进制
+      coarse_encoding = get_file_encoding_magic(file_path)
+      if coarse_encoding == 'binary':
+          return 'binary'
+      # 对于非二进制，用 bs4 获取编码。因为 magic 会有误报
+      return get_file_encoding_bs4(file_path)
+#+end_src
+
+以及写了一个[[https://gist.github.com/thebesttv/a14d7793d2de5c94fe4202c1c3fabce3][脚本]]，
+用来列出当前目录下所有非 UTF-8 / ASCII 编码的文件。
