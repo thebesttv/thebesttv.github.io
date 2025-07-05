@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<!-- 2025-06-28 02:51 -->
+<!-- 2025-07-06 02:48 -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Chapter 1 &#x2014; Building Abstractions with Procedures</title>
@@ -78,43 +78,43 @@
 <h2>&#30446;&#24405;</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org8b616af">1. conjure v.</a></li>
-<li><a href="#orgbfae31f">2. Applicative order vs. normal order</a></li>
-<li><a href="#org5c21d77">3. Functions vs special forms</a>
+<li><a href="#org9fb11a7">1. conjure v.</a></li>
+<li><a href="#org43e1dd1">2. Applicative order vs. normal order</a></li>
+<li><a href="#org6f5fd44">3. Functions vs special forms</a>
 <ul>
-<li><a href="#org110a3e0">3.1. <code>define</code></a></li>
-<li><a href="#orgfd9de48">3.2. <code>if</code> &amp; <code>cond</code></a></li>
-<li><a href="#org93097ea">3.3. <code>and</code> &amp; <code>or</code></a></li>
+<li><a href="#org3dbf07f">3.1. <code>define</code></a></li>
+<li><a href="#org3fdd946">3.2. <code>if</code> &amp; <code>cond</code></a></li>
+<li><a href="#org9a1f0c1">3.3. <code>and</code> &amp; <code>or</code></a></li>
 </ul>
 </li>
-<li><a href="#org5946fe7">4. Find the smallest divisor</a></li>
-<li><a href="#org2b6a29b">5. Accumulate, sum, prod</a></li>
-<li><a href="#orgb386548">6. Local variables</a></li>
-<li><a href="#org981734e">7. Fixed-point &amp; Newton's method</a>
+<li><a href="#org549fa60">4. Find the smallest divisor</a></li>
+<li><a href="#org95ee183">5. Accumulate, sum, prod</a></li>
+<li><a href="#org23de075">6. Local variables</a></li>
+<li><a href="#org9226ebe">7. Fixed-point &amp; Newton's method</a>
 <ul>
-<li><a href="#org99ad341">7.1. Fixed-point</a></li>
-<li><a href="#orga3482b2">7.2. Newton's method</a></li>
-<li><a href="#orgb84f098">7.3. <code>fixed-point-of-transform</code></a></li>
+<li><a href="#org33f3c31">7.1. Fixed-point</a></li>
+<li><a href="#orgdfd8257">7.2. Newton's method</a></li>
+<li><a href="#org89472d9">7.3. <code>fixed-point-of-transform</code></a></li>
 </ul>
 </li>
-<li><a href="#orgb17d174">8. Compose</a></li>
-<li><a href="#org33cadb2">9. <code>lambda</code> for recursion</a></li>
-<li><a href="#org275ee04">10. Exercises</a>
+<li><a href="#org8d065bf">8. Compose</a></li>
+<li><a href="#org47dbe57">9. <code>lambda</code> for recursion</a></li>
+<li><a href="#org0c0384a">10. Exercises</a>
 <ul>
-<li><a href="#org4a62970">10.1. Ex 1.3 &#x2014; the smallest of the three</a></li>
-<li><a href="#org3d77509">10.2. Ex 1.5 &#x2014; applicative-order &amp; normal-order</a></li>
-<li><a href="#org5120d50">10.3. Ex 1.16 &#x2014; iterative fast exponentiation</a></li>
-<li><a href="#org34c6397">10.4. Ex 1.44 &#x2014; order of application</a></li>
-<li><a href="#org5fb87c6">10.5. Ex 1.45 &#x2014; n-th root</a></li>
-<li><a href="#org1777724">10.6. Ex 1.46 &#x2014; iterative improvement</a></li>
+<li><a href="#orga4b2432">10.1. Ex 1.3 &#x2014; the smallest of the three</a></li>
+<li><a href="#orgf0d3ff8">10.2. Ex 1.5 &#x2014; applicative-order &amp; normal-order</a></li>
+<li><a href="#orga085346">10.3. Ex 1.16 &#x2014; iterative fast exponentiation</a></li>
+<li><a href="#org6f8c648">10.4. Ex 1.44 &#x2014; order of application</a></li>
+<li><a href="#orgbfd1b41">10.5. Ex 1.45 &#x2014; n-th root</a></li>
+<li><a href="#orgfc82118">10.6. Ex 1.46 &#x2014; iterative improvement</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </nav>
 <hr style="width: 80%;">
-<div id="outline-container-org8b616af" class="outline-2">
-<h2 id="org8b616af"><span class="section-number-2">1.</span> <a href="#org8b616af">conjure v.</a></h2>
+<div id="outline-container-org9fb11a7" class="outline-2">
+<h2 id="org9fb11a7"><span class="section-number-2">1.</span> <a href="#org9fb11a7">conjure v.</a></h2>
 <div class="outline-text-2" id="text-1">
 <p>
 conjure v. / 'kʌndʒə(r) /
@@ -164,8 +164,8 @@ the restaurant.
 </ol>
 </div>
 </div>
-<div id="outline-container-orgbfae31f" class="outline-2">
-<h2 id="orgbfae31f"><span class="section-number-2">2.</span> <a href="#orgbfae31f">Applicative order vs. normal order</a></h2>
+<div id="outline-container-org43e1dd1" class="outline-2">
+<h2 id="org43e1dd1"><span class="section-number-2">2.</span> <a href="#org43e1dd1">Applicative order vs. normal order</a></h2>
 <div class="outline-text-2" id="text-2">
 <p>
 In <i>applicative order</i>, the interpreter first evaluates the operator &amp;
@@ -192,11 +192,11 @@ and evaluate the expression <code>(f 5)</code>.  In applicative order, the
 interpreter "evaluate the arguments and then apply":
 </p>
 <div class="org-src-container">
-<pre class="src src-scheme">(f 5)                             <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">replace in body: a &lt;- 5</span>
-(sum-of-squares (+ 5 1) (* 5 2))  <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">evaluate operator &amp; operands</span>
-(sum-of-squares 6 10)             <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">replace in body: a &lt;- 6, b &lt;- 10</span>
-(+ (square 6) (square 10))        <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">evaluate operator &amp; operands</span>
-(+ (* 6 6) (* 10 10))
+<pre class="src src-scheme">(f 5)                             <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">replace in body: a &lt;- 5
+</span>(sum-of-squares (+ 5 1) (* 5 2))  <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">evaluate operator &amp; operands
+</span>(sum-of-squares 6 10)             <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">replace in body: a &lt;- 6, b &lt;- 10
+</span>(+ (square 6) (square 10))        <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">evaluate operator &amp; operands
+</span>(+ (* 6 6) (* 10 10))
 (+ 36 100)
 136
 </pre>
@@ -208,8 +208,8 @@ In normal order, the interpreter "fully expand and then reduce":
 <pre class="src src-scheme">(f 5)
 (sum-of-squares (+ 5 1) (* 5 2))
 (+ (square (+ 5 1)) (square (* 5 2)))
-(+ (* (+ 5 1) (+ 5 1)) (* (* 5 2) (* 5 2))) <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">fully expanded, start reducing</span>
-(+ (* 6 6) (* 10 10))
+(+ (* (+ 5 1) (+ 5 1)) (* (* 5 2) (* 5 2))) <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">fully expanded, start reducing
+</span>(+ (* 6 6) (* 10 10))
 (+ 36 100)
 136
 </pre>
@@ -229,8 +229,8 @@ its "evaluate until needed" nature allows <b>skipping the evaluation</b> of
 some of the arguments, for example:
 </p>
 <div class="org-src-container">
-<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">ite</span> condition then else)       <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">if-then-else</span>
-  (<span style="font-weight: bold;">if</span> condition then else))
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">ite</span> condition then else)       <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">if-then-else
+</span>  (<span style="font-weight: bold;">if</span> condition then else))
 
 (ite (&gt; x y) (heavy-computation) 0)
 </pre>
@@ -248,24 +248,24 @@ formal definition of normal-order evaluation.
 </p>
 </div>
 </div>
-<div id="outline-container-org5c21d77" class="outline-2">
-<h2 id="org5c21d77"><span class="section-number-2">3.</span> <a href="#org5c21d77">Functions vs special forms</a></h2>
+<div id="outline-container-org6f5fd44" class="outline-2">
+<h2 id="org6f5fd44"><span class="section-number-2">3.</span> <a href="#org6f5fd44">Functions vs special forms</a></h2>
 <div class="outline-text-2" id="text-3">
 </div>
-<div id="outline-container-org110a3e0" class="outline-3">
-<h3 id="org110a3e0"><span class="section-number-3">3.1.</span> <a href="#org110a3e0"><code>define</code></a></h3>
+<div id="outline-container-org3dbf07f" class="outline-3">
+<h3 id="org3dbf07f"><span class="section-number-3">3.1.</span> <a href="#org3dbf07f"><code>define</code></a></h3>
 </div>
 
-<div id="outline-container-orgfd9de48" class="outline-3">
-<h3 id="orgfd9de48"><span class="section-number-3">3.2.</span> <a href="#orgfd9de48"><code>if</code> &amp; <code>cond</code></a></h3>
+<div id="outline-container-org3fdd946" class="outline-3">
+<h3 id="org3fdd946"><span class="section-number-3">3.2.</span> <a href="#org3fdd946"><code>if</code> &amp; <code>cond</code></a></h3>
 <div class="outline-text-3" id="text-3-2">
 <p>
 In Scheme, <code>#f</code> is interpreted as false, and <code>#t</code> (or any other value
 other than <code>#f</code>) is true.
 </p>
 <div class="org-src-container">
-<pre class="src src-scheme">(&gt; 1 2)                                 <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#f</span>
-(&lt; 1 2)                                 <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#t</span>
+<pre class="src src-scheme">(&gt; 1 2)                                 <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#f
+</span>(&lt; 1 2)                                 <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#t</span>
 </pre>
 </div>
 
@@ -286,8 +286,8 @@ other than <code>#f</code>) is true.
 </p>
 </div>
 </div>
-<div id="outline-container-org93097ea" class="outline-3">
-<h3 id="org93097ea"><span class="section-number-3">3.3.</span> <a href="#org93097ea"><code>and</code> &amp; <code>or</code></a></h3>
+<div id="outline-container-org9a1f0c1" class="outline-3">
+<h3 id="org9a1f0c1"><span class="section-number-3">3.3.</span> <a href="#org9a1f0c1"><code>and</code> &amp; <code>or</code></a></h3>
 <div class="outline-text-3" id="text-3-3">
 <p>
 <code>and</code> and <code>or</code> are special forms, as not all operands are necessarily
@@ -301,10 +301,10 @@ false value, or the value of the last expression, if all expressions
 evaluate to true values.
 </p>
 <div class="org-src-container">
-<pre class="src src-scheme">(<span style="font-weight: bold;">and</span> (= 2 2) (&gt; 2 1))                   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#t</span>
-(<span style="font-weight: bold;">and</span> (= 2 2) (&lt; 2 1))                   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#f</span>
-(<span style="font-weight: bold;">and</span> 1 2 'c '(f g))                     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(f g)</span>
-(<span style="font-weight: bold;">and</span>)                                   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#t</span>
+<pre class="src src-scheme">(<span style="font-weight: bold;">and</span> (= 2 2) (&gt; 2 1))                   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#t
+</span>(<span style="font-weight: bold;">and</span> (= 2 2) (&lt; 2 1))                   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#f
+</span>(<span style="font-weight: bold;">and</span> 1 2 'c '(f g))                     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">(f g)
+</span>(<span style="font-weight: bold;">and</span>)                                   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#t</span>
 </pre>
 </div>
 
@@ -314,10 +314,10 @@ value, or the value of the last expression (<code>#f</code>), if all expressions
 evaluate to false values.
 </p>
 <div class="org-src-container">
-<pre class="src src-scheme">(<span style="font-weight: bold;">or</span> (= 2 2) (&gt; 2 1))                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#t</span>
-(<span style="font-weight: bold;">or</span> (= 2 2) (&lt; 2 1))                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#t</span>
-(<span style="font-weight: bold;">or</span> #f #f #f)                           <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#f</span>
-(<span style="font-weight: bold;">or</span> 123 (/ 3 0))                        <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">123</span>
+<pre class="src src-scheme">(<span style="font-weight: bold;">or</span> (= 2 2) (&gt; 2 1))                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#t
+</span>(<span style="font-weight: bold;">or</span> (= 2 2) (&lt; 2 1))                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#t
+</span>(<span style="font-weight: bold;">or</span> #f #f #f)                           <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">#f
+</span>(<span style="font-weight: bold;">or</span> 123 (/ 3 0))                        <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">123</span>
 </pre>
 </div>
 <p>
@@ -326,12 +326,12 @@ Note that <code>(/ 3 0)</code> is not evaluated.
 </div>
 </div>
 </div>
-<div id="outline-container-org5946fe7" class="outline-2">
-<h2 id="org5946fe7"><span class="section-number-2">4.</span> <a href="#org5946fe7">Find the smallest divisor</a></h2>
+<div id="outline-container-org549fa60" class="outline-2">
+<h2 id="org549fa60"><span class="section-number-2">4.</span> <a href="#org549fa60">Find the smallest divisor</a></h2>
 <div class="outline-text-2" id="text-4">
 <div class="org-src-container">
-<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">smallest-divisor</span> n)         <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">find the smallest divisior of n</span>
-  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">find-divisior</span> n test-divisior)
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">smallest-divisor</span> n)         <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">find the smallest divisior of n
+</span>  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">find-divisior</span> n test-divisior)
     (<span style="font-weight: bold;">cond</span> [(&gt; (square test-divisior) n) n]
           [(divides? test-divisior n) test-divisior]
           [else (find-divisior n (+ test-divisior 1))]))
@@ -342,16 +342,16 @@ Note that <code>(/ 3 0)</code> is not evaluated.
 </div>
 </div>
 </div>
-<div id="outline-container-org2b6a29b" class="outline-2">
-<h2 id="org2b6a29b"><span class="section-number-2">5.</span> <a href="#org2b6a29b">Accumulate, sum, prod</a></h2>
+<div id="outline-container-org95ee183" class="outline-2">
+<h2 id="org95ee183"><span class="section-number-2">5.</span> <a href="#org95ee183">Accumulate, sum, prod</a></h2>
 <div class="outline-text-2" id="text-5">
 <p>
 <code>accumulate</code> takes an initial value (<code>null-value</code>) and a way to
 combine the running total with the new term (<code>combiner</code>).
 </p>
 <div class="org-src-container">
-<pre class="src src-scheme"><span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">recursive</span>
-(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">accumulate</span> combiner null-value term a next b)
+<pre class="src src-scheme"><span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">recursive
+</span>(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">accumulate</span> combiner null-value term a next b)
   (<span style="font-weight: bold;">if</span> (&gt; a b)
       null-value
       (combiner (accumulate combiner
@@ -361,8 +361,8 @@ combine the running total with the new term (<code>combiner</code>).
                             next
                             b)
                 (term a))))
-<span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">iterative</span>
-(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">accumulate</span> combiner null-value term a next b)
+<span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">iterative
+</span>(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">accumulate</span> combiner null-value term a next b)
   (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">iter</span> a total)
     (<span style="font-weight: bold;">if</span> (&gt; a b)
         total
@@ -405,8 +405,8 @@ Both <code>sum</code> and <code>prod</code> can be defined in terms of <code>acc
 </div>
 </div>
 </div>
-<div id="outline-container-orgb386548" class="outline-2">
-<h2 id="orgb386548"><span class="section-number-2">6.</span> <a href="#orgb386548">Local variables</a></h2>
+<div id="outline-container-org23de075" class="outline-2">
+<h2 id="org23de075"><span class="section-number-2">6.</span> <a href="#org23de075">Local variables</a></h2>
 <div class="outline-text-2" id="text-6">
 <p>
 Functions take parameters, which can be used as local
@@ -416,12 +416,12 @@ Let \(a = (1+xy)\), \(b = (1-y)\), so \(f(x, y) = x a^2 + y b + a b\).
 </p>
 <div class="org-src-container">
 <pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">f</span> x y)
-  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">f-helper</span> a b)           <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">use parameters as local variables</span>
-    (+ (* x (square a))
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">f-helper</span> a b)           <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">use parameters as local variables
+</span>    (+ (* x (square a))
        (* y b)
        (* a b)))
-  (f-helper (+ 1 (* x y))          <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">a = 1 + xy</span>
-            (- 1 y)))              <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">b = 1 - y</span>
+  (f-helper (+ 1 (* x y))          <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">a = 1 + xy
+</span>            (- 1 y)))              <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">b = 1 - y</span>
 </pre>
 </div>
 <p>
@@ -430,12 +430,12 @@ lambda expression:
 </p>
 <div class="org-src-container">
 <pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">f</span> x y)
-  ((<span style="font-weight: bold;">lambda</span> (a b)     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">use lambda expression instead of named functions</span>
-     (+ (* x (square a))
+  ((<span style="font-weight: bold;">lambda</span> (a b)     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">use lambda expression instead of named functions
+</span>     (+ (* x (square a))
         (* y b)
         (* a b)))
-   (+ 1 (* x y))     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">a = 1 + xy</span>
-   (- 1 y)))         <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">b = 1 - y</span>
+   (+ 1 (* x y))     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">a = 1 + xy
+</span>   (- 1 y)))         <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">b = 1 - y</span>
 </pre>
 </div>
 <p>
@@ -488,9 +488,9 @@ The symbols used in their computation are from the outer scope.
 As a result, the expression
 </p>
 <div class="org-src-container">
-<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">x</span> 2)                            <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[1]</span>
-(<span style="font-weight: bold;">let</span> ([x 3]                             <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[2]</span>
-      [y (+ x 2)])
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> <span style="font-weight: bold;">x</span> 2)                            <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[1]
+</span>(<span style="font-weight: bold;">let</span> ([x 3]                             <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[2]
+</span>      [y (+ x 2)])
   (* x y))
 </pre>
 </div>
@@ -501,12 +501,12 @@ variable <code>x</code> in [1] (outer scope), not [2].
 </ul>
 </div>
 </div>
-<div id="outline-container-org981734e" class="outline-2">
-<h2 id="org981734e"><span class="section-number-2">7.</span> <a href="#org981734e">Fixed-point &amp; Newton's method</a></h2>
+<div id="outline-container-org9226ebe" class="outline-2">
+<h2 id="org9226ebe"><span class="section-number-2">7.</span> <a href="#org9226ebe">Fixed-point &amp; Newton's method</a></h2>
 <div class="outline-text-2" id="text-7">
 </div>
-<div id="outline-container-org99ad341" class="outline-3">
-<h3 id="org99ad341"><span class="section-number-3">7.1.</span> <a href="#org99ad341">Fixed-point</a></h3>
+<div id="outline-container-org33f3c31" class="outline-3">
+<h3 id="org33f3c31"><span class="section-number-3">7.1.</span> <a href="#org33f3c31">Fixed-point</a></h3>
 <div class="outline-text-3" id="text-7-1">
 <p>
 A number \(x\) is called a <i>fixed point</i> of a function \(f\) if \(f(x) = x\).
@@ -569,8 +569,8 @@ Notice that cube root is the fixed point of the function \(f(y) = x / y^2\):
 </div>
 </div>
 </div>
-<div id="outline-container-orga3482b2" class="outline-3">
-<h3 id="orga3482b2"><span class="section-number-3">7.2.</span> <a href="#orga3482b2">Newton's method</a></h3>
+<div id="outline-container-orgdfd8257" class="outline-3">
+<h3 id="orgdfd8257"><span class="section-number-3">7.2.</span> <a href="#orgdfd8257">Newton's method</a></h3>
 <div class="outline-text-3" id="text-7-2">
 <p>
 If \(g(x)\) is a differentiable function, then a solution of \(g(x)=0\) is
@@ -639,20 +639,20 @@ only once:
 </div>
 </div>
 </div>
-<div id="outline-container-orgb84f098" class="outline-3">
-<h3 id="orgb84f098"><span class="section-number-3">7.3.</span> <a href="#orgb84f098"><code>fixed-point-of-transform</code></a></h3>
+<div id="outline-container-org89472d9" class="outline-3">
+<h3 id="org89472d9"><span class="section-number-3">7.3.</span> <a href="#org89472d9"><code>fixed-point-of-transform</code></a></h3>
 <div class="outline-text-3" id="text-7-3">
 <p>
 We calculated <code>sqrt</code> using both the fixed point search and Newton's method:
 </p>
 <div class="org-src-container">
-<pre class="src src-scheme"><span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">fixed point</span>
-(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sqrt</span> x)                        <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[1]</span>
-  (fixed-point (average-damp (<span style="font-weight: bold;">lambda</span> (y) (/ x y)))
+<pre class="src src-scheme"><span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">fixed point
+</span>(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sqrt</span> x)                        <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[1]
+</span>  (fixed-point (average-damp (<span style="font-weight: bold;">lambda</span> (y) (/ x y)))
                1.0))
-<span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">Newton's method</span>
-(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sqrt</span> x)                        <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[2]</span>
-  (newtons-method (<span style="font-weight: bold;">lambda</span> (y) (- (square y) x))
+<span style="font-weight: bold; font-style: italic;">;;; </span><span style="font-weight: bold; font-style: italic;">Newton's method
+</span>(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sqrt</span> x)                        <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[2]
+</span>  (newtons-method (<span style="font-weight: bold;">lambda</span> (y) (- (square y) x))
                   1.0))
 </pre>
 </div>
@@ -660,8 +660,8 @@ We calculated <code>sqrt</code> using both the fixed point search and Newton's m
 The latter [2] expands to:
 </p>
 <div class="org-src-container">
-<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sqrt</span> x)                        <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[3]</span>
-  (fixed-point (newton-transform (<span style="font-weight: bold;">lambda</span> (y) (- (square y) x)))
+<pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">sqrt</span> x)                        <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[3]
+</span>  (fixed-point (newton-transform (<span style="font-weight: bold;">lambda</span> (y) (- (square y) x)))
                1.0))
 </pre>
 </div>
@@ -697,8 +697,8 @@ Then the two methods become:
 </div>
 </div>
 </div>
-<div id="outline-container-orgb17d174" class="outline-2">
-<h2 id="orgb17d174"><span class="section-number-2">8.</span> <a href="#orgb17d174">Compose</a></h2>
+<div id="outline-container-org8d065bf" class="outline-2">
+<h2 id="org8d065bf"><span class="section-number-2">8.</span> <a href="#org8d065bf">Compose</a></h2>
 <div class="outline-text-2" id="text-8">
 <p>
 Let \(f\) and \(g\) be two one-argument functions.  The composition \(f\)
@@ -751,8 +751,8 @@ Alternatively, there's an iterative implementation:
 </div>
 </div>
 </div>
-<div id="outline-container-org33cadb2" class="outline-2">
-<h2 id="org33cadb2"><span class="section-number-2">9.</span> <a href="#org33cadb2"><code>lambda</code> for recursion</a></h2>
+<div id="outline-container-org47dbe57" class="outline-2">
+<h2 id="org47dbe57"><span class="section-number-2">9.</span> <a href="#org47dbe57"><code>lambda</code> for recursion</a></h2>
 <div class="outline-text-2" id="text-9">
 <p>
 How to write a recursive function using only <code>lambda</code>?  The main
@@ -805,10 +805,10 @@ a better name:
 The answers below has an <a href="https://gist.github.com/z5h/238891">explanation</a> covering Y combinator.
 </p>
 <div class="org-src-container">
-<pre class="src src-scheme">(((<span style="font-weight: bold;">lambda</span> (x) (x x))                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[1]</span>
-  (<span style="font-weight: bold;">lambda</span> (fact-gen)                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[2]</span>
-    (<span style="font-weight: bold;">lambda</span> (n)                         <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[3]</span>
-      (<span style="font-weight: bold;">if</span> (zero? n)
+<pre class="src src-scheme">(((<span style="font-weight: bold;">lambda</span> (x) (x x))                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[1]
+</span>  (<span style="font-weight: bold;">lambda</span> (fact-gen)                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[2]
+</span>    (<span style="font-weight: bold;">lambda</span> (n)                         <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">[3]
+</span>      (<span style="font-weight: bold;">if</span> (zero? n)
           1
           (* n ((fact-gen fact-gen) (- n 1)))))))
  5)                                     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">120</span>
@@ -837,12 +837,12 @@ itself, thereby obtaining as return value the factorial function.
 </div>
 </div>
 </div>
-<div id="outline-container-org275ee04" class="outline-2">
-<h2 id="org275ee04"><span class="section-number-2">10.</span> <a href="#org275ee04">Exercises</a></h2>
+<div id="outline-container-org0c0384a" class="outline-2">
+<h2 id="org0c0384a"><span class="section-number-2">10.</span> <a href="#org0c0384a">Exercises</a></h2>
 <div class="outline-text-2" id="text-10">
 </div>
-<div id="outline-container-org4a62970" class="outline-3">
-<h3 id="org4a62970"><span class="section-number-3">10.1.</span> <a href="#org4a62970">Ex 1.3 &#x2014; the smallest of the three</a></h3>
+<div id="outline-container-orga4b2432" class="outline-3">
+<h3 id="orga4b2432"><span class="section-number-3">10.1.</span> <a href="#orga4b2432">Ex 1.3 &#x2014; the smallest of the three</a></h3>
 <div class="outline-text-3" id="text-10-1">
 <blockquote>
 <p>
@@ -887,8 +887,8 @@ the smaller one (<code>(min a b)</code>), it needs to be compared with <code>c</
 </p>
 </div>
 </div>
-<div id="outline-container-org3d77509" class="outline-3">
-<h3 id="org3d77509"><span class="section-number-3">10.2.</span> <a href="#org3d77509">Ex 1.5 &#x2014; applicative-order &amp; normal-order</a></h3>
+<div id="outline-container-orgf0d3ff8" class="outline-3">
+<h3 id="orgf0d3ff8"><span class="section-number-3">10.2.</span> <a href="#orgf0d3ff8">Ex 1.5 &#x2014; applicative-order &amp; normal-order</a></h3>
 <div class="outline-text-3" id="text-10-2">
 <blockquote>
 <p>
@@ -945,8 +945,8 @@ evaluates to <code>0</code>.
 </p>
 </div>
 </div>
-<div id="outline-container-org5120d50" class="outline-3">
-<h3 id="org5120d50"><span class="section-number-3">10.3.</span> <a href="#org5120d50">Ex 1.16 &#x2014; iterative fast exponentiation</a></h3>
+<div id="outline-container-orga085346" class="outline-3">
+<h3 id="orga085346"><span class="section-number-3">10.3.</span> <a href="#orga085346">Ex 1.16 &#x2014; iterative fast exponentiation</a></h3>
 <div class="outline-text-3" id="text-10-3">
 <blockquote>
 <p>
@@ -985,10 +985,10 @@ Iterative code:
           [(even? n) (iter (square b) (/ n 2) prod)]
           [else (iter b (- n 1) (* prod b))]))
   (iter b n 1))
-<span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">the same thing:</span>
-(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">fast-expt</span> b n)
-  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">iter</span> a b n)                  <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">a * b^n</span>
-    (<span style="font-weight: bold;">cond</span> [(= n 0) a]
+<span style="font-weight: bold; font-style: italic;">;; </span><span style="font-weight: bold; font-style: italic;">the same thing:
+</span>(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">fast-expt</span> b n)
+  (<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">iter</span> a b n)                  <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">a * b^n
+</span>    (<span style="font-weight: bold;">cond</span> [(= n 0) a]
           [(even? n) (iter a (square b) (/ n 2))]
           [else (iter (* a b) b (- n 1))]))
   (iter 1 b n))
@@ -996,8 +996,8 @@ Iterative code:
 </div>
 </div>
 </div>
-<div id="outline-container-org34c6397" class="outline-3">
-<h3 id="org34c6397"><span class="section-number-3">10.4.</span> <a href="#org34c6397">Ex 1.44 &#x2014; order of application</a></h3>
+<div id="outline-container-org6f8c648" class="outline-3">
+<h3 id="org6f8c648"><span class="section-number-3">10.4.</span> <a href="#org6f8c648">Ex 1.44 &#x2014; order of application</a></h3>
 <div class="outline-text-3" id="text-10-4">
 <blockquote>
 <p>
@@ -1027,9 +1027,9 @@ The definition of <code>smooth</code> is quite easy:
              (f x)
              (f (+ x dx)))))
 
-((smooth square) 2)                     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.000066666666666</span>
-((smooth (smooth square)) 2)            <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.000133333333333</span>
-((smooth (smooth (smooth square))) 2)   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.0001999999999995</span>
+((smooth square) 2)                     <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.000066666666666
+</span>((smooth (smooth square)) 2)            <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.000133333333333
+</span>((smooth (smooth (smooth square))) 2)   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.0001999999999995</span>
 </pre>
 </div>
 
@@ -1040,9 +1040,9 @@ However, the repeated application of <code>smooth</code> should be written as:
 <pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">n-fold-smooth</span> f n)
   ((repeated smooth n) f))
 
-((n-fold-smooth square 1) 2)            <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.000066666666666</span>
-((n-fold-smooth square 2) 2)            <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.000133333333333</span>
-((n-fold-smooth square 3) 2)            <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.0001999999999995</span>
+((n-fold-smooth square 1) 2)            <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.000066666666666
+</span>((n-fold-smooth square 2) 2)            <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.000133333333333
+</span>((n-fold-smooth square 3) 2)            <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.0001999999999995</span>
 </pre>
 </div>
 <p>
@@ -1052,24 +1052,24 @@ Not as:
 <pre class="src src-scheme">(<span style="font-weight: bold;">define</span> (<span style="font-weight: bold;">wrong</span> f n)
   (repeated (smooth f) n))
 
-((wrong square 1) 2)                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.000066666666666</span>
-((wrong square 2) 2)                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">16.00060000444444</span>
-((wrong square 3) 2)                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">256.01926716889415</span>
+((wrong square 1) 2)                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">4.000066666666666
+</span>((wrong square 2) 2)                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">16.00060000444444
+</span>((wrong square 3) 2)                    <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">256.01926716889415</span>
 </pre>
 </div>
 <p>
 The <code>wrong</code> implementation actually expands to:
 </p>
 <div class="org-src-container">
-<pre class="src src-scheme">((smooth square) ((smooth square) 2))   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">16.00060000444444</span>
-((smooth square) ((smooth square)
+<pre class="src src-scheme">((smooth square) ((smooth square) 2))   <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">16.00060000444444
+</span>((smooth square) ((smooth square)
                   ((smooth square) 2))) <span style="font-weight: bold; font-style: italic;">; </span><span style="font-weight: bold; font-style: italic;">256.01926716889415</span>
 </pre>
 </div>
 </div>
 </div>
-<div id="outline-container-org5fb87c6" class="outline-3">
-<h3 id="org5fb87c6"><span class="section-number-3">10.5.</span> <a href="#org5fb87c6">Ex 1.45 &#x2014; n-th root</a></h3>
+<div id="outline-container-orgbfd1b41" class="outline-3">
+<h3 id="orgbfd1b41"><span class="section-number-3">10.5.</span> <a href="#orgbfd1b41">Ex 1.45 &#x2014; n-th root</a></h3>
 <div class="outline-text-3" id="text-10-5">
 <p>
 Comput \(\sqrt[n]{x}\) by calculating the fixed point of the function \(x
@@ -1086,8 +1086,8 @@ Comput \(\sqrt[n]{x}\) by calculating the fixed point of the function \(x
 </div>
 </div>
 </div>
-<div id="outline-container-org1777724" class="outline-3">
-<h3 id="org1777724"><span class="section-number-3">10.6.</span> <a href="#org1777724">Ex 1.46 &#x2014; iterative improvement</a></h3>
+<div id="outline-container-orgfc82118" class="outline-3">
+<h3 id="orgfc82118"><span class="section-number-3">10.6.</span> <a href="#orgfc82118">Ex 1.46 &#x2014; iterative improvement</a></h3>
 <div class="outline-text-3" id="text-10-6">
 <blockquote>
 <p>
@@ -1140,7 +1140,7 @@ is good enough.  Rewrite the <code>sqrt</code> procedure of Section 1.1.7 and th
   <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
   <tr><td class="org-right">Created</td><td class="org-left">2021-07-04 09:15</td></tr>
   <tr><td class="org-right">Modified</td><td class="org-left">2023-03-21 19:23</td></tr>
-  <tr><td class="org-right">Generated</td><td class="org-left">2025-06-28 02:51</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2025-07-06 02:48</td></tr>
   <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 30.1 (<a href="https://orgmode.org">Org</a> mode 9.7.11)</td></tr>
   <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://raw.githubusercontent.com/thebesttv/thebesttv.github.io/main/content/sicp/ch1.org">ch1.org</a></td></tr>
 </table>

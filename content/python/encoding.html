@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<!-- 2025-06-28 02:51 -->
+<!-- 2025-07-06 02:48 -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>使用 Python 获取文件正确的编码</title>
@@ -66,28 +66,28 @@ Python 的 <a href="https://docs.python.org/3/library/functions.html#open"><code
 <span style="font-weight: bold;">from</span> bs4 <span style="font-weight: bold;">import</span> UnicodeDammit
 
 <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">get_file_encoding_magic</span>(file_path):
-    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">https://stackoverflow.com/a/16203777/11938767</span>
-    <span style="font-weight: bold;">with</span> <span style="font-weight: bold;">open</span>(file_path, <span style="font-style: italic;">'rb'</span>) <span style="font-weight: bold;">as</span> f:
+    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">https://stackoverflow.com/a/16203777/11938767
+</span>    <span style="font-weight: bold;">with</span> <span style="font-weight: bold;">open</span>(file_path, <span style="font-style: italic;">'rb'</span>) <span style="font-weight: bold;">as</span> f:
         <span style="font-weight: bold; font-style: italic;">blob</span> = f.read()
         <span style="font-weight: bold; font-style: italic;">m</span> = magic.<span style="font-weight: bold;">open</span>(magic.MAGIC_MIME_ENCODING)
         m.load()
-        <span style="font-weight: bold; font-style: italic;">encoding</span> = m.<span style="font-weight: bold;">buffer</span>(blob)  <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">"utf-8" "us-ascii" etc</span>
-        <span style="font-weight: bold;">return</span> encoding
+        <span style="font-weight: bold; font-style: italic;">encoding</span> = m.<span style="font-weight: bold;">buffer</span>(blob)  <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">"utf-8" "us-ascii" etc
+</span>        <span style="font-weight: bold;">return</span> encoding
 
 <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">get_file_encoding_bs4</span>(file_path):
-    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">https://stackoverflow.com/a/60858982/11938767</span>
-    <span style="font-weight: bold;">with</span> <span style="font-weight: bold;">open</span>(file_path, <span style="font-style: italic;">'rb'</span>) <span style="font-weight: bold;">as</span> <span style="font-weight: bold;">file</span>:
+    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">https://stackoverflow.com/a/60858982/11938767
+</span>    <span style="font-weight: bold;">with</span> <span style="font-weight: bold;">open</span>(file_path, <span style="font-style: italic;">'rb'</span>) <span style="font-weight: bold;">as</span> <span style="font-weight: bold;">file</span>:
         <span style="font-weight: bold; font-style: italic;">blob</span> = <span style="font-weight: bold;">file</span>.read()
         <span style="font-weight: bold; font-style: italic;">suggestion</span> = UnicodeDammit(blob)
         <span style="font-weight: bold;">return</span> suggestion.original_encoding
 
 <span style="font-weight: bold;">def</span> <span style="font-weight: bold;">get_file_encoding</span>(file_path):
-    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">&#20808;&#29992; magic &#21028;&#26029;&#25991;&#20214;&#26159;&#21542;&#20026;&#20108;&#36827;&#21046;</span>
-    <span style="font-weight: bold; font-style: italic;">coarse_encoding</span> = get_file_encoding_magic(file_path)
+    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">&#20808;&#29992; magic &#21028;&#26029;&#25991;&#20214;&#26159;&#21542;&#20026;&#20108;&#36827;&#21046;
+</span>    <span style="font-weight: bold; font-style: italic;">coarse_encoding</span> = get_file_encoding_magic(file_path)
     <span style="font-weight: bold;">if</span> coarse_encoding == <span style="font-style: italic;">'binary'</span>:
         <span style="font-weight: bold;">return</span> <span style="font-style: italic;">'binary'</span>
-    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">&#23545;&#20110;&#38750;&#20108;&#36827;&#21046;&#65292;&#29992; bs4 &#33719;&#21462;&#32534;&#30721;&#12290;&#22240;&#20026; magic &#20250;&#26377;&#35823;&#25253;</span>
-    <span style="font-weight: bold;">return</span> get_file_encoding_bs4(file_path)
+    <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">&#23545;&#20110;&#38750;&#20108;&#36827;&#21046;&#65292;&#29992; bs4 &#33719;&#21462;&#32534;&#30721;&#12290;&#22240;&#20026; magic &#20250;&#26377;&#35823;&#25253;
+</span>    <span style="font-weight: bold;">return</span> get_file_encoding_bs4(file_path)
 </pre>
 </div>
 
@@ -101,7 +101,7 @@ Python 的 <a href="https://docs.python.org/3/library/functions.html#open"><code
   <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
   <tr><td class="org-right">Created</td><td class="org-left">2024-04-11 16:51</td></tr>
   <tr><td class="org-right">Modified</td><td class="org-left">2024-04-11 17:01</td></tr>
-  <tr><td class="org-right">Generated</td><td class="org-left">2025-06-28 02:51</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2025-07-06 02:48</td></tr>
   <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 30.1 (<a href="https://orgmode.org">Org</a> mode 9.7.11)</td></tr>
   <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://raw.githubusercontent.com/thebesttv/thebesttv.github.io/main/content/python/encoding.org">encoding.org</a></td></tr>
 </table>
