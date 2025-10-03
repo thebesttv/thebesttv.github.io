@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<!-- 2025-10-03 18:28 -->
+<!-- 2025-10-04 02:50 -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>piCore 编译 ADB 小记</title>
@@ -46,19 +46,19 @@
 <h2>&#30446;&#24405;</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org3f9bef5">1. 烧录 piCore</a></li>
-<li><a href="#orgc826c3f">2. 基本配置</a></li>
-<li><a href="#org1e2dd68">3. 各种依赖</a>
+<li><a href="#orgb5dedaa">1. 烧录 piCore</a></li>
+<li><a href="#org0b12cb0">2. 基本配置</a></li>
+<li><a href="#org3249b1e">3. 各种依赖</a>
 <ul>
-<li><a href="#org33f9bce">3.1. protobuf</a></li>
-<li><a href="#org8c63daa">3.2. brotli</a></li>
-<li><a href="#org4bc2987">3.3. GoogleTest</a></li>
-<li><a href="#orga163b44">3.4. Go</a></li>
+<li><a href="#org35a9aac">3.1. protobuf</a></li>
+<li><a href="#org86618c8">3.2. brotli</a></li>
+<li><a href="#org2804d53">3.3. GoogleTest</a></li>
+<li><a href="#org24856b4">3.4. Go</a></li>
 </ul>
 </li>
-<li><a href="#org36f93f8">4. 编译 ADB</a></li>
-<li><a href="#orgac6fabd">5. 内网穿透</a></li>
-<li><a href="#org11f9e44">6. 小结</a></li>
+<li><a href="#org78e71ba">4. 编译 ADB</a></li>
+<li><a href="#orgf87688d">5. 内网穿透</a></li>
+<li><a href="#org695070a">6. 小结</a></li>
 </ul>
 </div>
 </nav>
@@ -84,8 +84,8 @@
 可能可以在树莓派3B的1G内存下直接编译, 不过我也没试过~
 然后交叉编译啥的就更不会了😵
 </p>
-<div id="outline-container-org3f9bef5" class="outline-2">
-<h2 id="org3f9bef5"><span class="section-number-2">1.</span> <a href="#org3f9bef5">烧录 piCore</a></h2>
+<div id="outline-container-orgb5dedaa" class="outline-2">
+<h2 id="orgb5dedaa"><span class="section-number-2">1.</span> <a href="#orgb5dedaa">烧录 piCore</a></h2>
 <div class="outline-text-2" id="text-1">
 <p>
 Tiny Core 目前的版本是 13.X, 在<a href="http://tinycorelinux.net/downloads.html">官网的下载页面</a>底部有各种移植版的<a href="http://tinycorelinux.net/ports.html">下载页面</a>.
@@ -128,8 +128,8 @@ Device     Boot  Start    End Sectors Size Id Type
 </p>
 </div>
 </div>
-<div id="outline-container-orgc826c3f" class="outline-2">
-<h2 id="orgc826c3f"><span class="section-number-2">2.</span> <a href="#orgc826c3f">基本配置</a></h2>
+<div id="outline-container-org0b12cb0" class="outline-2">
+<h2 id="org0b12cb0"><span class="section-number-2">2.</span> <a href="#org0b12cb0">基本配置</a></h2>
 <div class="outline-text-2" id="text-2">
 <p>
 登录后, 有两个最重要的事情
@@ -251,8 +251,8 @@ sudo sed -i <span style="font-style: italic;">'/tc/s_/bin/sh_/bin/bash_'</span> 
 </div>
 </div>
 </div>
-<div id="outline-container-org1e2dd68" class="outline-2">
-<h2 id="org1e2dd68"><span class="section-number-2">3.</span> <a href="#org1e2dd68">各种依赖</a></h2>
+<div id="outline-container-org3249b1e" class="outline-2">
+<h2 id="org3249b1e"><span class="section-number-2">3.</span> <a href="#org3249b1e">各种依赖</a></h2>
 <div class="outline-text-2" id="text-3">
 <p>
 准备 ADB 需要的<a href="https://github.com/nmeum/android-tools#dependencies">依赖</a>, 有的可以用 <code>tce-load</code> 直接下载
@@ -270,8 +270,8 @@ sudo sed -i <span style="font-style: italic;">'/tc/s_/bin/sh_/bin/bash_'</span> 
 剩下的就要自己编译了.  所有编译和安装都在 <code>/tmp</code> 下进行.
 </p>
 </div>
-<div id="outline-container-org33f9bce" class="outline-3">
-<h3 id="org33f9bce"><span class="section-number-3">3.1.</span> <a href="#org33f9bce">protobuf</a></h3>
+<div id="outline-container-org35a9aac" class="outline-3">
+<h3 id="org35a9aac"><span class="section-number-3">3.1.</span> <a href="#org35a9aac">protobuf</a></h3>
 <div class="outline-text-3" id="text-3-1">
 <p>
 安装方法见 <a href="https://github.com/protocolbuffers/protobuf/blob/main/src/README.md">README</a>, 下载源码 <a href="https://github.com/protocolbuffers/protobuf/releases/download/v21.4/protobuf-cpp-3.21.4.tar.gz"><code>protobuf-cpp-3.21.4.tar.gz</code></a> 编译
@@ -304,8 +304,8 @@ mksquashfs dest-protobuf/ tbt-protobuf-3.21.4.tcz
 </div>
 </div>
 </div>
-<div id="outline-container-org8c63daa" class="outline-3">
-<h3 id="org8c63daa"><span class="section-number-3">3.2.</span> <a href="#org8c63daa">brotli</a></h3>
+<div id="outline-container-org86618c8" class="outline-3">
+<h3 id="org86618c8"><span class="section-number-3">3.2.</span> <a href="#org86618c8">brotli</a></h3>
 <div class="outline-text-3" id="text-3-2">
 <p>
 从 <a href="https://github.com/google/brotli">repo</a> 下载 <a href="https://github.com/google/brotli/archive/refs/tags/v1.0.9.tar.gz"><code>brotli-1.0.9.tar.gz</code></a> 编译打包
@@ -326,8 +326,8 @@ mv tbt-brotli-1.0.9.tcz /mnt/mmcblk0p2/tce/optional/
 </div>
 </div>
 </div>
-<div id="outline-container-org4bc2987" class="outline-3">
-<h3 id="org4bc2987"><span class="section-number-3">3.3.</span> <a href="#org4bc2987">GoogleTest</a></h3>
+<div id="outline-container-org2804d53" class="outline-3">
+<h3 id="org2804d53"><span class="section-number-3">3.3.</span> <a href="#org2804d53">GoogleTest</a></h3>
 <div class="outline-text-3" id="text-3-3">
 <p>
 从 <a href="https://github.com/google/googletest">repo</a> 下载 <a href="https://github.com/google/googletest/archive/refs/tags/release-1.12.1.tar.gz"><code>googletest-release-1.12.1.tar.gz</code></a> , 根据 <a href="https://github.com/google/googletest/blob/main/googletest/README.md">README</a> 编译打包
@@ -359,8 +359,8 @@ mv tbt-googletest-1.12.1.tcz /mnt/mmcblk0p2/tce/optional/
 </div>
 </div>
 </div>
-<div id="outline-container-orga163b44" class="outline-3">
-<h3 id="orga163b44"><span class="section-number-3">3.4.</span> <a href="#orga163b44">Go</a></h3>
+<div id="outline-container-org24856b4" class="outline-3">
+<h3 id="org24856b4"><span class="section-number-3">3.4.</span> <a href="#org24856b4">Go</a></h3>
 <div class="outline-text-3" id="text-3-4">
 <p>
 从<a href="https://go.dev/dl/">这里</a>下载已经编译好的 Go 语言工具链 (<a href="https://go.dev/dl/go1.19.linux-armv6l.tar.gz"><code>go1.19.linux-armv6l.tar.gz</code></a>).
@@ -387,8 +387,8 @@ mv tbt-googletest-1.12.1.tcz /mnt/mmcblk0p2/tce/optional/
 </div>
 </div>
 </div>
-<div id="outline-container-org36f93f8" class="outline-2">
-<h2 id="org36f93f8"><span class="section-number-2">4.</span> <a href="#org36f93f8">编译 ADB</a></h2>
+<div id="outline-container-org78e71ba" class="outline-2">
+<h2 id="org78e71ba"><span class="section-number-2">4.</span> <a href="#org78e71ba">编译 ADB</a></h2>
 <div class="outline-text-2" id="text-4">
 <p>
 从 <a href="https://github.com/nmeum/android-tools">repo</a> 下载 release <a href="https://github.com/nmeum/android-tools/releases/download/31.0.3p2/android-tools-31.0.3p2.tar.xz"><code>android-tools-31.0.3p2.tar.xz</code></a>
@@ -438,8 +438,8 @@ tce-load -i tbt-android-tools-31.0.3p2.tcz
 </p>
 </div>
 </div>
-<div id="outline-container-orgac6fabd" class="outline-2">
-<h2 id="orgac6fabd"><span class="section-number-2">5.</span> <a href="#orgac6fabd">内网穿透</a></h2>
+<div id="outline-container-orgf87688d" class="outline-2">
+<h2 id="orgf87688d"><span class="section-number-2">5.</span> <a href="#orgf87688d">内网穿透</a></h2>
 <div class="outline-text-2" id="text-5">
 <p>
 为了远程访问方便, 加一个 frp 的包.
@@ -531,8 +531,8 @@ CmdEndsHERE</span>
 </div>
 </div>
 </div>
-<div id="outline-container-org11f9e44" class="outline-2">
-<h2 id="org11f9e44"><span class="section-number-2">6.</span> <a href="#org11f9e44">小结</a></h2>
+<div id="outline-container-org695070a" class="outline-2">
+<h2 id="org695070a"><span class="section-number-2">6.</span> <a href="#org695070a">小结</a></h2>
 <div class="outline-text-2" id="text-6">
 <p>
 感觉用 piCore 再自己编译打包各种东西着实有点麻烦了,
@@ -556,8 +556,8 @@ CmdEndsHERE</span>
 <hr><table class="postamble">
   <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
   <tr><td class="org-right">Created</td><td class="org-left">2022-08-09 23:51</td></tr>
-  <tr><td class="org-right">Modified</td><td class="org-left">2025-10-03 18:28</td></tr>
-  <tr><td class="org-right">Generated</td><td class="org-left">2025-10-03 18:28</td></tr>
+  <tr><td class="org-right">Modified</td><td class="org-left">2025-10-04 02:48</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2025-10-04 02:50</td></tr>
   <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 30.2 (<a href="https://orgmode.org">Org</a> mode 9.7.11)</td></tr>
   <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://raw.githubusercontent.com/thebesttv/thebesttv.github.io/main/content/picore-adb.org">picore-adb.org</a></td></tr>
 </table>
