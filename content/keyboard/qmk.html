@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<!-- 2026-06-30 04:28 -->
+<!-- 2026-07-01 04:31 -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>QMK笔记</title>
@@ -46,25 +46,25 @@
 <h2>&#30446;&#24405;</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org407627d">1. 使用 QMK 从零开始设计一个键盘的流程</a></li>
-<li><a href="#orgf5fbaa6">2. 合宙Air32F103</a>
+<li><a href="#org824afd0">1. 使用 QMK 从零开始设计一个键盘的流程</a></li>
+<li><a href="#org5090681">2. 合宙Air32F103</a>
 <ul>
-<li><a href="#org9f76393">2.1. 烧录QMK</a>
+<li><a href="#org6561bac">2.1. 烧录QMK</a>
 <ul>
-<li><a href="#org3ef9800">2.1.1. 使用 STM32duino BL</a></li>
-<li><a href="#orgce503c8">2.1.2. 使用 UF2 BL</a></li>
+<li><a href="#org678b6ea">2.1.1. 使用 STM32duino BL</a></li>
+<li><a href="#orgafa63da">2.1.2. 使用 UF2 BL</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#org2855741">3. 使用 74HC65 扫描按键</a></li>
-<li><a href="#orgaa6fcb7">4. 分体键盘</a></li>
-<li><a href="#org381e2af">5. VIA</a>
+<li><a href="#org6fa8f1f">3. 使用 74HC65 扫描按键</a></li>
+<li><a href="#orgf4961bd">4. 分体键盘</a></li>
+<li><a href="#org8c441bb">5. VIA</a>
 <ul>
-<li><a href="#org831721f">5.1. 固件配置</a></li>
-<li><a href="#org6e1a034">5.2. 配置文件</a></li>
-<li><a href="#org20bb895">5.3. VIA网页端使用</a></li>
-<li><a href="#org34db646">5.4. Linux 下可能遇到的问题</a></li>
+<li><a href="#org86aec62">5.1. 固件配置</a></li>
+<li><a href="#org5d882d6">5.2. 配置文件</a></li>
+<li><a href="#orgfe3f0af">5.3. VIA网页端使用</a></li>
+<li><a href="#orgbafdc5d">5.4. Linux 下可能遇到的问题</a></li>
 </ul>
 </li>
 </ul>
@@ -82,8 +82,8 @@ qmk compile -kb thebesttv/split27 -km via
 qmk console --bootloaders
 </pre>
 </div>
-<div id="outline-container-org407627d" class="outline-2">
-<h2 id="org407627d"><span class="section-number-2">1.</span> <a href="#org407627d">使用 QMK 从零开始设计一个键盘的流程</a></h2>
+<div id="outline-container-org824afd0" class="outline-2">
+<h2 id="org824afd0"><span class="section-number-2">1.</span> <a href="#org824afd0">使用 QMK 从零开始设计一个键盘的流程</a></h2>
 <div class="outline-text-2" id="text-1">
 <ol class="org-ol">
 <li>设计 layout：使用 <a href="http://www.keyboard-layout-editor.com/">KLE</a> 设计。可以在键位上直接写上矩阵座标，方便之后VIA的配置。</li>
@@ -101,8 +101,8 @@ Switch Type 一般选 <code>t:1</code>，Stabilizer Type 一般 <code>s:2</code>
 </ol>
 </div>
 </div>
-<div id="outline-container-orgf5fbaa6" class="outline-2">
-<h2 id="orgf5fbaa6"><span class="section-number-2">2.</span> <a href="#orgf5fbaa6">合宙Air32F103</a></h2>
+<div id="outline-container-org5090681" class="outline-2">
+<h2 id="org5090681"><span class="section-number-2">2.</span> <a href="#org5090681">合宙Air32F103</a></h2>
 <div class="outline-text-2" id="text-2">
 <p>
 UPD: 现在有了9.9的树莓派Pico，这个就没啥必要了。
@@ -121,15 +121,15 @@ UPD: 现在有了9.9的树莓派Pico，这个就没啥必要了。
 用的都是 <a href="https://github.com/zhaqian12/qmk_firmware/tree/zhaqian">zhaqian</a> 的固件和uf2bootloader。
 </p>
 </div>
-<div id="outline-container-org9f76393" class="outline-3">
-<h3 id="org9f76393"><span class="section-number-3">2.1.</span> <a href="#org9f76393">烧录QMK</a></h3>
+<div id="outline-container-org6561bac" class="outline-3">
+<h3 id="org6561bac"><span class="section-number-3">2.1.</span> <a href="#org6561bac">烧录QMK</a></h3>
 <div class="outline-text-3" id="text-2-1">
 <ul class="org-ul">
 <li><a href="https://www.bilibili.com/read/cv23216690/">使用国产芯片构建QMK固件（一）</a></li>
 </ul>
 </div>
-<div id="outline-container-org3ef9800" class="outline-4">
-<h4 id="org3ef9800"><span class="section-number-4">2.1.1.</span> <a href="#org3ef9800">使用 STM32duino BL</a></h4>
+<div id="outline-container-org678b6ea" class="outline-4">
+<h4 id="org678b6ea"><span class="section-number-4">2.1.1.</span> <a href="#org678b6ea">使用 STM32duino BL</a></h4>
 <div class="outline-text-4" id="text-2-1-1">
 <ul class="org-ul">
 <li><a href="https://docs.qmk.fm/#/flashing?id=stm32duino">Flashing Instructions and Bootloader Information</a>
@@ -145,8 +145,8 @@ erase flash 再刷入链接中的 BL，然后使用命令
 </div>
 </div>
 </div>
-<div id="outline-container-orgce503c8" class="outline-4">
-<h4 id="orgce503c8"><span class="section-number-4">2.1.2.</span> <a href="#orgce503c8">使用 UF2 BL</a></h4>
+<div id="outline-container-orgafa63da" class="outline-4">
+<h4 id="orgafa63da"><span class="section-number-4">2.1.2.</span> <a href="#orgafa63da">使用 UF2 BL</a></h4>
 <div class="outline-text-4" id="text-2-1-2">
 <ul class="org-ul">
 <li><a href="https://learn.adafruit.com/adafruit-hallowing/uf2-bootloader-details">UF2 Bootloader Details</a></li>
@@ -164,8 +164,8 @@ erase flash 再刷入链接中的 BL，然后使用命令
 </div>
 </div>
 </div>
-<div id="outline-container-org2855741" class="outline-2">
-<h2 id="org2855741"><span class="section-number-2">3.</span> <a href="#org2855741">使用 74HC65 扫描按键</a></h2>
+<div id="outline-container-org6fa8f1f" class="outline-2">
+<h2 id="org6fa8f1f"><span class="section-number-2">3.</span> <a href="#org6fa8f1f">使用 74HC65 扫描按键</a></h2>
 <div class="outline-text-2" id="text-3">
 <p>
 需要修改 <code>matrix.c</code>，具体见 <a href="https://docs.qmk.fm/#/custom_matrix?id=custom-matrix">Custom Matrix</a>。
@@ -176,8 +176,8 @@ Air32F103 目前SPI好像还没有适配，所以直接 bitbang 了。
 </p>
 </div>
 </div>
-<div id="outline-container-orgaa6fcb7" class="outline-2">
-<h2 id="orgaa6fcb7"><span class="section-number-2">4.</span> <a href="#orgaa6fcb7">分体键盘</a></h2>
+<div id="outline-container-orgf4961bd" class="outline-2">
+<h2 id="orgf4961bd"><span class="section-number-2">4.</span> <a href="#orgf4961bd">分体键盘</a></h2>
 <div class="outline-text-2" id="text-4">
 <ul class="org-ul">
 <li><a href="https://github.com/qmk/qmk_firmware/blob/master/docs/feature_split_keyboard.md">Split Keyboard</a> 通讯方式可以选择串口或者I2C。</li>
@@ -197,20 +197,20 @@ Air32F103 目前SPI好像还没有适配，所以直接 bitbang 了。
 </p>
 </div>
 </div>
-<div id="outline-container-org381e2af" class="outline-2">
-<h2 id="org381e2af"><span class="section-number-2">5.</span> <a href="#org381e2af">VIA</a></h2>
+<div id="outline-container-org8c441bb" class="outline-2">
+<h2 id="org8c441bb"><span class="section-number-2">5.</span> <a href="#org8c441bb">VIA</a></h2>
 <div class="outline-text-2" id="text-5">
 </div>
-<div id="outline-container-org831721f" class="outline-3">
-<h3 id="org831721f"><span class="section-number-3">5.1.</span> <a href="#org831721f">固件配置</a></h3>
+<div id="outline-container-org86aec62" class="outline-3">
+<h3 id="org86aec62"><span class="section-number-3">5.1.</span> <a href="#org86aec62">固件配置</a></h3>
 <div class="outline-text-3" id="text-5-1">
 <p>
 添加一个 <code>via</code> keymap。
 </p>
 </div>
 </div>
-<div id="outline-container-org6e1a034" class="outline-3">
-<h3 id="org6e1a034"><span class="section-number-3">5.2.</span> <a href="#org6e1a034">配置文件</a></h3>
+<div id="outline-container-org5d882d6" class="outline-3">
+<h3 id="org5d882d6"><span class="section-number-3">5.2.</span> <a href="#org5d882d6">配置文件</a></h3>
 <div class="outline-text-3" id="text-5-2">
 <p>
 VIA的键盘配置文件在 <a href="https://github.com/the-via/keyboards">the-via/keyboards</a> 中。
@@ -262,8 +262,8 @@ VIA的键盘配置文件在 <a href="https://github.com/the-via/keyboards">the-v
 </p>
 </div>
 </div>
-<div id="outline-container-org20bb895" class="outline-3">
-<h3 id="org20bb895"><span class="section-number-3">5.3.</span> <a href="#org20bb895">VIA网页端使用</a></h3>
+<div id="outline-container-orgfe3f0af" class="outline-3">
+<h3 id="orgfe3f0af"><span class="section-number-3">5.3.</span> <a href="#orgfe3f0af">VIA网页端使用</a></h3>
 <div class="outline-text-3" id="text-5-3">
 <p>
 如果需要添加一些复杂的 keycode，如 <code>MT(MOD_LCTL,KC_F)</code>，
@@ -271,8 +271,8 @@ VIA的键盘配置文件在 <a href="https://github.com/the-via/keyboards">the-v
 </p>
 </div>
 </div>
-<div id="outline-container-org34db646" class="outline-3">
-<h3 id="org34db646"><span class="section-number-3">5.4.</span> <a href="#org34db646">Linux 下可能遇到的问题</a></h3>
+<div id="outline-container-orgbafdc5d" class="outline-3">
+<h3 id="orgbafdc5d"><span class="section-number-3">5.4.</span> <a href="#orgbafdc5d">Linux 下可能遇到的问题</a></h3>
 <div class="outline-text-3" id="text-5-4">
 <p>
 Linux 下，试图 Authorize Device 时，如果 HID 列表中显示了自己的键盘，
@@ -297,7 +297,7 @@ Linux 下，试图 Authorize Device 时，如果 HID 列表中显示了自己的
   <tr><td class="org-right">Author</td><td class="org-left">thebesttv</td></tr>
   <tr><td class="org-right">Created</td><td class="org-left">2023-08-03 12:45</td></tr>
   <tr><td class="org-right">Modified</td><td class="org-left">2023-08-26 20:12</td></tr>
-  <tr><td class="org-right">Generated</td><td class="org-left">2026-06-30 04:28</td></tr>
+  <tr><td class="org-right">Generated</td><td class="org-left">2026-07-01 04:31</td></tr>
   <tr><td class="org-right">Version</td><td class="org-left"><a href="https://www.gnu.org/software/emacs/">Emacs</a> 30.2 (<a href="https://orgmode.org">Org</a> mode 9.7.11)</td></tr>
   <tr><td class="org-right">Raw</td><td class="org-left"><a href="https://raw.githubusercontent.com/thebesttv/thebesttv.github.io/main/content/keyboard/qmk.org">qmk.org</a></td></tr>
 </table>
